@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+var version string
+
 func main() {
-	fmt.Println("piximanctl cli tool")
+	fmt.Printf("piximanctl v%v\n", version)
 }

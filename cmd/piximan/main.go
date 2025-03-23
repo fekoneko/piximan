@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+var version string
+
 func main() {
-	fmt.Println("piximan app")
+	fmt.Printf("piximan v%v\n", version)
 }

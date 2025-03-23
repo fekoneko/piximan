@@ -1,14 +1,17 @@
+VERSION := $(shell git describe --always --long --dirty)
+VERSION_ARGS := -ldflags="-X main.version=${VERSION}"
+
 run\:piximan:
-	go run cmd/piximan/main.go
+	go run ${VERSION_ARGS} cmd/piximan/main.go
 
 run\:piximanctl:
-	go run cmd/piximanctl/main.goma
+	go run ${VERSION_ARGS} cmd/piximanctl/main.go
 
 build\:piximan:
-	go build -o ./bin/piximan ./cmd/piximan/main.go
+	go build ${VERSION_ARGS} -v -o bin/piximan cmd/piximan/main.go
 
 build\:piximanctl:
-	go build -o ./bin/piximanctl ./cmd/piximanctl/main.go
+	go build ${VERSION_ARGS} -v -o bin/piximanctl cmd/piximanctl/main.go
 
 build:
 	make build:piximan
