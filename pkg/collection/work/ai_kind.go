@@ -17,28 +17,27 @@ func AiKindFromUint(aiKind uint8) AiKind {
 	return AiKindDefault
 }
 
-func AiKindFromString(aiKind string) AiKind {
-	switch aiKind {
-	case "unknown":
+func AiKindFromBool(aiKind *bool) AiKind {
+	if aiKind == nil {
 		return AiKindUnknown
-	case "not ai":
-		return AiKindNotAi
-	case "is ai":
-		return AiKindIsAi
-	default:
-		return AiKindDefault
 	}
+	if *aiKind {
+		return AiKindIsAi
+	}
+	return AiKindNotAi
 }
 
-func (aiKind AiKind) String() string {
+func (aiKind AiKind) Bool() *bool {
 	switch aiKind {
 	case AiKindUnknown:
-		return "unknown"
+		return nil
 	case AiKindNotAi:
-		return "not ai"
+		return new(bool)
 	case AiKindIsAi:
-		return "is ai"
+		result := new(bool)
+		*result = true
+		return result
 	default:
-		return AiKindDefault.String()
+		return AiKindDefault.Bool()
 	}
 }

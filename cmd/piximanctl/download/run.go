@@ -39,7 +39,7 @@ func Run() {
 	}
 
 	d := downloader.New(*sessionId)
-	if err := d.DownloadWork(*id, *path); err != nil {
+	if _, err := d.DownloadWork(*id, *path); err != nil {
 		fmt.Printf("failed to download work: %v\n", err)
 		os.Exit(1)
 	}

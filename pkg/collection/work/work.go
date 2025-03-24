@@ -19,8 +19,8 @@ type Work struct {
 	CommentCount  uint64
 	UploadTime    time.Time
 	DownloadTime  time.Time
-	SeriesId      uint64
-	SeriesTitle   string
-	SeriesOrder   uint64
+	SeriesId      *uint64
+	SeriesTitle   *string
+	SeriesOrder   *uint64
 	Tags          []string
 }

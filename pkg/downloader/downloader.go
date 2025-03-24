@@ -1,10 +1,11 @@
 package downloader
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+
+	"github.com/fekoneko/piximan/pkg/collection/work"
 )
 
 type Downloader struct {
@@ -22,13 +23,15 @@ func New(sessionId string) *Downloader {
 	return &Downloader{sessionId, client}
 }
 
-func (d *Downloader) DownloadWork(id uint64, path string) error {
+func (d *Downloader) DownloadWork(id uint64, path string) (*work.Work, error) {
 	work, err := d.fetchWork(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	fmt.Println(work)
+	if err := storeWork(work, path); err != nil {
+		return nil, err
+	}
 
-	return nil
+	return work, nil
 }
