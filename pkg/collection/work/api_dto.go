@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Dto struct {
+type ApiDto struct {
 	Id            string `json:"id"`
 	Title         string `json:"title"`
 	IllustType    uint8  `json:"illustType"`
@@ -33,15 +33,11 @@ type Dto struct {
 	} `json:"tags"`
 }
 
-func WorkFromDto(dto Dto, downloadTime time.Time) *Work {
+func FromApiDto(dto *ApiDto, downloadTime time.Time) *Work {
 	id, _ := strconv.ParseUint(dto.Id, 10, 64)
 	userId, _ := strconv.ParseUint(dto.UserId, 10, 64)
 	seriesId, _ := strconv.ParseUint(dto.SeriesNavData.SeriesId, 10, 64)
 	uploadTime, _ := time.Parse(dto.UploadDate, dto.UploadDate)
-	tags := make([]string, len(dto.Tags.Tags))
-	for i, tag := range dto.Tags.Tags {
-		tags[i] = tag.Tag
-	}
 
 	return &Work{
 		Id:            id,
@@ -63,6 +59,14 @@ func WorkFromDto(dto Dto, downloadTime time.Time) *Work {
 		SeriesId:      seriesId,
 		SeriesTitle:   dto.SeriesNavData.Title,
 		SeriesOrder:   dto.SeriesNavData.Order,
-		Tags:          tags,
+		Tags:          tagsFromApiDto(dto),
 	}
+}
+
+func tagsFromApiDto(dto *ApiDto) []string {
+	tags := make([]string, len(dto.Tags.Tags))
+	for i, tag := range dto.Tags.Tags {
+		tags[i] = tag.Tag
+	}
+	return tags
 }

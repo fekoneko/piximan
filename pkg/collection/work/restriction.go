@@ -8,9 +8,11 @@ const (
 	RestrictionR18G Restriction = 2
 )
 
+const RestrictionDefault = RestrictionNone
+
 func RestrictionOrDefault(restriction uint8) Restriction {
 	if restriction <= 2 {
 		return Restriction(restriction)
 	}
-	return RestrictionNone
+	return RestrictionDefault
 }

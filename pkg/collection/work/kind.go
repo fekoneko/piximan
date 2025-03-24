@@ -7,9 +7,11 @@ const (
 	KindManga  Kind = 1
 )
 
+const KindDefault = KindIllust
+
 func KindOrDefault(kind uint8) Kind {
 	if kind <= 1 {
 		return Kind(kind)
 	}
-	return KindIllust
+	return KindDefault
 }

@@ -8,9 +8,11 @@ const (
 	AiKindIsAi    AiKind = 2
 )
 
+const AiKindDefault = AiKindUnknown
+
 func AiKindOrDefault(aiKind uint8) AiKind {
 	if aiKind <= 2 {
 		return AiKind(aiKind)
 	}
-	return AiKindUnknown
+	return AiKindDefault
 }
