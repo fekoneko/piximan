@@ -16,7 +16,7 @@ func main() {
 
 	args := os.Args[1:]
 	if len(args) == 0 {
-		usage.General()
+		usage.RunGeneral()
 		return
 	}
 	command := args[0]
@@ -28,6 +28,6 @@ func main() {
 	case "download":
 		download.Run()
 	default:
-		usage.General()
+		usage.RunGeneral()
 	}
 }

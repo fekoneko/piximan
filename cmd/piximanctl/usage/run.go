@@ -37,35 +37,39 @@ Examples:
 
 const downloadUsage = //
 `Usage:
-    piximanctl download -id <id> [-path <path>]
+    piximanctl download -id <id> [-path <path> -sessionid <sessionid>]
 
 Description:
     Download the work files and metadata from pixiv.net to the given directory.
     Session ID must be configued prior to this command.
 
 Options:
-    -id     ID of the downloaded work. You can found it in the work URI:
-            https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
-    -path   The directory to save the files into. Defaults to the current directory.
-            You can use this substitutions in the pathname:
-            - {user}    the username of the work author.
-            - {title}   the title of the work.
-            - {id}      the ID of the work.
-            - {userid}  the ID of the work author.
+    -id         ID of the downloaded work. You can found it in the work URI:
+                https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
+
+    -path       Directory to save the files into. Defaults to the current directory.
+                You can use this substitutions in the pathname:
+                - {user}    the username of the work author.
+                - {title}   the title of the work.
+                - {id}      the ID of the work.
+                - {userid}  the ID of the work author.
+
+    -sessionid  Will default to the session ID stored in config.
+                For additional information, run 'piximanctl config'.
 
 Examples:
     piximanctl download -id 12345 -path ~/Downloads/work
     piximanctl download -id 12345 -path "./{user} ({userid})/{title} ({id})"
 `
 
-func General() {
+func RunGeneral() {
 	fmt.Print(generalUsage)
 }
 
-func Config() {
+func RunConfig() {
 	fmt.Print(configUsage)
 }
 
-func Download() {
+func RunDownload() {
 	fmt.Print(downloadUsage)
 }

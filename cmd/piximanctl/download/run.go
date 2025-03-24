@@ -13,29 +13,33 @@ import (
 
 func Run() {
 	if len(os.Args) == 1 {
-		usage.Download()
+		usage.RunDownload()
 		os.Exit(0)
 	}
 
-	id := flag.Uint64("id", 0, "")
-	path := flag.String("path", "", "")
-	flag.Usage = usage.Download
+	id := *flag.Uint64("id", 0, "")
+	path := *flag.String("path", "", "")
+	sessionId := *flag.String("sessionid", "", "")
+	flag.Usage = usage.RunDownload
 	flag.Parse()
 
 	if !flagext.Provided("id") {
 		fmt.Println("required flag is not set: -id")
-		usage.Download()
+		usage.RunDownload()
 		os.Exit(2)
 	}
 
-	sessionId, err := settings.SessionId()
-	if err != nil {
-		fmt.Printf("failed to get session id: %v\n", err)
-		os.Exit(1)
+	if !flagext.Provided("sessionid") {
+		var err error
+		sessionId, err = settings.SessionId()
+		if err != nil {
+			fmt.Printf("failed to get session id: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	d := downloader.New(sessionId)
-	err = d.DownloadWork(*id, *path)
+	err := d.DownloadWork(id, path)
 	if err != nil {
 		fmt.Printf("failed to download work: %v\n", err)
 		os.Exit(1)

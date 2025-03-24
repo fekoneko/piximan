@@ -11,12 +11,12 @@ import (
 )
 
 func Run() {
-	sessionId := flag.String("sessionid", "", "")
-	flag.Usage = usage.Config
+	sessionId := *flag.String("sessionid", "", "")
+	flag.Usage = usage.RunConfig
 	flag.Parse()
 
 	if flagext.Provided("sessionid") {
-		err := settings.SetSessionId(*sessionId)
+		err := settings.SetSessionId(sessionId)
 		if err != nil {
 			fmt.Printf("failed to set sessionid: %v\n", err)
 			os.Exit(1)
