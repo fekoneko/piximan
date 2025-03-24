@@ -43,5 +43,5 @@ func workFromResponse(response *http.Response) (*work.Work, error) {
 		return nil, err
 	}
 
-	return work.FromApiDto(&unmarshalled.Body, time.Now()), nil
+	return unmarshalled.Body.Work(time.Now()), nil
 }

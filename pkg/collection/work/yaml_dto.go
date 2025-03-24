@@ -23,16 +23,16 @@ type YamlDto struct {
 	Tags        []string `yaml:"tags"`
 }
 
-func ToYamlDto(work *Work) *YamlDto {
+func (work *Work) YamlDto() *YamlDto {
 	return &YamlDto{
 		Id:          work.Id,
 		Title:       work.Title,
-		Kind:        kindToYamlDto(work.Kind),
+		Kind:        work.Kind.String(),
 		Description: work.Description,
 		UserId:      work.UserId,
 		UserName:    work.UserName,
-		Restriction: restrictionToYamlDto(work.Restriction),
-		Ai:          aiKindToYamlDto(work.AiKind),
+		Restriction: work.Restriction.String(),
+		Ai:          work.AiKind.String(),
 		Original:    work.IsOriginal,
 		Pages:       work.PageCount,
 		Views:       work.ViewCount,
@@ -45,42 +45,5 @@ func ToYamlDto(work *Work) *YamlDto {
 		SeriesTitle: work.SeriesTitle,
 		SeriesOrder: work.SeriesOrder,
 		Tags:        work.Tags,
-	}
-}
-
-func kindToYamlDto(kind Kind) string {
-	switch kind {
-	case KindIllust:
-		return "illust"
-	case KindManga:
-		return "manga"
-	default:
-		return kindToYamlDto(KindDefault)
-	}
-}
-
-func restrictionToYamlDto(restriction Restriction) string {
-	switch restriction {
-	case RestrictionNone:
-		return "none"
-	case RestrictionR18:
-		return "r18"
-	case RestrictionR18G:
-		return "r18g"
-	default:
-		return restrictionToYamlDto(RestrictionDefault)
-	}
-}
-
-func aiKindToYamlDto(aiKind AiKind) string {
-	switch aiKind {
-	case AiKindUnknown:
-		return "unknown"
-	case AiKindNotAi:
-		return "not ai"
-	case AiKindIsAi:
-		return "is ai"
-	default:
-		return aiKindToYamlDto(AiKindDefault)
 	}
 }

@@ -33,21 +33,26 @@ type ApiDto struct {
 	} `json:"tags"`
 }
 
-func FromApiDto(dto *ApiDto, downloadTime time.Time) *Work {
+func (dto *ApiDto) Work(downloadTime time.Time) *Work {
 	id, _ := strconv.ParseUint(dto.Id, 10, 64)
 	userId, _ := strconv.ParseUint(dto.UserId, 10, 64)
 	seriesId, _ := strconv.ParseUint(dto.SeriesNavData.SeriesId, 10, 64)
 	uploadTime, _ := time.Parse(dto.UploadDate, dto.UploadDate)
 
+	tags := make([]string, len(dto.Tags.Tags))
+	for i, tag := range dto.Tags.Tags {
+		tags[i] = tag.Tag
+	}
+
 	return &Work{
 		Id:            id,
 		Title:         dto.Title,
-		Kind:          KindOrDefault(dto.IllustType),
+		Kind:          KindFromUint(dto.IllustType),
 		Description:   dto.Description,
 		UserId:        userId,
 		UserName:      dto.UserName,
-		Restriction:   RestrictionOrDefault(dto.XRestrict),
-		AiKind:        AiKindOrDefault(dto.AiType),
+		Restriction:   RestrictionFromUint(dto.XRestrict),
+		AiKind:        AiKindFromUint(dto.AiType),
 		IsOriginal:    dto.IsOriginal,
 		PageCount:     dto.PageCount,
 		ViewCount:     dto.ViewCount,
@@ -59,14 +64,6 @@ func FromApiDto(dto *ApiDto, downloadTime time.Time) *Work {
 		SeriesId:      seriesId,
 		SeriesTitle:   dto.SeriesNavData.Title,
 		SeriesOrder:   dto.SeriesNavData.Order,
-		Tags:          tagsFromApiDto(dto),
+		Tags:          tags,
 	}
-}
-
-func tagsFromApiDto(dto *ApiDto) []string {
-	tags := make([]string, len(dto.Tags.Tags))
-	for i, tag := range dto.Tags.Tags {
-		tags[i] = tag.Tag
-	}
-	return tags
 }
