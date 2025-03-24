@@ -16,8 +16,7 @@ func Run() {
 	flag.Parse()
 
 	if flagext.Provided("sessionid") {
-		err := settings.SetSessionId(sessionId)
-		if err != nil {
+		if err := settings.SetSessionId(sessionId); err != nil {
 			fmt.Printf("failed to set sessionid: %v\n", err)
 			os.Exit(1)
 		}

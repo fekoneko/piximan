@@ -17,9 +17,9 @@ func Run() {
 		os.Exit(0)
 	}
 
-	id := *flag.Uint64("id", 0, "")
-	path := *flag.String("path", "", "")
-	sessionId := *flag.String("sessionid", "", "")
+	id := flag.Uint64("id", 0, "")
+	path := flag.String("path", "", "")
+	sessionId := flag.String("sessionid", "", "")
 	flag.Usage = usage.RunDownload
 	flag.Parse()
 
@@ -31,16 +31,15 @@ func Run() {
 
 	if !flagext.Provided("sessionid") {
 		var err error
-		sessionId, err = settings.SessionId()
+		*sessionId, err = settings.SessionId()
 		if err != nil {
 			fmt.Printf("failed to get session id: %v\n", err)
 			os.Exit(1)
 		}
 	}
 
-	d := downloader.New(sessionId)
-	err := d.DownloadWork(id, path)
-	if err != nil {
+	d := downloader.New(*sessionId)
+	if err := d.DownloadWork(*id, *path); err != nil {
 		fmt.Printf("failed to download work: %v\n", err)
 		os.Exit(1)
 	}
