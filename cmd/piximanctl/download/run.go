@@ -40,8 +40,5 @@ func Run() {
 	}
 
 	d := downloader.New(*sessionId)
-	if _, err := d.DownloadWork(*id, downloader.ImageSize(*size), *path); err != nil {
-		fmt.Printf("failed to download work: %v\n", err)
-		os.Exit(1)
-	}
+	d.DownloadWork(*id, downloader.ImageSize(*size), *path)
 }
