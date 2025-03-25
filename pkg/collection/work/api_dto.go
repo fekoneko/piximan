@@ -36,7 +36,7 @@ type ApiDto struct {
 func (dto *ApiDto) Work(downloadTime time.Time) *Work {
 	id, _ := strconv.ParseUint(dto.Id, 10, 64)
 	userId, _ := strconv.ParseUint(dto.UserId, 10, 64)
-	uploadTime, _ := time.Parse(dto.UploadDate, dto.UploadDate) // FIXME: parsing is broken
+	uploadTime, _ := time.Parse(time.RFC3339, dto.UploadDate)
 
 	var seriesId *uint64
 	if dto.SeriesNavData.SeriesId != nil {
@@ -64,8 +64,8 @@ func (dto *ApiDto) Work(downloadTime time.Time) *Work {
 		BookmarkCount: dto.BookmarkCount,
 		LikeCount:     dto.LikeCount,
 		CommentCount:  dto.CommentCount,
-		UploadTime:    uploadTime,
-		DownloadTime:  downloadTime,
+		UploadTime:    uploadTime.Local(),
+		DownloadTime:  downloadTime.Local(),
 		SeriesId:      seriesId,
 		SeriesTitle:   dto.SeriesNavData.Title,
 		SeriesOrder:   dto.SeriesNavData.Order,

@@ -1,5 +1,7 @@
 package work
 
+import "time"
+
 const version = 1
 
 type YamlDto struct {
@@ -43,8 +45,8 @@ func (work *Work) YamlDto() *YamlDto {
 		Bookmarks:   work.BookmarkCount,
 		Likes:       work.LikeCount,
 		Comments:    work.CommentCount,
-		Uploaded:    work.UploadTime.String(),   // TODO: make pretty format
-		Downloaded:  work.DownloadTime.String(), // TODO: make pretty format
+		Uploaded:    work.UploadTime.UTC().Format(time.RFC3339),
+		Downloaded:  work.DownloadTime.UTC().Format(time.RFC3339),
 		SeriesId:    work.SeriesId,
 		SeriesTitle: work.SeriesTitle,
 		SeriesOrder: work.SeriesOrder,
