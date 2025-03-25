@@ -7,7 +7,7 @@ import (
 
 	"github.com/fekoneko/piximan/cmd/piximanctl/usage"
 	"github.com/fekoneko/piximan/pkg/flagext"
-	"github.com/fekoneko/piximan/pkg/settings"
+	"github.com/fekoneko/piximan/pkg/storage"
 )
 
 func Run() {
@@ -16,7 +16,7 @@ func Run() {
 	flag.Parse()
 
 	if flagext.Provided("sessionid") {
-		if err := settings.SetSessionId(sessionId); err != nil {
+		if err := storage.StoreSessionId(sessionId); err != nil {
 			fmt.Printf("failed to set sessionid: %v\n", err)
 			os.Exit(1)
 		}

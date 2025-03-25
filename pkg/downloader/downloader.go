@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/pkg/storage"
 )
 
 type Downloader struct {
@@ -29,7 +30,7 @@ func (d *Downloader) DownloadWork(id uint64, path string) (*work.Work, error) {
 		return nil, err
 	}
 
-	if err := storeWork(work, path); err != nil {
+	if err := storage.StoreWork(work, path); err != nil {
 		return nil, err
 	}
 

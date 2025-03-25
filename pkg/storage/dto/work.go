@@ -1,10 +1,14 @@
-package work
+package dto
 
-import "time"
+import (
+	"time"
+
+	"github.com/fekoneko/piximan/pkg/collection/work"
+)
 
 const version = 1
 
-type YamlDto struct {
+type Work struct {
 	Version     uint64   `yaml:"_version"`
 	Id          uint64   `yaml:"id"`
 	Title       string   `yaml:"title"`
@@ -28,8 +32,8 @@ type YamlDto struct {
 	Tags        []string `yaml:"tags"`
 }
 
-func (work *Work) YamlDto() *YamlDto {
-	return &YamlDto{
+func FromWork(work *work.Work) *Work {
+	return &Work{
 		Version:     version,
 		Id:          work.Id,
 		Title:       work.Title,

@@ -1,11 +1,13 @@
-package work
+package dto
 
 import (
 	"strconv"
 	"time"
+
+	"github.com/fekoneko/piximan/pkg/collection/work"
 )
 
-type ApiDto struct {
+type Work struct {
 	Id            string `json:"id"`
 	Title         string `json:"title"`
 	IllustType    uint8  `json:"illustType"`
@@ -33,7 +35,7 @@ type ApiDto struct {
 	} `json:"tags"`
 }
 
-func (dto *ApiDto) Work(downloadTime time.Time) *Work {
+func (dto *Work) ToWork(downloadTime time.Time) *work.Work {
 	id, _ := strconv.ParseUint(dto.Id, 10, 64)
 	userId, _ := strconv.ParseUint(dto.UserId, 10, 64)
 	uploadTime, _ := time.Parse(time.RFC3339, dto.UploadDate)
@@ -49,15 +51,15 @@ func (dto *ApiDto) Work(downloadTime time.Time) *Work {
 		tags[i] = tag.Tag
 	}
 
-	return &Work{
+	return &work.Work{
 		Id:            id,
 		Title:         dto.Title,
-		Kind:          KindFromUint(dto.IllustType),
+		Kind:          work.KindFromUint(dto.IllustType),
 		Description:   dto.Description,
 		UserId:        userId,
 		UserName:      dto.UserName,
-		Restriction:   RestrictionFromUint(dto.XRestrict),
-		AiKind:        AiKindFromUint(dto.AiType),
+		Restriction:   work.RestrictionFromUint(dto.XRestrict),
+		AiKind:        work.AiKindFromUint(dto.AiType),
 		IsOriginal:    dto.IsOriginal,
 		PageCount:     dto.PageCount,
 		ViewCount:     dto.ViewCount,

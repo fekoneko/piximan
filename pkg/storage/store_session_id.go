@@ -1,12 +1,12 @@
-package settings
+package storage
 
 import (
 	"os"
 	"path/filepath"
 )
 
-func SessionId() (string, error) {
-	sessionIdPath := getSessionIdPath()
+func StoredSessionId() (string, error) {
+	sessionIdPath := sessionIdPath()
 	sessionId, err := os.ReadFile(sessionIdPath)
 	if err != nil {
 		return "", err
@@ -15,13 +15,13 @@ func SessionId() (string, error) {
 	return string(sessionId), nil
 }
 
-func SetSessionId(sessionId string) error {
-	sessionIdPath := getSessionIdPath()
+func StoreSessionId(sessionId string) error {
+	sessionIdPath := sessionIdPath()
 	os.MkdirAll(filepath.Dir(sessionIdPath), 0775)
 	return os.WriteFile(sessionIdPath, []byte(sessionId), 0600)
 }
 
-func getSessionIdPath() string {
+func sessionIdPath() string {
 	homePath, _ := os.UserHomeDir()
 	return filepath.Join(homePath, ".piximan", "sessionid")
 }

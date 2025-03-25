@@ -1,15 +1,16 @@
-package downloader
+package storage
 
 import (
 	"os"
 	"path/filepath"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
-	"github.com/go-yaml/yaml"
+	"github.com/fekoneko/piximan/pkg/storage/dto"
+	"gopkg.in/yaml.v2"
 )
 
-func storeWork(work *work.Work, path string) error {
-	dto := work.YamlDto()
+func StoreWork(work *work.Work, path string) error {
+	dto := dto.FromWork(work)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {
 		return err

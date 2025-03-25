@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/pkg/downloader/dto"
 )
 
 func (d *Downloader) fetchWork(id uint64) (*work.Work, error) {
@@ -38,10 +39,10 @@ func workFromResponse(response *http.Response) (*work.Work, error) {
 		return nil, err
 	}
 
-	var unmarshalled ApiResponse[work.ApiDto]
+	var unmarshalled dto.Response[dto.Work]
 	if err := json.Unmarshal(body, &unmarshalled); err != nil {
 		return nil, err
 	}
 
-	return unmarshalled.Body.Work(time.Now()), nil
+	return unmarshalled.Body.ToWork(time.Now()), nil
 }
