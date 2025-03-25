@@ -44,6 +44,9 @@ func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) *work.
 	}()
 
 	pages := <-pagesChannel
+	if pages == nil {
+		return nil
+	}
 
 	imageChannel := make(chan storage.Image, len(pages))
 	for i, urls := range pages {
@@ -62,11 +65,17 @@ func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) *work.
 		}()
 	}
 
-	work := <-workChannel
-
 	images := make([]storage.Image, len(pages))
 	for i := range pages {
 		images[i] = <-imageChannel
+		if images[i].Bytes == nil {
+			return nil
+		}
+	}
+
+	work := <-workChannel
+	if work == nil {
+		return nil
 	}
 
 	err := storage.StoreWork(work, images, path)
