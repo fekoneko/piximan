@@ -25,7 +25,14 @@ func New(sessionId string) *Downloader {
 }
 
 func (d *Downloader) DownloadWork(id uint64, path string) (*work.Work, error) {
+	// TODO: async
+
 	work, err := d.fetchWork(id)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = d.fetchPages(id)
 	if err != nil {
 		return nil, err
 	}

@@ -13,14 +13,9 @@ import (
 
 func (d *Downloader) fetchWork(id uint64) (*work.Work, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
-	request, _ := http.NewRequest(http.MethodGet, url, nil)
-	request.Header.Add("User-Agent", "Mozilla/5.0")
-	response, err := d.client.Do(request)
+	response, err := d.fetch(url)
 	if err != nil {
 		return nil, err
-	}
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("response status code is: %v", response.Status)
 	}
 
 	work, err := workFromResponse(response)
