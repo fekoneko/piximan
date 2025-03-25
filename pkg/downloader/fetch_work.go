@@ -3,8 +3,6 @@ package downloader
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"time"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
@@ -26,14 +24,7 @@ func (d *Downloader) fetchWork(id uint64) (*work.Work, error) {
 	return work, nil
 }
 
-func workFromResponse(response *http.Response) (*work.Work, error) {
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-
+func workFromResponse(body []byte) (*work.Work, error) {
 	var unmarshalled dto.Response[dto.Work]
 	if err := json.Unmarshal(body, &unmarshalled); err != nil {
 		return nil, err

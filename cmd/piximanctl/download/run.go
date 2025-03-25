@@ -39,7 +39,8 @@ func Run() {
 	}
 
 	d := downloader.New(*sessionId)
-	if _, err := d.DownloadWork(*id, *path); err != nil {
+	// TODO: add size flag
+	if _, err := d.DownloadWork(*id, downloader.ImageSizeDefault, *path); err != nil {
 		fmt.Printf("failed to download work: %v\n", err)
 		os.Exit(1)
 	}
