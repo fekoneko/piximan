@@ -7,7 +7,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/downloader/dto"
 )
 
-func (d *Downloader) fetchPages(id uint64) (*[][4]string, error) {
+func (d *Downloader) fetchPages(id uint64) ([][4]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/pages", id)
 	response, err := d.fetch(url)
 	if err != nil {
@@ -22,7 +22,7 @@ func (d *Downloader) fetchPages(id uint64) (*[][4]string, error) {
 	return pages, nil
 }
 
-func pagesFromResponse(body []byte) (*[][4]string, error) {
+func pagesFromResponse(body []byte) ([][4]string, error) {
 	var unmarshalled dto.Response[[]dto.Page]
 	if err := json.Unmarshal(body, &unmarshalled); err != nil {
 		return nil, err
@@ -38,5 +38,5 @@ func pagesFromResponse(body []byte) (*[][4]string, error) {
 		})
 	}
 
-	return &pages, nil
+	return pages, nil
 }

@@ -40,7 +40,7 @@ func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) (*work
 	}
 
 	var images []storage.Image
-	for _, urls := range *pages {
+	for _, urls := range pages {
 		url := urls[size]
 		bytes, err := d.fetch(url)
 		if err != nil {
