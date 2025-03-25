@@ -18,6 +18,7 @@ func Run() {
 	}
 
 	id := flag.Uint64("id", 0, "")
+	size := flag.Uint("size", uint(downloader.ImageSizeDefault), "")
 	path := flag.String("path", "", "")
 	sessionId := flag.String("sessionid", "", "")
 	flag.Usage = usage.RunDownload
@@ -39,8 +40,7 @@ func Run() {
 	}
 
 	d := downloader.New(*sessionId)
-	// TODO: add size flag
-	if _, err := d.DownloadWork(*id, downloader.ImageSizeDefault, *path); err != nil {
+	if _, err := d.DownloadWork(*id, downloader.ImageSize(*size), *path); err != nil {
 		fmt.Printf("failed to download work: %v\n", err)
 		os.Exit(1)
 	}

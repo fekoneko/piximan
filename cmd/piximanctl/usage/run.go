@@ -47,6 +47,13 @@ Options:
     -id         ID of the downloaded work. You can found it in the work URI:
                 https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
 
+    -size       Size (resolution) of the image to download. Defaults to original size.
+                Available options are:
+                - 0 thumbnail
+                - 1 small
+                - 2 medium
+                - 3 original
+
     -path       Directory to save the files into. Defaults to the current directory.
                 You can use this substitutions in the pathname:
                 - {user}    the username of the work author.
@@ -58,7 +65,7 @@ Options:
                 For additional information, run 'piximanctl config'.
 
 Examples:
-    piximanctl download -id 12345 -path ~/Downloads/work
+    piximanctl download -id 12345 -size 1 -path ~/Downloads/work
     piximanctl download -id 12345 -path "./{user} ({userid})/{title} ({id})"
 `
 
