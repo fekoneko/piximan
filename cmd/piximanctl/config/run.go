@@ -15,6 +15,12 @@ func Run() {
 	flag.Usage = usage.RunConfig
 	flag.Parse()
 
+	if len(flag.Args()) != 0 {
+		fmt.Println("too many arguments")
+		usage.RunDownload()
+		os.Exit(2)
+	}
+
 	if flagext.Provided("sessionid") {
 		if err := storage.StoreSessionId(sessionId); err != nil {
 			fmt.Printf("failed to set sessionid: %v\n", err)

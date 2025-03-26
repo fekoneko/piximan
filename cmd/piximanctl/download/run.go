@@ -24,6 +24,12 @@ func Run() {
 	flag.Usage = usage.RunDownload
 	flag.Parse()
 
+	if len(flag.Args()) != 0 {
+		fmt.Println("too many arguments")
+		usage.RunDownload()
+		os.Exit(2)
+	}
+
 	if !flagext.Provided("id") {
 		fmt.Println("required flag is not set: -id")
 		usage.RunDownload()
