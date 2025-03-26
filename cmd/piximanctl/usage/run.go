@@ -47,7 +47,8 @@ Options:
     -id         ID of the downloaded work. You can found it in the work URI:
                 https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
 
-    -size       Size (resolution) of the image to download. Defaults to original size.
+    -size       Size (resolution) of the image to download. This Option doesn't
+                apply to ugoira and novels. Defaults to original size.
                 Available options are:
                 - 0 thumbnail
                 - 1 small

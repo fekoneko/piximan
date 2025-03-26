@@ -37,7 +37,7 @@ func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) *work.
 	}
 
 	if fetchedWork.Kind == work.KindUgoira {
-		d.continueUgoira(fetchedWork, id, size, path)
+		d.continueUgoira(fetchedWork, id, path)
 	} else {
 		d.continueIllustOrManga(fetchedWork, id, size, path)
 	}
@@ -46,7 +46,7 @@ func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) *work.
 }
 
 // TODO: return error
-func (d *Downloader) continueUgoira(work *work.Work, id uint64, size ImageSize, path string) {
+func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) {
 	data, frames, err := d.fetchFramesData(id)
 	logext.LogSuccess(err, "fetched frames data for work %v", id)
 	logext.LogError(err, "failed to fetch frames data for work %v", id)
