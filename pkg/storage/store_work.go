@@ -17,6 +17,8 @@ type Image struct {
 }
 
 func StoreWork(work *work.Work, images []Image, path string) error {
+	// TODO: path substitutions as stated in usage
+
 	dto := dto.FromWork(work)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {
