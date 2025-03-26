@@ -17,7 +17,7 @@ type Work struct {
 	UserId      uint64   `yaml:"user_id"`
 	UserName    string   `yaml:"user_name"`
 	Restriction string   `yaml:"restriction"`
-	Ai          *bool    `yaml:"ai"`
+	Ai          *bool    `yaml:"ai,omitempty"`
 	Original    bool     `yaml:"original"`
 	Pages       uint64   `yaml:"pages"`
 	Views       uint64   `yaml:"views"`
@@ -26,9 +26,9 @@ type Work struct {
 	Comments    uint64   `yaml:"comments"`
 	Uploaded    string   `yaml:"uploaded"`
 	Downloaded  string   `yaml:"downloaded"`
-	SeriesId    *uint64  `yaml:"series_id"`
-	SeriesTitle *string  `yaml:"series_title"`
-	SeriesOrder *uint64  `yaml:"series_order"`
+	SeriesId    *uint64  `yaml:"series_id,omitempty"`
+	SeriesTitle *string  `yaml:"series_title,omitempty"`
+	SeriesOrder *uint64  `yaml:"series_order,omitempty"`
 	Tags        []string `yaml:"tags"`
 }
 
