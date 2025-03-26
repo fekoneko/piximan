@@ -17,7 +17,10 @@ type Image struct {
 }
 
 func StoreWork(work *work.Work, images []Image, path string) error {
-	// TODO: path substitutions as stated in usage
+	path = substitutePath(path, work)
+	if err := os.MkdirAll(path, 0775); err != nil {
+		return err
+	}
 
 	dto := dto.FromWork(work)
 	marshalled, err := yaml.Marshal(dto)
@@ -45,4 +48,14 @@ func StoreWork(work *work.Work, images []Image, path string) error {
 func toOsString(str string) string {
 	// TODO: think about Windows / Mac reserved names and characters
 	return strings.ReplaceAll(str, "/", "／")
+}
+
+func substitutePath(path string, work *work.Work) string {
+	replacer := strings.NewReplacer(
+		"{user}", toOsString(work.UserName),
+		"{title}", toOsString(work.Title),
+		"{id}", strconv.FormatUint(work.Id, 10),
+		"{userid}", strconv.FormatUint(work.UserId, 10),
+	)
+	return replacer.Replace(path)
 }

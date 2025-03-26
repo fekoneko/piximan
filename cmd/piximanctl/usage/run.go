@@ -55,7 +55,7 @@ Options:
                 - 3 original
 
     -path       Directory to save the files into. Defaults to the current directory.
-                You can use this substitutions in the pathname:
+                You can use these substitutions in the pathname:
                 - {user}    the username of the work author.
                 - {title}   the title of the work.
                 - {id}      the ID of the work.
