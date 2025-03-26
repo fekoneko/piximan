@@ -29,5 +29,13 @@ func dataFromResponse(body []byte) (string, []encode.Frame, error) {
 		return "", nil, err
 	}
 
-	return unmarshalled.Body.Src, unmarshalled.Body.Frames, nil
+	frames := make([]encode.Frame, len(unmarshalled.Body.Frames))
+	for i, frame := range unmarshalled.Body.Frames {
+		frames[i] = encode.Frame{
+			Filename: frame.File,
+			Duration: frame.Delay / 10,
+		}
+	}
+
+	return unmarshalled.Body.Src, frames, nil
 }
