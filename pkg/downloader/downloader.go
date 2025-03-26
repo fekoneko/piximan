@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/pkg/encode"
 	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/fekoneko/piximan/pkg/storage"
 )
@@ -26,29 +27,63 @@ func New(sessionId string) *Downloader {
 	return &Downloader{sessionId, client}
 }
 
+// TODO: return error
 func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) *work.Work {
-	workChannel := make(chan *work.Work)
-	go func() {
-		work, err := d.fetchWork(id)
-		logext.LogSuccess(err, "fetched metadata for work %v", id)
-		logext.LogError(err, "failed to fetch metadata for work %v", id)
-		workChannel <- work
-	}()
-
-	pagesChannel := make(chan [][4]string)
-	go func() {
-		pages, err := d.fetchPages(id)
-		logext.LogSuccess(err, "fetched page urls for work %v", id)
-		logext.LogError(err, "failed to fetch page urls for work %v", id)
-		pagesChannel <- pages
-	}()
-
-	pages := <-pagesChannel
-	if pages == nil {
+	fetchedWork, err := d.fetchWork(id)
+	logext.LogSuccess(err, "fetched metadata for work %v", id)
+	logext.LogError(err, "failed to fetch metadata for work %v", id)
+	if err != nil {
 		return nil
 	}
 
-	imageChannel := make(chan storage.Image, len(pages))
+	if fetchedWork.Kind == work.KindUgoira {
+		d.continueUgoira(fetchedWork, id, size, path)
+	} else {
+		d.continueIllustOrManga(fetchedWork, id, size, path)
+	}
+
+	return fetchedWork
+}
+
+// TODO: return error
+func (d *Downloader) continueUgoira(work *work.Work, id uint64, size ImageSize, path string) {
+	data, frames, err := d.fetchFramesData(id)
+	logext.LogSuccess(err, "fetched frames data for work %v", id)
+	logext.LogError(err, "failed to fetch frames data for work %v", id)
+	if err != nil {
+		return
+	}
+
+	archive, err := d.fetch(data)
+	logext.LogSuccess(err, "fetched frames for work %v", id)
+	logext.LogError(err, "failed to fetch frames for work %v", id)
+	if err != nil {
+		return
+	}
+
+	gif, err := encode.GifFromFrames(archive, frames)
+	logext.LogSuccess(err, "encoded frames for work %v", id)
+	logext.LogError(err, "failed to encode frames for work %v", id)
+	if err != nil {
+		return
+	}
+
+	assets := []storage.Asset{{Bytes: gif, Extension: ".gif"}}
+	err = storage.StoreWork(work, assets, path)
+	logext.LogSuccess(err, "wrote files for work %v", id)
+	logext.LogError(err, "failed to write files for work %v", id)
+}
+
+// TODO: return error
+func (d *Downloader) continueIllustOrManga(work *work.Work, id uint64, size ImageSize, path string) {
+	pages, err := d.fetchPageUrls(id)
+	logext.LogSuccess(err, "fetched page urls for work %v", id)
+	logext.LogError(err, "failed to fetch page urls for work %v", id)
+	if err != nil {
+		return
+	}
+
+	assetChannel := make(chan storage.Asset, len(pages))
 	for i, urls := range pages {
 		go func() {
 			url := urls[size]
@@ -60,27 +95,20 @@ func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) *work.
 			if dotIndex != -1 {
 				extension = urls[size][dotIndex:]
 			}
-			image := storage.Image{Bytes: bytes, Extension: extension}
-			imageChannel <- image
+			assets := storage.Asset{Bytes: bytes, Extension: extension}
+			assetChannel <- assets
 		}()
 	}
 
-	images := make([]storage.Image, len(pages))
+	assets := make([]storage.Asset, len(pages))
 	for i := range pages {
-		images[i] = <-imageChannel
-		if images[i].Bytes == nil {
-			return nil
+		assets[i] = <-assetChannel
+		if assets[i].Bytes == nil {
+			return
 		}
 	}
 
-	work := <-workChannel
-	if work == nil {
-		return nil
-	}
-
-	err := storage.StoreWork(work, images, path)
+	err = storage.StoreWork(work, assets, path)
 	logext.LogSuccess(err, "wrote files for work %v", id)
 	logext.LogError(err, "failed to write files for work %v", id)
-
-	return work
 }

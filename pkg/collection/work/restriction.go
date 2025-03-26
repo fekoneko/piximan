@@ -21,9 +21,9 @@ func RestrictionFromString(restriction string) Restriction {
 	switch restriction {
 	case "none":
 		return RestrictionNone
-	case "r18":
+	case "R18":
 		return RestrictionR18
-	case "r18g":
+	case "R18-G":
 		return RestrictionR18G
 	default:
 		return RestrictionDefault
@@ -35,9 +35,9 @@ func (restriction Restriction) String() string {
 	case RestrictionNone:
 		return "none"
 	case RestrictionR18:
-		return "r18"
+		return "R18"
 	case RestrictionR18G:
-		return "r18g"
+		return "R18-G"
 	default:
 		return RestrictionDefault.String()
 	}

@@ -11,12 +11,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Image struct {
+type Asset struct {
 	Bytes     []byte
 	Extension string
 }
 
-func StoreWork(work *work.Work, images []Image, path string) error {
+func StoreWork(work *work.Work, assets []Asset, path string) error {
 	path = substitutePath(path, work)
 	if err := os.MkdirAll(path, 0775); err != nil {
 		return err
@@ -33,12 +33,21 @@ func StoreWork(work *work.Work, images []Image, path string) error {
 		return err
 	}
 
-	imageBaseName := toOsString(work.Title) + " "
-	for i, image := range images {
-		imageName := imageBaseName + strconv.Itoa(i+1) + toOsString(image.Extension)
-		imagePath := filepath.Join(path, imageName)
-		if err := os.WriteFile(imagePath, image.Bytes, 0664); err != nil {
+	if len(assets) == 1 {
+		asset := assets[0]
+		assetName := toOsString(work.Title + asset.Extension)
+		assetPath := filepath.Join(path, assetName)
+		if err := os.WriteFile(assetPath, asset.Bytes, 0664); err != nil {
 			return err
+		}
+	} else {
+		imageBaseName := toOsString(work.Title) + " "
+		for i, asset := range assets {
+			assetName := imageBaseName + strconv.Itoa(i+1) + toOsString(asset.Extension)
+			assetPath := filepath.Join(path, assetName)
+			if err := os.WriteFile(assetPath, asset.Bytes, 0664); err != nil {
+				return err
+			}
 		}
 	}
 
