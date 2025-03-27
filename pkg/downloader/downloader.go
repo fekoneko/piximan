@@ -27,63 +27,65 @@ func New(sessionId string) *Downloader {
 	return &Downloader{sessionId, client}
 }
 
-// TODO: return error
-func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) *work.Work {
+func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) (*work.Work, error) {
 	fetchedWork, err := d.fetchWork(id)
 	logext.LogSuccess(err, "fetched metadata for work %v", id)
 	logext.LogError(err, "failed to fetch metadata for work %v", id)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	if fetchedWork.Kind == work.KindUgoira {
-		d.continueUgoira(fetchedWork, id, path)
+		err = d.continueUgoira(fetchedWork, id, path)
 	} else {
-		d.continueIllustOrManga(fetchedWork, id, size, path)
+		err = d.continueIllustOrManga(fetchedWork, id, size, path)
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	return fetchedWork
+	return fetchedWork, nil
 }
 
-// TODO: return error
-func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) {
+func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) error {
 	data, frames, err := d.fetchFramesData(id)
 	logext.LogSuccess(err, "fetched frames data for work %v", id)
 	logext.LogError(err, "failed to fetch frames data for work %v", id)
 	if err != nil {
-		return
+		return err
 	}
 
 	archive, err := d.fetch(data)
 	logext.LogSuccess(err, "fetched frames for work %v", id)
 	logext.LogError(err, "failed to fetch frames for work %v", id)
 	if err != nil {
-		return
+		return err
 	}
 
 	gif, err := encode.GifFromFrames(archive, frames)
 	logext.LogSuccess(err, "encoded frames for work %v", id)
 	logext.LogError(err, "failed to encode frames for work %v", id)
 	if err != nil {
-		return
+		return err
 	}
 
 	assets := []storage.Asset{{Bytes: gif, Extension: ".gif"}}
 	err = storage.StoreWork(work, assets, path)
 	logext.LogSuccess(err, "wrote files for work %v", id)
 	logext.LogError(err, "failed to write files for work %v", id)
+	return err
 }
 
-// TODO: return error
-func (d *Downloader) continueIllustOrManga(work *work.Work, id uint64, size ImageSize, path string) {
+func (d *Downloader) continueIllustOrManga(work *work.Work, id uint64, size ImageSize, path string) error {
 	pages, err := d.fetchPageUrls(id)
 	logext.LogSuccess(err, "fetched page urls for work %v", id)
 	logext.LogError(err, "failed to fetch page urls for work %v", id)
 	if err != nil {
-		return
+		return err
 	}
 
 	assetChannel := make(chan storage.Asset, len(pages))
+	errorChannel := make(chan error, len(pages))
 	for i, urls := range pages {
 		go func() {
 			url := urls[size]
@@ -97,18 +99,21 @@ func (d *Downloader) continueIllustOrManga(work *work.Work, id uint64, size Imag
 			}
 			assets := storage.Asset{Bytes: bytes, Extension: extension}
 			assetChannel <- assets
+			errorChannel <- err
 		}()
 	}
 
 	assets := make([]storage.Asset, len(pages))
 	for i := range pages {
 		assets[i] = <-assetChannel
-		if assets[i].Bytes == nil {
-			return
+		err = <-errorChannel
+		if err != nil {
+			return err
 		}
 	}
 
 	err = storage.StoreWork(work, assets, path)
 	logext.LogSuccess(err, "wrote files for work %v", id)
 	logext.LogError(err, "failed to write files for work %v", id)
+	return err
 }
