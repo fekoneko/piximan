@@ -17,6 +17,7 @@ func Run() {
 		os.Exit(0)
 	}
 
+	kind := flag.String("type", "artwork", "")
 	id := flag.Uint64("id", 0, "")
 	size := flag.Uint("size", uint(downloader.ImageSizeDefault), "")
 	path := flag.String("path", "", "")
@@ -36,6 +37,18 @@ func Run() {
 		os.Exit(2)
 	}
 
+	if flagext.Provided("size") && *size > 3 {
+		fmt.Println("invalid argument value: -size")
+		usage.RunDownload()
+		os.Exit(2)
+	}
+
+	if flagext.Provided("type") && *kind != "artwork" && *kind != "novel" {
+		fmt.Println("invalid argument value: -type")
+		usage.RunDownload()
+		os.Exit(2)
+	}
+
 	if !flagext.Provided("sessionid") {
 		var err error
 		*sessionId, err = storage.StoredSessionId()
@@ -46,5 +59,13 @@ func Run() {
 	}
 
 	d := downloader.New(*sessionId)
-	d.DownloadArtwork(*id, downloader.ImageSize(*size), *path)
+	var err error
+	if *kind == "novel" {
+		_, err = d.DownloadNovel(*id, *path)
+	} else {
+		_, err = d.DownloadArtwork(*id, downloader.ImageSize(*size), *path)
+	}
+	if err != nil {
+		os.Exit(1)
+	}
 }

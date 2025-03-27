@@ -44,6 +44,11 @@ Description:
     Session ID must be configued prior to this command.
 
 Options:
+    -type       The type of work to download. Defaults to artwork.
+                Available options are:
+                - artwork
+                - novel
+
     -id         ID of the downloaded work. You can found it in the work URI:
                 https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
 
@@ -67,7 +72,7 @@ Options:
 
 Examples:
     piximanctl download -id 12345 -size 1 -path ~/Downloads/work
-    piximanctl download -id 12345 -path "./{user} ({userid})/{title} ({id})"
+    piximanctl download -type novel -id 12345 -path ./{user}/{title}
 `
 
 func RunGeneral() {
