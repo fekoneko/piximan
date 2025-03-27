@@ -43,7 +43,7 @@ piximanctl config -sessionid $(wl-paste)
 ```
 - On Windows:
 ```powershell
-piximanctl config -sessionid $(Get-Clipboard)`
+piximanctl config -sessionid $(Get-Clipboard)
 ```
 - On MacOS:
 ```shell
