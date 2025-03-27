@@ -32,7 +32,7 @@ type Work struct {
 	Tags        []string `yaml:"tags"`
 }
 
-func FromWork(work *work.Work) *Work {
+func ToDto(work *work.Work) *Work {
 	return &Work{
 		Version:     version,
 		Id:          work.Id,

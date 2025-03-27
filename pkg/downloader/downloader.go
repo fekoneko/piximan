@@ -28,7 +28,7 @@ func New(sessionId string) *Downloader {
 }
 
 func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) (*work.Work, error) {
-	fetchedWork, err := d.fetchWork(id)
+	fetchedWork, err := d.fetchArtwork(id)
 	logext.LogSuccess(err, "fetched metadata for work %v", id)
 	logext.LogError(err, "failed to fetch metadata for work %v", id)
 	if err != nil {
@@ -48,7 +48,7 @@ func (d *Downloader) DownloadWork(id uint64, size ImageSize, path string) (*work
 }
 
 func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) error {
-	data, frames, err := d.fetchFramesData(id)
+	data, frames, err := d.fetchArtworkFrames(id)
 	logext.LogSuccess(err, "fetched frames data for work %v", id)
 	logext.LogError(err, "failed to fetch frames data for work %v", id)
 	if err != nil {
@@ -77,7 +77,7 @@ func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) err
 }
 
 func (d *Downloader) continueIllustOrManga(work *work.Work, id uint64, size ImageSize, path string) error {
-	pages, err := d.fetchPageUrls(id)
+	pages, err := d.fetchArtworkUrls(id)
 	logext.LogSuccess(err, "fetched page urls for work %v", id)
 	logext.LogError(err, "failed to fetch page urls for work %v", id)
 	if err != nil {

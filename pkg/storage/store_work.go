@@ -22,7 +22,7 @@ func StoreWork(work *work.Work, assets []Asset, path string) error {
 		return err
 	}
 
-	dto := dto.FromWork(work)
+	dto := dto.ToDto(work)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {
 		return err

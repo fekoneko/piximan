@@ -7,10 +7,9 @@ import (
 	"github.com/fekoneko/piximan/pkg/collection/work"
 )
 
-type Work struct {
+type Artwork struct {
 	Id            string `json:"id"`
 	Title         string `json:"title"`
-	IllustType    uint8  `json:"illustType"`
 	Description   string `json:"description"`
 	UserId        string `json:"userId"`
 	UserName      string `json:"userName"`
@@ -33,9 +32,11 @@ type Work struct {
 			Tag string `json:"tag"`
 		}) `json:"tags"`
 	} `json:"tags"`
+
+	IllustType uint8 `json:"illustType"`
 }
 
-func (dto *Work) ToWork(downloadTime time.Time) *work.Work {
+func (dto *Artwork) FromDto(downloadTime time.Time) *work.Work {
 	id, _ := strconv.ParseUint(dto.Id, 10, 64)
 	userId, _ := strconv.ParseUint(dto.UserId, 10, 64)
 	uploadTime, _ := time.Parse(time.RFC3339, dto.UploadDate)

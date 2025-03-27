@@ -8,3 +8,12 @@ type Page struct {
 		Original  string `json:"original"`
 	} `json:"urls"`
 }
+
+func (p *Page) FromDto() *[4]string {
+	return &[4]string{
+		p.Urls.ThumbMini,
+		p.Urls.Small,
+		p.Urls.Regular,
+		p.Urls.Original,
+	}
+}
