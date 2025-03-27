@@ -46,5 +46,5 @@ func Run() {
 	}
 
 	d := downloader.New(*sessionId)
-	d.DownloadWork(*id, downloader.ImageSize(*size), *path)
+	d.DownloadArtwork(*id, downloader.ImageSize(*size), *path)
 }
