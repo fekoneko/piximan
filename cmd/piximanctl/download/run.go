@@ -53,6 +53,8 @@ func nonInteractive(id *uint64, kind *string, size *uint, path *string, sessionI
 	}
 
 	if !flagext.Provided("sessionid") {
+		// TODO: if -password is not provided,
+		//       try with empty string and then ask for password interactively
 		sessionId = readSessionId(password)
 	}
 	download(id, kind, size, path, sessionId)
