@@ -17,8 +17,8 @@ func Run() {
 		os.Exit(0)
 	}
 
-	kind := flag.String("type", "artwork", "")
 	id := flag.Uint64("id", 0, "")
+	kind := flag.String("type", "artwork", "")
 	size := flag.Uint("size", uint(downloader.ImageSizeDefault), "")
 	path := flag.String("path", "", "")
 	sessionId := flag.String("sessionid", "", "")
@@ -37,14 +37,14 @@ func Run() {
 		os.Exit(2)
 	}
 
-	if flagext.Provided("size") && *size > 3 {
-		fmt.Println("invalid argument value: -size")
+	if flagext.Provided("type") && *kind != "artwork" && *kind != "novel" {
+		fmt.Println("invalid argument value: -type")
 		usage.RunDownload()
 		os.Exit(2)
 	}
 
-	if flagext.Provided("type") && *kind != "artwork" && *kind != "novel" {
-		fmt.Println("invalid argument value: -type")
+	if flagext.Provided("size") && *size > 3 {
+		fmt.Println("invalid argument value: -size")
 		usage.RunDownload()
 		os.Exit(2)
 	}

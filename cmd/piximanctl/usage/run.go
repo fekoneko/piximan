@@ -5,16 +5,20 @@ import "fmt"
 const generalUsage = //
 `Usage:
 
-Configure:  piximanctl config [-sessionid <sessionid>]
+Configure:  piximanctl config [ -sessionid <...> ]
             Run 'piximanctl config' for more information.
 
-Download:   piximanctl download -id <id> [-path <path>]
+Download:   piximanctl download -id <...>
+                              [ -type <artwork|novel> ]
+                              [ -path <...> ]
+                              [ -size <0-3> ]
+                              [ -sessionid <...> ]
             Run 'piximanctl download' for more information.
 `
 
 const configUsage = //
 `Usage:
-    piximanctl config [-sessionid <sessionid>]
+    piximanctl config [ -sessionid <...> ]
 
 Description:
     Configure piximan.
@@ -37,20 +41,24 @@ Examples:
 
 const downloadUsage = //
 `Usage:
-    piximanctl download -id <id> [-path <path> -sessionid <sessionid>]
+    piximanctl download -id <...>
+                      [ -type <artwork|novel> ]
+                      [ -path <...> ]
+                      [ -size <0-3> ]
+                      [ -sessionid <...> ]
 
 Description:
     Download the work files and metadata from pixiv.net to the given directory.
     Session ID must be configued prior to this command.
 
 Options:
+    -id         ID of the downloaded work. You can found it in the work URI:
+                https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
+
     -type       The type of work to download. Defaults to artwork.
                 Available options are:
                 - artwork
                 - novel
-
-    -id         ID of the downloaded work. You can found it in the work URI:
-                https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
 
     -size       Size (resolution) of the image to download. This Option doesn't
                 apply to ugoira and novels. Defaults to original size.
@@ -66,7 +74,7 @@ Options:
                 - {title}   the title of the work.
                 - {id}      the ID of the work.
                 - {userid}  the ID of the work author.
-                Be aware that any Windows reserved names will be automaticaly
+                Be aware that any Windows / NTFS reserved names will be automaticaly
                 padded with underscores, reserved characters - replaced and any dots
                 or spaces in front or end of the filenames will be trimmed.
 
