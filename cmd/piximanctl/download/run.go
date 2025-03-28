@@ -29,6 +29,19 @@ func Run() {
 	if flag.NArg() != 0 {
 		flagext.BadUsage("too many arguments")
 	}
+
+	if flag.NFlag() == 0 {
+		interactive()
+	} else {
+		nonInteractive(id, kind, size, path, sessionId, password)
+	}
+}
+
+func interactive() {
+	fmt.Println("Interactive mode for download is not yet implemented")
+}
+
+func nonInteractive(id *uint64, kind *string, size *uint, path *string, sessionId *string, password *string) {
 	if !flagext.Provided("id") {
 		flagext.BadUsage("required flag is not set: -id")
 	}
@@ -40,22 +53,29 @@ func Run() {
 	}
 
 	if !flagext.Provided("sessionid") {
-		storage, err := secretstorage.Open(*password)
-		if err != nil {
-			fmt.Printf("failed to get session id: %v\n", err)
-			os.Exit(1)
-		}
-		if err := storage.Read(); err != nil {
-			fmt.Printf("failed to get session id: %v\n", err)
-			os.Exit(1)
-		}
-		if storage.SessionId == nil {
-			fmt.Println("no session id is configured or provided")
-			os.Exit(1)
-		}
-		sessionId = storage.SessionId
+		sessionId = readSessionId(password)
 	}
+	download(id, kind, size, path, sessionId)
+}
 
+func readSessionId(password *string) *string {
+	storage, err := secretstorage.Open(*password)
+	if err != nil {
+		fmt.Printf("failed to get session id: %v\n", err)
+		os.Exit(1)
+	}
+	if err := storage.Read(); err != nil {
+		fmt.Printf("failed to get session id: %v\n", err)
+		os.Exit(1)
+	}
+	if storage.SessionId == nil {
+		fmt.Println("no session id is configured or provided")
+		os.Exit(1)
+	}
+	return storage.SessionId
+}
+
+func download(id *uint64, kind *string, size *uint, path *string, sessionId *string) {
 	d := downloader.New(*sessionId)
 	var err error
 	if *kind == "novel" {
