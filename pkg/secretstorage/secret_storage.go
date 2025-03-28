@@ -10,14 +10,16 @@ import (
 	"path/filepath"
 )
 
+var homePath, _ = os.UserHomeDir()
+var sessionIdPath = filepath.Join(homePath, ".piximan", "sessionid")
+
 type SecretStorage struct {
-	cipher        cipher.Block
-	gcm           cipher.AEAD
-	sessionIdPath string
-	SessionId     *string
+	cipher    cipher.Block
+	gcm       cipher.AEAD
+	SessionId *string
 }
 
-func New(password string) (*SecretStorage, error) {
+func Open(password string) (*SecretStorage, error) {
 	salt := os.Getenv("SECRET_STORAGE_SALT")
 	key, err := pbkdf2.Key(sha256.New, password, []byte(salt), 4096, 32)
 	if err != nil {
@@ -34,26 +36,11 @@ func New(password string) (*SecretStorage, error) {
 		return nil, err
 	}
 
-	homePath, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
-	}
-	sessionIdPath := filepath.Join(homePath, ".piximan", "sessionid")
-
-	storage := SecretStorage{aesCipher, gcm, sessionIdPath, nil}
-
-	if _, err := os.Stat(sessionIdPath); err == nil {
-		err := storage.retreiveSessionId()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &storage, nil
+	return &SecretStorage{aesCipher, gcm, nil}, nil
 }
 
 func (s *SecretStorage) StoreSessionId(sessionId string) error {
-	err := os.MkdirAll(filepath.Dir(s.sessionIdPath), 0775)
+	err := os.MkdirAll(filepath.Dir(sessionIdPath), 0775)
 	if err != nil {
 		return err
 	}
@@ -66,7 +53,7 @@ func (s *SecretStorage) StoreSessionId(sessionId string) error {
 
 	encrypted := s.gcm.Seal(nonce, nonce, []byte(sessionId), nil)
 
-	err = os.WriteFile(s.sessionIdPath, encrypted, 0600)
+	err = os.WriteFile(sessionIdPath, encrypted, 0600)
 	if err != nil {
 		return err
 	}
@@ -75,8 +62,12 @@ func (s *SecretStorage) StoreSessionId(sessionId string) error {
 	return nil
 }
 
-func (s *SecretStorage) retreiveSessionId() error {
-	encrypted, err := os.ReadFile(s.sessionIdPath)
+func (s *SecretStorage) Read() error {
+	if _, err := os.Stat(sessionIdPath); err != nil {
+		return nil
+	}
+
+	encrypted, err := os.ReadFile(sessionIdPath)
 	if err != nil {
 		return err
 	}

@@ -40,8 +40,12 @@ func Run() {
 	}
 
 	if !flagext.Provided("sessionid") {
-		storage, err := secretstorage.New(*password)
+		storage, err := secretstorage.Open(*password)
 		if err != nil {
+			fmt.Printf("failed to get session id: %v\n", err)
+			os.Exit(1)
+		}
+		if err := storage.Read(); err != nil {
 			fmt.Printf("failed to get session id: %v\n", err)
 			os.Exit(1)
 		}
