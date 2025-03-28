@@ -6,7 +6,7 @@ import (
 
 	"github.com/fekoneko/piximan/cmd/piximanctl/config"
 	"github.com/fekoneko/piximan/cmd/piximanctl/download"
-	"github.com/fekoneko/piximan/cmd/piximanctl/usage"
+	"github.com/fekoneko/piximan/cmd/piximanctl/help"
 	"github.com/joho/godotenv"
 )
 
@@ -19,22 +19,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("piximanctl v%v\n", version)
+	fmt.Printf("piximanctl v%v\n\n", version)
 
-	args := os.Args[1:]
-	if len(args) == 0 {
-		usage.RunGeneral()
-		return
+	var command string
+	if len(os.Args) > 1 {
+		command = os.Args[0]
+		os.Args = os.Args[1:]
 	}
-	command := args[0]
-	os.Args = args
 
 	switch command {
 	case "config":
 		config.Run()
 	case "download":
 		download.Run()
+	case "help":
+		help.Run()
 	default:
-		usage.RunGeneral()
+		help.RunGeneral()
 	}
 }

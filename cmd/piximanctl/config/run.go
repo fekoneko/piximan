@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fekoneko/piximan/cmd/piximanctl/usage"
+	"github.com/fekoneko/piximan/cmd/piximanctl/help"
 	"github.com/fekoneko/piximan/pkg/flagext"
 	"github.com/fekoneko/piximan/pkg/secretstorage"
 )
@@ -13,12 +13,12 @@ import (
 func Run() {
 	sessionId := flag.String("sessionid", "", "")
 	password := flag.String("password", "", "")
-	flag.Usage = usage.RunConfig
+	flag.Usage = help.RunConfig
 	flag.Parse()
 
 	if len(flag.Args()) != 0 {
 		fmt.Println("too many arguments")
-		usage.RunDownload()
+		help.RunDownload()
 		os.Exit(2)
 	}
 

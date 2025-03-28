@@ -1,31 +1,27 @@
-package usage
+package help
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
-const generalUsage = //
+const generalHelp = //
 `Usage:
 
-Configure:  piximanctl config [ -sessionid <...> ]
-                              [ -password <...> ]
-            Run 'piximanctl config' for more information.
+Configure:      piximanctl config         # Run in interactive mode
+                piximanctl help config    # Run for more information
 
-Download:   piximanctl download -id <...>
-                              [ -type <artwork|novel> ]
-                              [ -path <...> ]
-                              [ -size <0-3> ]
-                              [ -sessionid <...> ]
-                              [ -password <...> ]
-            Run 'piximanctl download' for more information.
+Download:       piximanctl download       # Run in interactive mode
+                piximanctl help download  # Run for more information
 `
 
-const configUsage = //
-`Usage:
-    piximanctl config [ -sessionid <...> ]
-                      [ -password <...> ]
+const configHelp = //
+`Usage:         Run without arguments to enter interactive mode.
+                piximanctl config [ -sessionid <...> ]
+                                  [ -password <...> ]
 
-Description:
-    Configure piximan.
-
+Description:    Change permanent configuration for piximan. The configured settings will be
+                used for all future commands by default.
 Options:
     -sessionid  The session ID to use for pixiv.net API autorization.
                 You can get this id from browser cookies on https://www.pixiv.net.
@@ -38,26 +34,23 @@ Options:
                 If omited the password will be set to an empty string.
                 Similarly to the session ID, avoid pasting the value directly.
 
-Examples:
-    Pass the session ID value from the clipboard:
-    - On Linux (X11)        piximanctl config -sessionid $(xclip -o)
-    - On Linux (Wayland)    piximanctl config -sessionid $(wl-paste)
-    - On Windows            piximanctl config -sessionid $(Get-Clipboard)
-    - On MacOS              piximanctl config -sessionid $(pbpaste)
+Examples:       Pass the session ID value from the clipboard:
+                - On Linux (X11)        piximanctl config -sessionid $(xclip -o)
+                - On Linux (Wayland)    piximanctl config -sessionid $(wl-paste)
+                - On Windows            piximanctl config -sessionid $(Get-Clipboard)
+                - On MacOS              piximanctl config -sessionid $(pbpaste)
 `
 
-const downloadUsage = //
-`Usage:
-    piximanctl download -id <...>
-                      [ -type <artwork|novel> ]
-                      [ -path <...> ]
-                      [ -size <0-3> ]
-                      [ -sessionid <...> ]
+const downloadHelp = //
+`Usage:         Run without arguments to enter interactive mode.
+                piximanctl download [ -id <...> ]
+                                    [ -type <artwork|novel> ]
+                                    [ -path <...> ]
+                                    [ -size <0-3> ]
+                                    [ -sessionid <...> ]
 
-Description:
-    Download the work files and metadata from pixiv.net to the given directory.
-    Session ID must be configued prior to this command.
-
+Description:    Download the work files and metadata from pixiv.net to the given directory.
+                Session ID must be configued prior to this command.
 Options:
     -id         ID of the downloaded work. You can found it in the work URI:
                 https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
@@ -92,19 +85,34 @@ Options:
                 Avoid pasting the value directly in the terminalas it could be
                 logged in the history.
 
-Examples:
-    piximanctl download -id 12345 -size 1 -path ~/Downloads/work
-    piximanctl download -type novel -id 12345 -path ./{user}/{title} -nowin
+Examples:       piximanctl download -id 12345 -size 1 -path ~/Downloads/work
+                piximanctl download -type novel -id 12345 -path ./{user}/{title} -nowin
 `
 
+func Run() {
+	var section string
+	if len(os.Args) > 1 {
+		section = os.Args[1]
+	}
+
+	switch section {
+	case "config":
+		RunConfig()
+	case "download":
+		RunDownload()
+	default:
+		RunGeneral()
+	}
+}
+
 func RunGeneral() {
-	fmt.Print(generalUsage)
+	fmt.Print(generalHelp)
 }
 
 func RunConfig() {
-	fmt.Print(configUsage)
+	fmt.Print(configHelp)
 }
 
 func RunDownload() {
-	fmt.Print(downloadUsage)
+	fmt.Print(downloadHelp)
 }

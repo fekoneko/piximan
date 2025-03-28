@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fekoneko/piximan/cmd/piximanctl/usage"
+	"github.com/fekoneko/piximan/cmd/piximanctl/help"
 	"github.com/fekoneko/piximan/pkg/downloader"
 	"github.com/fekoneko/piximan/pkg/flagext"
 	"github.com/fekoneko/piximan/pkg/secretstorage"
@@ -13,7 +13,7 @@ import (
 
 func Run() {
 	if len(os.Args) == 1 {
-		usage.RunDownload()
+		help.RunDownload()
 		os.Exit(0)
 	}
 
@@ -23,30 +23,30 @@ func Run() {
 	path := flag.String("path", "", "")
 	sessionId := flag.String("sessionid", "", "")
 	password := flag.String("password", "", "")
-	flag.Usage = usage.RunDownload
+	flag.Usage = help.RunDownload
 	flag.Parse()
 
 	if len(flag.Args()) != 0 {
 		fmt.Println("too many arguments")
-		usage.RunDownload()
+		help.RunDownload()
 		os.Exit(2)
 	}
 
 	if !flagext.Provided("id") {
 		fmt.Println("required flag is not set: -id")
-		usage.RunDownload()
+		help.RunDownload()
 		os.Exit(2)
 	}
 
 	if flagext.Provided("type") && *kind != "artwork" && *kind != "novel" {
 		fmt.Println("invalid argument value: -type")
-		usage.RunDownload()
+		help.RunDownload()
 		os.Exit(2)
 	}
 
 	if flagext.Provided("size") && *size > 3 {
 		fmt.Println("invalid argument value: -size")
-		usage.RunDownload()
+		help.RunDownload()
 		os.Exit(2)
 	}
 

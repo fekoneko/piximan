@@ -13,6 +13,7 @@ Pixiv batch **downloader** and local collection **viewer**. Preserve your favori
 ## Features
 
 ### Downloader
+
 - Illustrations / manga / ugoira / novels are all supported for download
 - You can download different sizes (resolution) of the illustrations / manga
 - Useful metadata is saved with the downloaded work in _YAML_ format
@@ -24,6 +25,7 @@ Before using the tool you need to configure the _session ID_. This will authoriz
 let `piximanctl` fetch work metadata.
 
 You can get session ID with your browser _cookies_ right now:
+
 - Go to [https://www.pixiv.net](https://wwww.pixiv.net)
 - On the website press `F12` to access the devtools panel
 - In the devtools panel switch to the _Application_ tab (for Chrome) / _Storage_ tab (for Firefox)
@@ -33,19 +35,27 @@ You can get session ID with your browser _cookies_ right now:
 
 Almost there! Let's configure `piximanctl` to permanently use the copied session ID.
 To pass the cookie from the clipboard use one of the following commands:
+
 - On Linux (X11):
+
 ```shell
 piximanctl config -sessionid $(xclip -o)
 ```
+
 - On Linux (Wayland):
+
 ```shell
 piximanctl config -sessionid $(wl-paste)
 ```
+
 - On Windows:
+
 ```powershell
 piximanctl config -sessionid $(Get-Clipboard)
 ```
+
 - On MacOS:
+
 ```shell
 piximanctl config -sessionid $(pbpaste)
 ```
@@ -63,15 +73,17 @@ You can also specify the destination path with the flag `-path`.
 With flag `-type novel` you can also download nolels.
 
 There are some extra options that can be used.
-The manual is always available to you, just run the program without the arguments:
+The manual is always available to you, just run one of these commands:
 
 ```shell
-piximanctl
+piximanctl help config
+piximanctl help download
 ```
 
 ## Related projects
 
 This project is the next iteration on my way to perfect local Pixiv app. So far I tried:
+
 - [React Native for Windows](https://github.com/fekoneko/pixiv-powerful-viewer-legacy)
 - [Electron + React](https://github.com/fekoneko/pixiv-powerful-viewer/tree/v1.0.0-alpha.2)
 - [Tauri + React + Rust](https://github.com/fekoneko/pixiv-powerful-viewer)
