@@ -50,7 +50,6 @@ func Run() {
 	}
 
 	if !flagext.Provided("sessionid") {
-		var err error
 		storage, err := secretstorage.New("security is my priority") // TODO: ask for password
 		if err != nil {
 			fmt.Printf("failed to get session id: %v\n", err)

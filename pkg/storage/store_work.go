@@ -17,7 +17,10 @@ type Asset struct {
 }
 
 func StoreWork(work *work.Work, assets []Asset, path string) error {
-	path = formatPath(path, work)
+	path, err := formatPath(path, work)
+	if err != nil {
+		return err
+	}
 
 	if err := os.MkdirAll(path, 0775); err != nil {
 		return err
@@ -77,7 +80,7 @@ func toValidFilename(filename string) string {
 	}
 }
 
-func formatPath(path string, work *work.Work) string {
+func formatPath(path string, work *work.Work) (string, error) {
 	replacer := strings.NewReplacer(
 		"{user}", work.UserName,
 		"{title}", work.Title,
@@ -85,22 +88,22 @@ func formatPath(path string, work *work.Work) string {
 		"{userid}", strconv.FormatUint(work.UserId, 10),
 	)
 
-	sections := splitPath(filepath.Clean(path))
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+	sections := strings.Split(path, string(filepath.Separator))
+	if len(sections) != 0 && len(sections[0]) == 0 {
+		sections[0] = string(filepath.Separator)
+	}
+
 	for i, section := range sections {
-		if section == "." || section == ".." {
+		if i == 0 || section == "." || section == ".." {
 			continue
 		}
 		filename := replacer.Replace(section)
 		sections[i] = toValidFilename(filename)
 	}
 
-	return filepath.Join(sections...)
-}
-
-func splitPath(path string) []string {
-	base, filename := filepath.Split(path)
-	if base == "" {
-		return []string{filename}
-	}
-	return append(splitPath(filepath.Clean(base)), filename)
+	return filepath.Join(sections...), nil
 }

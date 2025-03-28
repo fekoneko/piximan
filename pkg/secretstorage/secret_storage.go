@@ -43,7 +43,7 @@ func New(password string) (*SecretStorage, error) {
 	storage := SecretStorage{aesCipher, gcm, sessionIdPath, nil}
 
 	if _, err := os.Stat(sessionIdPath); err == nil {
-		err := storage.retrieveSessionId()
+		err := storage.retreiveSessionId()
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +75,7 @@ func (s *SecretStorage) StoreSessionId(sessionId string) error {
 	return nil
 }
 
-func (s *SecretStorage) retrieveSessionId() error {
+func (s *SecretStorage) retreiveSessionId() error {
 	encrypted, err := os.ReadFile(s.sessionIdPath)
 	if err != nil {
 		return err
