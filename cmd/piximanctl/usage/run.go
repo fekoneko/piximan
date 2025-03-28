@@ -66,13 +66,16 @@ Options:
                 - {title}   the title of the work.
                 - {id}      the ID of the work.
                 - {userid}  the ID of the work author.
+                Be aware that any Windows reserved names will be automaticaly
+                padded with underscores, reserved characters - replaced and any dots
+                or spaces in front or end of the filenames will be trimmed.
 
     -sessionid  Will default to the session ID stored in config.
                 For additional information, run 'piximanctl config'.
 
 Examples:
     piximanctl download -id 12345 -size 1 -path ~/Downloads/work
-    piximanctl download -type novel -id 12345 -path ./{user}/{title}
+    piximanctl download -type novel -id 12345 -path ./{user}/{title} -nowin
 `
 
 func RunGeneral() {
