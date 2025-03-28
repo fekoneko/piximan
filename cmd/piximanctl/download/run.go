@@ -8,7 +8,7 @@ import (
 	"github.com/fekoneko/piximan/cmd/piximanctl/usage"
 	"github.com/fekoneko/piximan/pkg/downloader"
 	"github.com/fekoneko/piximan/pkg/flagext"
-	"github.com/fekoneko/piximan/pkg/storage"
+	"github.com/fekoneko/piximan/pkg/secretstorage"
 )
 
 func Run() {
@@ -51,11 +51,16 @@ func Run() {
 
 	if !flagext.Provided("sessionid") {
 		var err error
-		*sessionId, err = storage.StoredSessionId()
+		storage, err := secretstorage.New("security is my priority") // TODO: ask for password
 		if err != nil {
 			fmt.Printf("failed to get session id: %v\n", err)
 			os.Exit(1)
 		}
+		if storage.SessionId == nil {
+			fmt.Println("no session id is configured or provided")
+			os.Exit(1)
+		}
+		sessionId = storage.SessionId
 	}
 
 	d := downloader.New(*sessionId)
