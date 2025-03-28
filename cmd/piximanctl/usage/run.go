@@ -6,6 +6,7 @@ const generalUsage = //
 `Usage:
 
 Configure:  piximanctl config [ -sessionid <...> ]
+                              [ -password <...> ]
             Run 'piximanctl config' for more information.
 
 Download:   piximanctl download -id <...>
@@ -13,12 +14,14 @@ Download:   piximanctl download -id <...>
                               [ -path <...> ]
                               [ -size <0-3> ]
                               [ -sessionid <...> ]
+                              [ -password <...> ]
             Run 'piximanctl download' for more information.
 `
 
 const configUsage = //
 `Usage:
     piximanctl config [ -sessionid <...> ]
+                      [ -password <...> ]
 
 Description:
     Configure piximan.
@@ -29,7 +32,11 @@ Options:
                 Search for a cookie named "PHPSESSID".
                 DO NOT paste the value directly in the command line as it could
                 be logged in the terminal history (e.g. ~/.bash_history).
-                Session ID will be stored in ~/.piximan/sessionid.
+                Session ID will be encrypted and stored in ~/.piximan/sessionid.
+
+    -password   The master password that can be set to encrypt the session ID.
+                If omited the password will be set to an empty string.
+                Similarly to the session ID, avoid pasting the value directly.
 
 Examples:
     Pass the session ID value from the clipboard:
@@ -80,6 +87,10 @@ Options:
 
     -sessionid  Will default to the session ID stored in config.
                 For additional information, run 'piximanctl config'.
+
+    -password   The master password to access the session ID from configuration.
+                Avoid pasting the value directly in the terminalas it could be
+                logged in the history.
 
 Examples:
     piximanctl download -id 12345 -size 1 -path ~/Downloads/work

@@ -11,7 +11,8 @@ import (
 )
 
 func Run() {
-	sessionId := *flag.String("sessionid", "", "")
+	sessionId := flag.String("sessionid", "", "")
+	password := flag.String("password", "", "")
 	flag.Usage = usage.RunConfig
 	flag.Parse()
 
@@ -22,12 +23,12 @@ func Run() {
 	}
 
 	if flagext.Provided("sessionid") {
-		storage, err := secretstorage.New("security is my priority") // TODO: ask for password
+		storage, err := secretstorage.New(*password)
 		if err != nil {
 			fmt.Printf("failed to set session id: %v\n", err)
 			os.Exit(1)
 		}
-		if err := storage.StoreSessionId(sessionId); err != nil {
+		if err := storage.StoreSessionId(*sessionId); err != nil {
 			fmt.Printf("failed to set sessionid: %v\n", err)
 			os.Exit(1)
 		}

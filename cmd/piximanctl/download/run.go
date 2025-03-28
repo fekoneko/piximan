@@ -22,6 +22,7 @@ func Run() {
 	size := flag.Uint("size", uint(downloader.ImageSizeDefault), "")
 	path := flag.String("path", "", "")
 	sessionId := flag.String("sessionid", "", "")
+	password := flag.String("password", "", "")
 	flag.Usage = usage.RunDownload
 	flag.Parse()
 
@@ -50,7 +51,7 @@ func Run() {
 	}
 
 	if !flagext.Provided("sessionid") {
-		storage, err := secretstorage.New("security is my priority") // TODO: ask for password
+		storage, err := secretstorage.New(*password)
 		if err != nil {
 			fmt.Printf("failed to get session id: %v\n", err)
 			os.Exit(1)
