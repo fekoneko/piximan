@@ -16,10 +16,8 @@ func Run() {
 	flag.Usage = help.RunConfig
 	flag.Parse()
 
-	if len(flag.Args()) != 0 {
-		fmt.Println("too many arguments")
-		help.RunDownload()
-		os.Exit(2)
+	if flag.NArg() != 0 {
+		flagext.BadUsage("too many arguments")
 	}
 
 	if flagext.Provided("sessionid") {

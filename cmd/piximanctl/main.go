@@ -22,8 +22,8 @@ func main() {
 	fmt.Printf("piximanctl v%v\n\n", version)
 
 	var command string
-	if len(os.Args) > 1 {
-		command = os.Args[0]
+	if len(os.Args) > 2 {
+		command = os.Args[1]
 		os.Args = os.Args[1:]
 	}
 

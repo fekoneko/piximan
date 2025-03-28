@@ -26,28 +26,17 @@ func Run() {
 	flag.Usage = help.RunDownload
 	flag.Parse()
 
-	if len(flag.Args()) != 0 {
-		fmt.Println("too many arguments")
-		help.RunDownload()
-		os.Exit(2)
+	if flag.NArg() != 0 {
+		flagext.BadUsage("too many arguments")
 	}
-
 	if !flagext.Provided("id") {
-		fmt.Println("required flag is not set: -id")
-		help.RunDownload()
-		os.Exit(2)
+		flagext.BadUsage("required flag is not set: -id")
 	}
-
 	if flagext.Provided("type") && *kind != "artwork" && *kind != "novel" {
-		fmt.Println("invalid argument value: -type")
-		help.RunDownload()
-		os.Exit(2)
+		flagext.BadUsage("invalid argument value: -type")
 	}
-
 	if flagext.Provided("size") && *size > 3 {
-		fmt.Println("invalid argument value: -size")
-		help.RunDownload()
-		os.Exit(2)
+		flagext.BadUsage("invalid argument value: -size")
 	}
 
 	if !flagext.Provided("sessionid") {

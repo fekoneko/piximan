@@ -1,6 +1,10 @@
 package flagext
 
-import "flag"
+import (
+	"flag"
+	"fmt"
+	"os"
+)
 
 var seenFlags map[string]bool
 
@@ -15,4 +19,10 @@ func Provided(flagName string) bool {
 	}
 
 	return seenFlags[flagName]
+}
+
+func BadUsage(message string) {
+	fmt.Println(message)
+	flag.Usage()
+	os.Exit(2)
 }
