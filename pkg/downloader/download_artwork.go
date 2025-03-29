@@ -73,7 +73,9 @@ func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) err
 	return err
 }
 
-func (d *Downloader) continueIllustOrManga(work *work.Work, id uint64, size ImageSize, path string) error {
+func (d *Downloader) continueIllustOrManga(
+	work *work.Work, id uint64, size ImageSize, path string,
+) error {
 	pages, err := d.fetchArtworkUrls(id)
 	logext.LogSuccess(err, "fetched page urls for artwork %v", id)
 	logext.LogError(err, "failed to fetch page urls for artwork %v", id)

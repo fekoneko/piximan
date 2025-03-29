@@ -21,6 +21,7 @@ func Run() {
 	kind := flag.String("type", "artwork", "")
 	size := flag.Uint("size", uint(downloader.ImageSizeDefault), "")
 	path := flag.String("path", "", "")
+	onlyMeta := flag.Bool("onlymeta", false, "")
 	sessionId := flag.String("sessionid", "", "")
 	password := flag.String("password", "", "")
 	flag.Usage = help.RunDownload
@@ -33,15 +34,19 @@ func Run() {
 	if flag.NFlag() == 0 {
 		interactive()
 	} else {
-		nonInteractive(id, kind, size, path, sessionId, password)
+		nonInteractive(id, kind, size, path, onlyMeta, sessionId, password)
 	}
 }
 
 func interactive() {
+	// TODO: implement interactive mode
 	fmt.Println("Interactive mode for download is not yet implemented")
 }
 
-func nonInteractive(id *uint64, kind *string, size *uint, path *string, sessionId *string, password *string) {
+func nonInteractive(
+	id *uint64, kind *string, size *uint, path *string,
+	onlyMeta *bool, sessionId *string, password *string,
+) {
 	if !flagext.Provided("id") {
 		flagext.BadUsage("required flag is not set: -id")
 	}
@@ -57,7 +62,7 @@ func nonInteractive(id *uint64, kind *string, size *uint, path *string, sessionI
 		//       try with empty string and then ask for password interactively
 		sessionId = readSessionId(password)
 	}
-	download(id, kind, size, path, sessionId)
+	download(id, kind, size, path, onlyMeta, sessionId)
 }
 
 func readSessionId(password *string) *string {
@@ -79,12 +84,19 @@ func readSessionId(password *string) *string {
 	return storage.SessionId
 }
 
-func download(id *uint64, kind *string, size *uint, path *string, sessionId *string) {
+func download(
+	id *uint64, kind *string, size *uint,
+	path *string, onlyMeta *bool, sessionId *string,
+) {
 	d := downloader.New(*sessionId)
 	var err error
-	if *kind == "novel" {
+	if *kind == "novel" && *onlyMeta {
+		_, err = d.DownloadNovelMeta(*id, *path)
+	} else if *kind == "novel" {
 		_, err = d.DownloadNovel(*id, *path)
-	} else {
+	} else if *kind == "artwork" && *onlyMeta {
+		_, err = d.DownloadArtworkMeta(*id, *path)
+	} else if *kind == "artwork" {
 		_, err = d.DownloadArtwork(*id, downloader.ImageSize(*size), *path)
 	}
 	if err != nil {

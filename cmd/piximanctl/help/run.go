@@ -73,6 +73,9 @@ Options:
                 padded with underscores, reserved characters - replaced and any dots
                 or spaces in front or end of the filenames will be trimmed.
 
+    -onlymeta   Only download the metadata.yaml file for the work. Useful for
+                updating the metadata on existing works.
+
     -sessionid  Will default to the session ID stored in config.
                 For additional information, run 'piximanctl help config'.
 
@@ -81,7 +84,7 @@ Options:
                 Avoid pasting the value directly in the terminal as it could be
                 logged in the history.
 
-Examples:       piximanctl download -id 12345 -size 1 -passwprd $(xclip -o)
+Examples:       piximanctl download -id 12345 -size 1 -onlymeta -password $(xclip -o)
                 piximanctl download -id 12345 -type novel -path ./{user}/{title}
 `
 
