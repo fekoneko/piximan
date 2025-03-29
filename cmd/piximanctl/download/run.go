@@ -11,19 +11,26 @@ import (
 	"github.com/fekoneko/piximan/pkg/secretstorage"
 )
 
-func Run() {
-	if len(os.Args) == 1 {
-		help.RunDownload()
-		os.Exit(0)
-	}
+type flags struct {
+	id        *uint64
+	kind      *string
+	size      *uint
+	path      *string
+	onlyMeta  *bool
+	sessionId *string
+	password  *string
+}
 
-	id := flag.Uint64("id", 0, "")
-	kind := flag.String("type", "artwork", "")
-	size := flag.Uint("size", uint(downloader.ImageSizeDefault), "")
-	path := flag.String("path", "", "")
-	onlyMeta := flag.Bool("onlymeta", false, "")
-	sessionId := flag.String("sessionid", "", "")
-	password := flag.String("password", "", "")
+func Run() {
+	flags := flags{
+		id:        flag.Uint64("id", 0, ""),
+		kind:      flag.String("type", "artwork", ""),
+		size:      flag.Uint("size", uint(downloader.ImageSizeDefault), ""),
+		path:      flag.String("path", "", ""),
+		onlyMeta:  flag.Bool("onlymeta", false, ""),
+		sessionId: flag.String("sessionid", "", ""),
+		password:  flag.String("password", "", ""),
+	}
 	flag.Usage = help.RunDownload
 	flag.Parse()
 
@@ -32,43 +39,42 @@ func Run() {
 	}
 
 	if flag.NFlag() == 0 {
-		interactive()
+		interactive(flags)
 	} else {
-		nonInteractive(id, kind, size, path, onlyMeta, sessionId, password)
+		nonInteractive(flags)
 	}
 }
 
-func interactive() {
+func interactive(flags flags) {
 	// TODO: implement interactive mode
 	fmt.Println("Interactive mode for download is not yet implemented")
+	fmt.Println(flags)
+	os.Exit(1)
 }
 
-func nonInteractive(
-	id *uint64, kind *string, size *uint, path *string,
-	onlyMeta *bool, sessionId *string, password *string,
-) {
+func nonInteractive(flags flags) {
 	if !flagext.Provided("id") {
 		flagext.BadUsage("required flag is not set: -id")
 	}
-	if flagext.Provided("type") && *kind != "artwork" && *kind != "novel" {
+	if flagext.Provided("type") && *flags.kind != "artwork" && *flags.kind != "novel" {
 		flagext.BadUsage("invalid argument value: -type")
 	}
-	if flagext.Provided("size") && *size > 3 {
+	if flagext.Provided("size") && *flags.size > 3 {
 		flagext.BadUsage("invalid argument value: -size")
 	}
 
 	if !flagext.Provided("sessionid") {
 		// TODO: if -password is not provided,
 		//       try with empty string and then ask for password interactively
-		sessionId = readSessionId(password)
+		flags.sessionId = readSessionId(flags)
 	}
-	download(id, kind, size, path, onlyMeta, sessionId)
+	download(flags)
 }
 
-func readSessionId(password *string) *string {
+func readSessionId(flags flags) *string {
 	// TODO: monitor if the session ID is still required for our requests -
 	//       it seems like they made it optional for some reason
-	storage, err := secretstorage.Open(*password)
+	storage, err := secretstorage.Open(*flags.password)
 	if err != nil {
 		fmt.Printf("failed to get session id: %v\n", err)
 		os.Exit(1)
@@ -84,20 +90,18 @@ func readSessionId(password *string) *string {
 	return storage.SessionId
 }
 
-func download(
-	id *uint64, kind *string, size *uint,
-	path *string, onlyMeta *bool, sessionId *string,
-) {
-	d := downloader.New(*sessionId)
+func download(flags flags) {
+	d := downloader.New(*flags.sessionId)
+
 	var err error
-	if *kind == "novel" && *onlyMeta {
-		_, err = d.DownloadNovelMeta(*id, *path)
-	} else if *kind == "novel" {
-		_, err = d.DownloadNovel(*id, *path)
-	} else if *kind == "artwork" && *onlyMeta {
-		_, err = d.DownloadArtworkMeta(*id, *path)
-	} else if *kind == "artwork" {
-		_, err = d.DownloadArtwork(*id, downloader.ImageSize(*size), *path)
+	if *flags.kind == "novel" && *flags.onlyMeta {
+		_, err = d.DownloadNovelMeta(*flags.id, *flags.path)
+	} else if *flags.kind == "novel" {
+		_, err = d.DownloadNovel(*flags.id, *flags.path)
+	} else if *flags.kind == "artwork" && *flags.onlyMeta {
+		_, err = d.DownloadArtworkMeta(*flags.id, *flags.path)
+	} else if *flags.kind == "artwork" {
+		_, err = d.DownloadArtwork(*flags.id, downloader.ImageSize(*flags.size), *flags.path)
 	}
 	if err != nil {
 		os.Exit(1)
