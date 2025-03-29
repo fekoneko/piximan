@@ -61,6 +61,8 @@ func nonInteractive(id *uint64, kind *string, size *uint, path *string, sessionI
 }
 
 func readSessionId(password *string) *string {
+	// TODO: monitor if the session ID is still required for our requests -
+	//       it seems like they made it optional for some reason
 	storage, err := secretstorage.Open(*password)
 	if err != nil {
 		fmt.Printf("failed to get session id: %v\n", err)
