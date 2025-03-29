@@ -9,7 +9,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/downloader/dto"
 )
 
-func (d *Downloader) fetchNovel(id uint64) (*work.Work, *string, string, error) {
+func (d *Downloader) fetchNovelMeta(id uint64) (*work.Work, *string, string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/novel/%v", id)
 	body, err := d.fetch(url)
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/downloader/dto"
 )
 
-func (d *Downloader) fetchArtwork(id uint64) (*work.Work, error) {
+func (d *Downloader) fetchArtworkMeta(id uint64) (*work.Work, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
 	body, err := d.fetch(url)
 	if err != nil {

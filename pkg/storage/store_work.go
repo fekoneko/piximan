@@ -16,25 +16,25 @@ type Asset struct {
 	Extension string
 }
 
-func StoreWork(work *work.Work, assets []Asset, path string) error {
+func StoreWork(work *work.Work, assets []Asset, path string) (string, error) {
 	path, err := formatPath(path, work)
 	if err != nil {
-		return err
+		return path, err
 	}
 
 	if err := os.MkdirAll(path, 0775); err != nil {
-		return err
+		return path, err
 	}
 
 	dto := dto.ToDto(work)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {
-		return err
+		return path, err
 	}
 
 	metadataPath := filepath.Join(path, "metadata.yaml")
 	if err := os.WriteFile(metadataPath, marshalled, 0664); err != nil {
-		return err
+		return path, err
 	}
 
 	if len(assets) == 1 {
@@ -42,19 +42,19 @@ func StoreWork(work *work.Work, assets []Asset, path string) error {
 		filename := toValidFilename(work.Title + asset.Extension)
 		path := filepath.Join(path, filename)
 		if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
-			return err
+			return path, err
 		}
 	} else {
 		for i, asset := range assets {
 			filename := toValidFilename(work.Title + " " + strconv.Itoa(i+1) + asset.Extension)
 			path := filepath.Join(path, filename)
 			if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
-				return err
+				return path, err
 			}
 		}
 	}
 
-	return nil
+	return path, nil
 }
 
 var filenameReplacer = strings.NewReplacer(

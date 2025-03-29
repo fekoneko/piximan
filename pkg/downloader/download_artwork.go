@@ -9,8 +9,23 @@ import (
 	"github.com/fekoneko/piximan/pkg/storage"
 )
 
+func (d *Downloader) DownloadArtworkMeta(id uint64, path string) (*work.Work, error) {
+	work, err := d.fetchArtworkMeta(id)
+	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
+	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
+	if err != nil {
+		return nil, err
+	}
+
+	assets := []storage.Asset{}
+	path, err = storage.StoreWork(work, assets, path)
+	logext.LogSuccess(err, "stored metadata for artwork %v in %v", id, path)
+	logext.LogError(err, "failed to store metadata for artwork %v", id)
+	return work, err
+}
+
 func (d *Downloader) DownloadArtwork(id uint64, size ImageSize, path string) (*work.Work, error) {
-	fetchedWork, err := d.fetchArtwork(id)
+	fetchedWork, err := d.fetchArtworkMeta(id)
 	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
 	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {
@@ -52,9 +67,9 @@ func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) err
 	}
 
 	assets := []storage.Asset{{Bytes: gif, Extension: ".gif"}}
-	err = storage.StoreWork(work, assets, path)
-	logext.LogSuccess(err, "wrote files for artwork %v", id)
-	logext.LogError(err, "failed to write files for artwork %v", id)
+	path, err = storage.StoreWork(work, assets, path)
+	logext.LogSuccess(err, "stored files for artwork %v in %v", id, path)
+	logext.LogError(err, "failed to store files for artwork %v", id)
 	return err
 }
 
@@ -94,8 +109,8 @@ func (d *Downloader) continueIllustOrManga(work *work.Work, id uint64, size Imag
 		}
 	}
 
-	err = storage.StoreWork(work, assets, path)
-	logext.LogSuccess(err, "wrote files for artwork %v", id)
-	logext.LogError(err, "failed to write files for artwork %v", id)
+	path, err = storage.StoreWork(work, assets, path)
+	logext.LogSuccess(err, "stored files for artwork %v in %v", id, path)
+	logext.LogError(err, "failed to store files for artwork %v", id)
 	return err
 }

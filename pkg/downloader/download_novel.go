@@ -6,8 +6,23 @@ import (
 	"github.com/fekoneko/piximan/pkg/storage"
 )
 
+func (d *Downloader) DownloadNovelMeta(id uint64, path string) (*work.Work, error) {
+	work, _, _, err := d.fetchNovelMeta(id)
+	logext.LogSuccess(err, "fetched metadata for novel %v", id)
+	logext.LogError(err, "failed to fetch metadata for novel %v", id)
+	if err != nil {
+		return nil, err
+	}
+
+	assets := []storage.Asset{}
+	path, err = storage.StoreWork(work, assets, path)
+	logext.LogSuccess(err, "stored metadata for novel %v in %v", id, path)
+	logext.LogError(err, "failed to store metadata for novel %v", id)
+	return work, err
+}
+
 func (d *Downloader) DownloadNovel(id uint64, path string) (*work.Work, error) {
-	work, content, coverUrl, err := d.fetchNovel(id)
+	work, content, coverUrl, err := d.fetchNovelMeta(id)
 	logext.LogSuccess(err, "fetched metadata for novel %v", id)
 	logext.LogError(err, "failed to fetch metadata for novel %v", id)
 	if err != nil {
@@ -26,8 +41,8 @@ func (d *Downloader) DownloadNovel(id uint64, path string) (*work.Work, error) {
 		{Bytes: []byte(*content), Extension: ".txt"},
 	}
 
-	err = storage.StoreWork(work, assets, path)
-	logext.LogSuccess(err, "wrote files for novel %v", id)
-	logext.LogError(err, "failed to write files for novel %v", id)
+	path, err = storage.StoreWork(work, assets, path)
+	logext.LogSuccess(err, "stored files for novel %v in %v", id, path)
+	logext.LogError(err, "failed to store files for novel %v", id)
 	return work, err
 }
