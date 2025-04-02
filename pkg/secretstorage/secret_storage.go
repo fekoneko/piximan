@@ -6,6 +6,8 @@ import (
 	"crypto/pbkdf2"
 	"crypto/rand"
 	"crypto/sha256"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -63,12 +65,24 @@ func (s *SecretStorage) StoreSessionId(sessionId string) error {
 }
 
 func (s *SecretStorage) RemoveSessionId() error {
-	return os.Remove(sessionIdPath)
+	if err := os.Remove(sessionIdPath); err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return nil
+		} else {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *SecretStorage) Read() error {
 	if _, err := os.Stat(sessionIdPath); err != nil {
-		return nil
+		if errors.Is(err, fs.ErrNotExist) {
+			return nil
+		} else {
+			return err
+		}
 	}
 
 	encrypted, err := os.ReadFile(sessionIdPath)
