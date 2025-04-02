@@ -1,9 +1,9 @@
 package downloader
 
 import (
-	"github.com/fekoneko/piximan/pkg/collection/work"
 	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/fekoneko/piximan/pkg/storage"
+	"github.com/fekoneko/piximan/pkg/work"
 )
 
 func (d *Downloader) DownloadNovelMeta(id uint64, path string) (*work.Work, error) {

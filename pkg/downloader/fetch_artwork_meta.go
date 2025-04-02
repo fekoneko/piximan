@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fekoneko/piximan/pkg/collection/work"
 	"github.com/fekoneko/piximan/pkg/downloader/dto"
+	"github.com/fekoneko/piximan/pkg/work"
 )
 
 func (d *Downloader) fetchArtworkMeta(id uint64) (*work.Work, error) {

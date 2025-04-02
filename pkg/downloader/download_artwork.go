@@ -3,10 +3,10 @@ package downloader
 import (
 	"strings"
 
-	"github.com/fekoneko/piximan/pkg/collection/work"
 	"github.com/fekoneko/piximan/pkg/encode"
 	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/fekoneko/piximan/pkg/storage"
+	"github.com/fekoneko/piximan/pkg/work"
 )
 
 func (d *Downloader) DownloadArtworkMeta(id uint64, path string) (*work.Work, error) {
