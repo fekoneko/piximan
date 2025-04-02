@@ -5,6 +5,7 @@ import (
 
 	"github.com/fekoneko/piximan/pkg/encode"
 	"github.com/fekoneko/piximan/pkg/logext"
+	"github.com/fekoneko/piximan/pkg/pathext"
 	"github.com/fekoneko/piximan/pkg/storage"
 	"github.com/fekoneko/piximan/pkg/work"
 )
@@ -18,7 +19,10 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, path string) (*work.Work, er
 	}
 
 	assets := []storage.Asset{}
-	path, err = storage.StoreWork(work, assets, path)
+	path, err = pathext.FormatWorkPath(path, work)
+	if err == nil {
+		err = storage.StoreWork(work, assets, path)
+	}
 	logext.LogSuccess(err, "stored metadata for artwork %v in %v", id, path)
 	logext.LogError(err, "failed to store metadata for artwork %v", id)
 	return work, err
@@ -67,7 +71,10 @@ func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) err
 	}
 
 	assets := []storage.Asset{{Bytes: gif, Extension: ".gif"}}
-	path, err = storage.StoreWork(work, assets, path)
+	path, err = pathext.FormatWorkPath(path, work)
+	if err == nil {
+		err = storage.StoreWork(work, assets, path)
+	}
 	logext.LogSuccess(err, "stored files for artwork %v in %v", id, path)
 	logext.LogError(err, "failed to store files for artwork %v", id)
 	return err
@@ -111,7 +118,10 @@ func (d *Downloader) continueIllustOrManga(
 		}
 	}
 
-	path, err = storage.StoreWork(work, assets, path)
+	path, err = pathext.FormatWorkPath(path, work)
+	if err == nil {
+		err = storage.StoreWork(work, assets, path)
+	}
 	logext.LogSuccess(err, "stored files for artwork %v in %v", id, path)
 	logext.LogError(err, "failed to store files for artwork %v", id)
 	return err
