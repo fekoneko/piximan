@@ -62,6 +62,10 @@ func (s *SecretStorage) StoreSessionId(sessionId string) error {
 	return nil
 }
 
+func (s *SecretStorage) RemoveSessionId() error {
+	return os.Remove(sessionIdPath)
+}
+
 func (s *SecretStorage) Read() error {
 	if _, err := os.Stat(sessionIdPath); err != nil {
 		return nil

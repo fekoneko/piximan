@@ -82,9 +82,9 @@ func toValidFilename(filename string) string {
 
 func formatPath(path string, work *work.Work) (string, error) {
 	replacer := strings.NewReplacer(
-		"{user}", work.UserName,
 		"{title}", work.Title,
 		"{id}", strconv.FormatUint(work.Id, 10),
+		"{user}", work.UserName,
 		"{userid}", strconv.FormatUint(work.UserId, 10),
 	)
 

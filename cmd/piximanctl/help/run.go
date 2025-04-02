@@ -21,14 +21,17 @@ Description: Change permanent configuration for piximan. The configured settings
              will be used for all future commands by default.
 
 -sessionid   The session ID to use for pixiv.net API autorization.
+             The authorization is used only when it's absolutely required, other
+             requests will be made anonymously.
              You can get this ID from browser cookies on https://www.pixiv.net.
              Search for a cookie named 'PHPSESSID'.
              Do not paste the value directly in the command line as it could
              be logged in the terminal history (e.g. ~/.bash_history).
              Session ID will be encrypted and stored in ~/.piximan/sessionid.
+             You can remove the session ID by providing an empty string.
 
--password    The master password that can be set to encrypt the session ID.
-             If omited the password will be set to an empty string.
+-password    The master password that can be set to encrypt the provided
+             session ID. If omited the password will be set to an empty string.
              Similarly to the session ID, avoid pasting the value directly.
 
 Examples:    piximanctl config -sessionid $(xclip -o)
@@ -40,11 +43,10 @@ const downloadHelp = //
              piximanctl download [ -id        ... ] [ -type     artwork ]
                                  [ -size      0-3 ]             novel
                                  [ -path      ... ] [ -onlymeta         ]
-                                 [ -sessionid ... ] [ -password ...     ]
 
 Description: Download the work files and metadata from pixiv.net to the given
-             directory. Session ID must be configued prior to this command or
-             be passed with the flag -sessionid.
+             directory. This command does not require a session ID. All the
+             requests to Pixiv API will be made anonymously.
 
 -id          ID of the downloaded work. You can found it in the work URI:
              https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
@@ -59,29 +61,28 @@ Description: Download the work files and metadata from pixiv.net to the given
              - 0 thumbnail  - 2 medium
              - 1 small      - 3 original
 
--path        Directory to save the files into. Defaults to the current directory.
+-path        Directory to save the files into. Defaults to the current directory
+             or the one found with -inferid flag.
              You can use these substitutions in the pathname:
-             - {user}       : the username of the work author.
              - {title}      : the title of the work.
              - {id}         : the ID of the work.
+             - {user}       : the username of the work author.
              - {userid}     : the ID of the work author.
              Be aware that any Windows / NTFS reserved names will be automaticaly
              padded with underscores, reserved characters - replaced and any dots
              or spaces in front or end of the filenames will be trimmed.
 
+-inferid     Infer the IDs of works from the given path. Useful for updating
+             the metadata in existing collection when coupled with -onlymeta flag.
+             The path may contain the following patterns:
+             - {id}         : the ID of the work - required.
+             - {any}        : any string not containing path separators.
 -onlymeta    Only download the metadata.yaml file for the work. Useful for
-             updating the metadata on existing works.
+             updating the metadata of existing works.
 
--sessionid   Will default to the session ID stored in config.
-             For additional information, run 'piximanctl help config'.
-
--password    The master password to access the session ID from configuration.
-             If omited the password will be asked interactively on the start.
-             Avoid pasting the value directly in the terminal as it could be
-             logged in the history.
-
-Examples:    piximanctl download -id 12345 -size 1 -onlymeta -password $(xclip -o)
+Examples:    piximanctl download -id 12345 -size 1 -password $(xclip -o)
              piximanctl download -id 12345 -type novel -path ./{userid}/{id}
+             piximanctl download -inferid ./{any}/{any}{id} -onlymeta
 `
 
 func Run() {
