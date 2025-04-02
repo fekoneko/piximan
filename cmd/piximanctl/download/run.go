@@ -15,6 +15,7 @@ type flags struct {
 	kind     *string
 	size     *uint
 	path     *string
+	inferId  *string
 	onlyMeta *bool
 }
 
@@ -24,6 +25,7 @@ func Run() {
 		kind:     flag.String("type", "artwork", ""),
 		size:     flag.Uint("size", uint(downloader.ImageSizeDefault), ""),
 		path:     flag.String("path", "", ""),
+		inferId:  flag.String("inferid", "", ""),
 		onlyMeta: flag.Bool("onlymeta", false, ""),
 	}
 	flag.Usage = help.RunDownload
@@ -42,14 +44,17 @@ func Run() {
 
 func interactive(flags flags) {
 	// TODO: implement interactive mode
-	fmt.Println("Interactive mode for download is not yet implemented")
+	fmt.Println("interactive mode for download is not yet implemented")
 	fmt.Println(flags)
 	os.Exit(1)
 }
 
 func nonInteractive(flags flags) {
-	if !flagext.Provided("id") {
-		flagext.BadUsage("required flag is not set: -id")
+	if !flagext.Provided("id") && !flagext.Provided("inferid") {
+		flagext.BadUsage("one of these flags is not provided: -id, -inferid")
+	}
+	if flagext.Provided("id") && flagext.Provided("inferid") {
+		flagext.BadUsage("providing these flags together is not supporded: -id, -inferid")
 	}
 	if flagext.Provided("type") && *flags.kind != "artwork" && *flags.kind != "novel" {
 		flagext.BadUsage("invalid argument value: -type")
@@ -57,11 +62,19 @@ func nonInteractive(flags flags) {
 	if flagext.Provided("size") && *flags.size > 3 {
 		flagext.BadUsage("invalid argument value: -size")
 	}
-	download(flags)
+	continueDownload(flags)
 }
 
-func download(flags flags) {
+func continueDownload(flags flags) {
 	d := downloader.New()
+
+	// TODO: get infered ids from the path in -inferid itself and download all of them
+	// result, err := pathext.InferIdsFormWorkPath(*flags.inferId)
+	// if err != nil {
+	// 	fmt.Printf("cannot infer work id from path %v: %v\n", *flags.path, err)
+	// 	os.Exit(1)
+	// }
+	// fmt.Println(result)
 
 	var err error
 	if *flags.kind == "novel" && *flags.onlyMeta {

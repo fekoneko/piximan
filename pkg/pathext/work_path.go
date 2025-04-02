@@ -1,6 +1,8 @@
 package pathext
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -8,7 +10,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/work"
 )
 
-func FormatWorkPath(path string, work *work.Work) (string, error) {
+func FormatWorkPath(pattern string, work *work.Work) (string, error) {
 	replacer := strings.NewReplacer(
 		"{title}", work.Title,
 		"{id}", strconv.FormatUint(work.Id, 10),
@@ -16,7 +18,7 @@ func FormatWorkPath(path string, work *work.Work) (string, error) {
 		"{userid}", strconv.FormatUint(work.UserId, 10),
 	)
 
-	path, err := filepath.Abs(path)
+	path, err := filepath.Abs(pattern)
 	if err != nil {
 		return "", err
 	}
@@ -34,4 +36,80 @@ func FormatWorkPath(path string, work *work.Work) (string, error) {
 	}
 
 	return filepath.Join(sections...), nil
+}
+
+var inferPatternReplacer = strings.NewReplacer(
+	"\\", "\\\\",
+	"[", "\\[",
+	"]", "\\]",
+	"?", "\\?",
+)
+
+func InferIdsFormWorkPath(pattern string) (map[uint64][]string, error) {
+	pattern = inferPatternReplacer.Replace(pattern)
+	patternIdIndex := strings.Index(pattern, "{id}")
+	if patternIdIndex == -1 {
+		return nil, fmt.Errorf("pattern must contain {id}")
+	}
+	if strings.Contains(pattern[patternIdIndex+1:], "{id}") {
+		return nil, fmt.Errorf("pattern may not contain {id} twice")
+	}
+	if (patternIdIndex >= 1 && pattern[patternIdIndex-1] == '*') ||
+		(patternIdIndex < len(pattern)-len("{id}") && pattern[patternIdIndex+len("{id}")] == '*') {
+		return nil, fmt.Errorf("pattern may not contain * directly before or directly after {id}")
+	}
+
+	matches, err := filepath.Glob(strings.ReplaceAll(pattern, "{id}", "*"))
+	if err != nil {
+		return nil, err
+	}
+
+	separator := string(os.PathSeparator)
+	slashesAfterId := strings.Count(pattern[patternIdIndex:], separator)
+	end := strings.Index(pattern[patternIdIndex:], separator)
+	if end != -1 {
+		end += patternIdIndex
+	} else {
+		end = len(pattern)
+	}
+	start := strings.LastIndex(pattern[:patternIdIndex], separator) + 1
+	patternIdSection := pattern[start:end]
+	result := make(map[uint64][]string)
+
+	for _, match := range matches {
+		matchIdSection := match[:]
+		for i := 0; i < slashesAfterId; i++ {
+			slashIndex := strings.LastIndex(matchIdSection, string(os.PathSeparator))
+			if slashIndex == -1 {
+				break
+			}
+			matchIdSection = matchIdSection[:slashIndex]
+		}
+		matchIdSection = filepath.Base(matchIdSection)
+
+		m := []rune(matchIdSection)
+		p := []rune(patternIdSection)
+		idRunes := []rune{}
+
+		for mi, pi := 0, 0; mi < len(m) && pi < len(p)-len("{id}")+1; mi, pi = mi+1, pi+1 {
+			if p[pi] == '*' {
+				for ; mi < len(m)-1 && m[mi+1] != p[pi+1]; mi++ {
+				}
+			} else if p[pi] == '{' && p[pi+1] == 'i' && p[pi+2] == 'd' && p[pi+3] == '}' {
+				pi += len("{id}")
+				for ; mi < len(m) && (pi >= len(p) || m[mi] != p[pi]); mi++ {
+					idRunes = append(idRunes, m[mi])
+				}
+				break
+			}
+		}
+
+		id, err := strconv.ParseUint(string(idRunes), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		result[id] = append(result[id], match)
+	}
+
+	return result, nil
 }

@@ -42,7 +42,7 @@ func interactive(flags flags) {
 		fmt.Scanln(flags.password) // TODO: hide password with asterisks
 	}
 
-	configureSessionId(flags)
+	continueSessionId(flags)
 }
 
 func nonInteractive(flags flags) {
@@ -51,11 +51,11 @@ func nonInteractive(flags flags) {
 	}
 
 	if flagext.Provided("sessionid") {
-		configureSessionId(flags)
+		continueSessionId(flags)
 	}
 }
 
-func configureSessionId(flags flags) {
+func continueSessionId(flags flags) {
 	storage, err := secretstorage.Open(*flags.password)
 	if err != nil {
 		fmt.Printf("failed to set session id: %v\n", err)

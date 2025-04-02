@@ -76,7 +76,8 @@ Description: Download the work files and metadata from pixiv.net to the given
              the metadata in existing collection when coupled with -onlymeta flag.
              The path may contain the following patterns:
              - {id}         : the ID of the work - required.
-             - {any}        : any string not containing path separators.
+             - *            : matches any sequence of non-separator characters.
+
 -onlymeta    Only download the metadata.yaml file for the work. Useful for
              updating the metadata of existing works.
 
