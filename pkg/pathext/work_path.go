@@ -45,6 +45,7 @@ var inferPatternReplacer = strings.NewReplacer(
 	"?", "\\?",
 )
 
+// TODO: refactor this abomination
 func InferIdsFormWorkPath(pattern string) (map[uint64][]string, error) {
 	pattern = inferPatternReplacer.Replace(pattern)
 	patternIdIndex := strings.Index(pattern, "{id}")
@@ -92,12 +93,17 @@ func InferIdsFormWorkPath(pattern string) (map[uint64][]string, error) {
 		idRunes := []rune{}
 
 		for mi, pi := 0, 0; mi < len(m) && pi < len(p)-len("{id}")+1; mi, pi = mi+1, pi+1 {
-			if p[pi] == '*' {
-				for ; mi < len(m)-1 && m[mi+1] != p[pi+1]; mi++ {
+			if p[pi] == '\\' {
+				pi++
+			} else if p[pi] == '*' {
+				for ; mi < len(m) && (p[pi+1] == '\\' && m[mi] != p[pi+2] ||
+					p[pi+1] != '\\' && m[mi] != p[pi+1]); mi++ {
 				}
+				mi--
 			} else if p[pi] == '{' && p[pi+1] == 'i' && p[pi+2] == 'd' && p[pi+3] == '}' {
 				pi += len("{id}")
-				for ; mi < len(m) && (pi >= len(p) || m[mi] != p[pi]); mi++ {
+				for ; mi < len(m) && (pi >= len(p) || (p[pi] == '\\' && pi+1 < len(p) &&
+					m[mi] != p[pi+1] || p[pi] != '\\' && m[mi] != p[pi])); mi++ {
 					idRunes = append(idRunes, m[mi])
 				}
 				break

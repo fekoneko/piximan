@@ -8,6 +8,7 @@ import (
 	"github.com/fekoneko/piximan/cmd/piximanctl/help"
 	"github.com/fekoneko/piximan/pkg/downloader"
 	"github.com/fekoneko/piximan/pkg/flagext"
+	"github.com/fekoneko/piximan/pkg/pathext"
 )
 
 type flags struct {
@@ -69,14 +70,14 @@ func continueDownload(flags flags) {
 	d := downloader.New()
 
 	// TODO: get infered ids from the path in -inferid itself and download all of them
-	// result, err := pathext.InferIdsFormWorkPath(*flags.inferId)
-	// if err != nil {
-	// 	fmt.Printf("cannot infer work id from path %v: %v\n", *flags.path, err)
-	// 	os.Exit(1)
-	// }
-	// fmt.Println(result)
+	result, err := pathext.InferIdsFormWorkPath(*flags.inferId)
+	if err != nil {
+		fmt.Printf("cannot infer work id from path %v: %v\n", *flags.path, err)
+		os.Exit(1)
+	}
+	fmt.Println(result)
 
-	var err error
+	// var err error
 	if *flags.kind == "novel" && *flags.onlyMeta {
 		_, err = d.DownloadNovelMeta(*flags.id, *flags.path)
 	} else if *flags.kind == "novel" {
