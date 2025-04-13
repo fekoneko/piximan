@@ -13,7 +13,7 @@ func (q *Queue) String() string {
 
 	for i, item := range *q {
 		if i >= 10 {
-			line := fmt.Sprintf("... and %v more\n", len(*q)-i)
+			line := fmt.Sprintf("... and %v more", len(*q)-i)
 			builder.WriteString(line)
 			break
 		}

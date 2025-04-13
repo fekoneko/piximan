@@ -1,15 +1,16 @@
-package downloader
+package fetch
 
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
-	"github.com/fekoneko/piximan/pkg/downloader/dto"
+	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
-func (d *Downloader) fetchArtworkUrls(id uint64) ([][4]string, error) {
+func ArtworkUrls(client http.Client, id uint64) ([][4]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/pages", id)
-	body, err := d.fetch(url)
+	body, err := Do(client, url)
 	if err != nil {
 		return nil, err
 	}

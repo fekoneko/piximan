@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fekoneko/piximan/pkg/work"
+	"github.com/fekoneko/piximan/pkg/collection/work"
 )
 
 func FormatWorkPath(pattern string, work *work.Work) (string, error) {
@@ -46,7 +46,7 @@ var inferPatternReplacer = strings.NewReplacer(
 )
 
 // TODO: refactor this abomination
-func InferIdsFormWorkPath(pattern string) (*map[uint64][]string, error) {
+func InferIdsFromWorkPath(pattern string) (*map[uint64][]string, error) {
 	pattern = inferPatternReplacer.Replace(pattern)
 	patternIdIndex := strings.Index(pattern, "{id}")
 	if patternIdIndex == -1 {

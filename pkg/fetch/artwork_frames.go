@@ -1,16 +1,17 @@
-package downloader
+package fetch
 
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
-	"github.com/fekoneko/piximan/pkg/downloader/dto"
 	"github.com/fekoneko/piximan/pkg/encode"
+	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
-func (d *Downloader) fetchArtworkFrames(id uint64) (string, []encode.Frame, error) {
+func ArtworkFrames(client http.Client, id uint64) (string, []encode.Frame, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/ugoira_meta", id)
-	body, err := d.fetch(url)
+	body, err := Do(client, url)
 	if err != nil {
 		return "", nil, err
 	}

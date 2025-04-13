@@ -1,17 +1,18 @@
-package downloader
+package fetch
 
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
-	"github.com/fekoneko/piximan/pkg/downloader/dto"
-	"github.com/fekoneko/piximan/pkg/work"
+	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
-func (d *Downloader) fetchNovelMeta(id uint64) (*work.Work, *string, string, error) {
+func NovelMeta(client http.Client, id uint64) (*work.Work, *string, string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/novel/%v", id)
-	body, err := d.fetch(url)
+	body, err := Do(client, url)
 	if err != nil {
 		return nil, nil, "", err
 	}

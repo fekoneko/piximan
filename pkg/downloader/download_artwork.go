@@ -3,15 +3,16 @@ package downloader
 import (
 	"strings"
 
+	"github.com/fekoneko/piximan/pkg/collection/work"
 	"github.com/fekoneko/piximan/pkg/encode"
+	"github.com/fekoneko/piximan/pkg/fetch"
 	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/fekoneko/piximan/pkg/pathext"
 	"github.com/fekoneko/piximan/pkg/storage"
-	"github.com/fekoneko/piximan/pkg/work"
 )
 
 func (d *Downloader) DownloadArtworkMeta(id uint64, path string) (*work.Work, error) {
-	work, err := d.fetchArtworkMeta(id)
+	work, err := fetch.ArtworkMeta(d.client, id)
 	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
 	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {
@@ -29,7 +30,7 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, path string) (*work.Work, er
 }
 
 func (d *Downloader) DownloadArtwork(id uint64, path string, size ImageSize) (*work.Work, error) {
-	fetchedWork, err := d.fetchArtworkMeta(id)
+	fetchedWork, err := fetch.ArtworkMeta(d.client, id)
 	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
 	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {
@@ -49,14 +50,14 @@ func (d *Downloader) DownloadArtwork(id uint64, path string, size ImageSize) (*w
 }
 
 func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) error {
-	data, frames, err := d.fetchArtworkFrames(id)
+	data, frames, err := fetch.ArtworkFrames(d.client, id)
 	logext.LogSuccess(err, "fetched frames data for artwork %v", id)
 	logext.LogError(err, "failed to fetch frames data for artwork %v", id)
 	if err != nil {
 		return err
 	}
 
-	archive, err := d.fetch(data)
+	archive, err := fetch.Do(d.client, data)
 	logext.LogSuccess(err, "fetched frames for artwork %v", id)
 	logext.LogError(err, "failed to fetch frames for artwork %v", id)
 	if err != nil {
@@ -83,7 +84,7 @@ func (d *Downloader) continueUgoira(work *work.Work, id uint64, path string) err
 func (d *Downloader) continueIllustOrManga(
 	work *work.Work, id uint64, size ImageSize, path string,
 ) error {
-	pages, err := d.fetchArtworkUrls(id)
+	pages, err := fetch.ArtworkUrls(d.client, id)
 	logext.LogSuccess(err, "fetched page urls for artwork %v", id)
 	logext.LogError(err, "failed to fetch page urls for artwork %v", id)
 	if err != nil {
@@ -95,7 +96,7 @@ func (d *Downloader) continueIllustOrManga(
 	for i, urls := range pages {
 		go func() {
 			url := urls[size]
-			bytes, err := d.fetch(url)
+			bytes, err := fetch.Do(d.client, url)
 			logext.LogSuccess(err, "fetched page %v for artwork %v", i, id)
 			logext.LogError(err, "failed to fetch page %v for artwork %v", i, id)
 			dotIndex := strings.LastIndex(url, ".")

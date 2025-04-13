@@ -74,13 +74,13 @@ func continueDownload(flags flags) {
 	d := downloader.New()
 
 	if flagext.Provided("inferid") {
-		result, err := pathext.InferIdsFormWorkPath(*flags.inferId)
+		result, err := pathext.InferIdsFromWorkPath(*flags.inferId)
 		if err != nil {
 			fmt.Printf("cannot infer work id from pattern %v: %v\n", *flags.inferId, err)
 			os.Exit(1)
 		}
-		queue := queue.FromMap(result, queue.ItemKindFromString(*flags.kind))
-		fmt.Println(queue)
+		q := queue.FromMap(result, queue.ItemKindFromString(*flags.kind))
+		fmt.Println(q)
 
 		// TODO: implement download queue for this
 		fmt.Println("\ndownloading multiple works is not yet implemented")

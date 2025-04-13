@@ -1,17 +1,18 @@
-package downloader
+package fetch
 
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
-	"github.com/fekoneko/piximan/pkg/downloader/dto"
-	"github.com/fekoneko/piximan/pkg/work"
+	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
-func (d *Downloader) fetchArtworkMeta(id uint64) (*work.Work, error) {
+func ArtworkMeta(client http.Client, id uint64) (*work.Work, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
-	body, err := d.fetch(url)
+	body, err := Do(client, url)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package downloader
+package fetch
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (d *Downloader) fetch(url string) ([]byte, error) {
+func Do(client http.Client, url string) ([]byte, error) {
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -14,7 +14,7 @@ func (d *Downloader) fetch(url string) ([]byte, error) {
 
 	request.Header.Add("User-Agent", "Mozilla/5.0")
 	request.Header.Add("Referer", "https://www.pixiv.net/")
-	response, err := d.client.Do(request)
+	response, err := client.Do(request)
 	if err != nil {
 		return nil, err
 	}
