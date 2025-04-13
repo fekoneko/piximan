@@ -6,9 +6,8 @@ const (
 	AiKindUnknown AiKind = 0
 	AiKindNotAi   AiKind = 1
 	AiKindIsAi    AiKind = 2
+	AiKindDefault        = AiKindUnknown
 )
-
-const AiKindDefault = AiKindUnknown
 
 func AiKindFromUint(aiKind uint8) AiKind {
 	if aiKind <= 2 {

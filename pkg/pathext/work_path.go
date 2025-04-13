@@ -46,7 +46,7 @@ var inferPatternReplacer = strings.NewReplacer(
 )
 
 // TODO: refactor this abomination
-func InferIdsFormWorkPath(pattern string) (map[uint64][]string, error) {
+func InferIdsFormWorkPath(pattern string) (*map[uint64][]string, error) {
 	pattern = inferPatternReplacer.Replace(pattern)
 	patternIdIndex := strings.Index(pattern, "{id}")
 	if patternIdIndex == -1 {
@@ -115,5 +115,5 @@ func InferIdsFormWorkPath(pattern string) (map[uint64][]string, error) {
 		}
 	}
 
-	return result, nil
+	return &result, nil
 }

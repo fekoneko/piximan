@@ -3,13 +3,18 @@ package work
 type Kind uint8
 
 const (
-	KindIllust Kind = 0
-	KindManga  Kind = 1
-	KindUgoira Kind = 2
-	KindNovel  Kind = 3
-)
+	KindIllust  Kind = 0
+	KindManga   Kind = 1
+	KindUgoira  Kind = 2
+	KindNovel   Kind = 3
+	KindDefault      = KindIllust
 
-const KindDefault = KindIllust
+	KindIllustString  = "illust"
+	KindMangaString   = "manga"
+	KindUgoiraString  = "ugoira"
+	KindNovelString   = "novel"
+	KindDefaultString = KindIllustString
+)
 
 func KindFromUint(kind uint8) Kind {
 	if kind <= 3 {
@@ -20,13 +25,13 @@ func KindFromUint(kind uint8) Kind {
 
 func KindFromString(kind string) Kind {
 	switch kind {
-	case "illust":
+	case KindIllustString:
 		return KindIllust
-	case "manga":
+	case KindMangaString:
 		return KindManga
-	case "ugoira":
+	case KindUgoiraString:
 		return KindUgoira
-	case "novel":
+	case KindNovelString:
 		return KindNovel
 	default:
 		return KindDefault
@@ -36,13 +41,13 @@ func KindFromString(kind string) Kind {
 func (kind Kind) String() string {
 	switch kind {
 	case KindIllust:
-		return "illust"
+		return KindIllustString
 	case KindManga:
-		return "manga"
+		return KindMangaString
 	case KindUgoira:
-		return "ugoira"
+		return KindUgoiraString
 	case KindNovel:
-		return "novel"
+		return KindNovelString
 	default:
 		return KindDefault.String()
 	}

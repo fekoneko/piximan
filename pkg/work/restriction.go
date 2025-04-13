@@ -3,12 +3,16 @@ package work
 type Restriction uint8
 
 const (
-	RestrictionNone Restriction = 0
-	RestrictionR18  Restriction = 1
-	RestrictionR18G Restriction = 2
-)
+	RestrictionNone    Restriction = 0
+	RestrictionR18     Restriction = 1
+	RestrictionR18G    Restriction = 2
+	RestrictionDefault             = RestrictionNone
 
-const RestrictionDefault = RestrictionNone
+	RestrictionNoneString    = "none"
+	RestrictionR18String     = "R18"
+	RestrictionR18GString    = "R18-G"
+	RestrictionDefaultString = RestrictionNoneString
+)
 
 func RestrictionFromUint(restriction uint8) Restriction {
 	if restriction <= 2 {
@@ -19,11 +23,11 @@ func RestrictionFromUint(restriction uint8) Restriction {
 
 func RestrictionFromString(restriction string) Restriction {
 	switch restriction {
-	case "none":
+	case RestrictionNoneString:
 		return RestrictionNone
-	case "R18":
+	case RestrictionR18String:
 		return RestrictionR18
-	case "R18-G":
+	case RestrictionR18GString:
 		return RestrictionR18G
 	default:
 		return RestrictionDefault
@@ -33,12 +37,12 @@ func RestrictionFromString(restriction string) Restriction {
 func (restriction Restriction) String() string {
 	switch restriction {
 	case RestrictionNone:
-		return "none"
+		return RestrictionNoneString
 	case RestrictionR18:
-		return "R18"
+		return RestrictionR18String
 	case RestrictionR18G:
-		return "R18-G"
+		return RestrictionR18GString
 	default:
-		return RestrictionDefault.String()
+		return RestrictionDefaultString
 	}
 }
