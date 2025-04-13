@@ -110,11 +110,9 @@ func InferIdsFormWorkPath(pattern string) (map[uint64][]string, error) {
 			}
 		}
 
-		id, err := strconv.ParseUint(string(idRunes), 10, 64)
-		if err != nil {
-			return nil, err
+		if id, err := strconv.ParseUint(string(idRunes), 10, 64); err == nil {
+			result[id] = append(result[id], match)
 		}
-		result[id] = append(result[id], match)
 	}
 
 	return result, nil

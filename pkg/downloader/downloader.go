@@ -21,6 +21,7 @@ func New() *Downloader {
 	return &Downloader{client}
 }
 
+// TODO: use this one to get bookmarked works
 func NewAuthorized(sessionId string) *AuthorizedDownloader {
 	url, _ := url.Parse("https://www.pixiv.net")
 	jar, _ := cookiejar.New(nil)

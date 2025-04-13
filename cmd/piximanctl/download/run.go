@@ -69,15 +69,30 @@ func nonInteractive(flags flags) {
 func continueDownload(flags flags) {
 	d := downloader.New()
 
-	// TODO: get infered ids from the path in -inferid itself and download all of them
-	result, err := pathext.InferIdsFormWorkPath(*flags.inferId)
-	if err != nil {
-		fmt.Printf("cannot infer work id from path %v: %v\n", *flags.path, err)
+	if flagext.Provided("inferid") {
+		result, err := pathext.InferIdsFormWorkPath(*flags.inferId)
+		if err != nil {
+			fmt.Printf("cannot infer work id from path %v: %v\n", *flags.path, err)
+			os.Exit(1)
+		}
+
+		count := 0
+		fmt.Println("ids inferred from the pattern:")
+		for id, paths := range result {
+			if count >= 10 {
+				fmt.Printf("... and %v more\n", len(result)-count)
+				break
+			}
+			fmt.Printf("- id: %-10v paths: %v\n", id, paths)
+			count++
+		}
+
+		// TODO: implement download queue for this
+		fmt.Println("\ndownloading multiple works is not yet implemented")
 		os.Exit(1)
 	}
-	fmt.Println(result)
 
-	// var err error
+	var err error
 	if *flags.kind == "novel" && *flags.onlyMeta {
 		_, err = d.DownloadNovelMeta(*flags.id, *flags.path)
 	} else if *flags.kind == "novel" {
@@ -85,7 +100,7 @@ func continueDownload(flags flags) {
 	} else if *flags.kind == "artwork" && *flags.onlyMeta {
 		_, err = d.DownloadArtworkMeta(*flags.id, *flags.path)
 	} else if *flags.kind == "artwork" {
-		_, err = d.DownloadArtwork(*flags.id, downloader.ImageSize(*flags.size), *flags.path)
+		_, err = d.DownloadArtwork(*flags.id, *flags.path, downloader.ImageSize(*flags.size))
 	}
 	if err != nil {
 		os.Exit(1)

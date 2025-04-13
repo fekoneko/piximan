@@ -28,7 +28,7 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, path string) (*work.Work, er
 	return work, err
 }
 
-func (d *Downloader) DownloadArtwork(id uint64, size ImageSize, path string) (*work.Work, error) {
+func (d *Downloader) DownloadArtwork(id uint64, path string, size ImageSize) (*work.Work, error) {
 	fetchedWork, err := d.fetchArtworkMeta(id)
 	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
 	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
