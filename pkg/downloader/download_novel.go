@@ -8,8 +8,8 @@ import (
 	"github.com/fekoneko/piximan/pkg/storage"
 )
 
-func (d *Downloader) DownloadNovelMeta(id uint64, path string) (*work.Work, error) {
-	work, _, _, err := fetch.NovelMeta(d.client, id)
+func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, error) {
+	w, _, _, err := fetch.NovelMeta(d.client, id)
 	logext.LogSuccess(err, "fetched metadata for novel %v", id)
 	logext.LogError(err, "failed to fetch metadata for novel %v", id)
 	if err != nil {
@@ -17,17 +17,17 @@ func (d *Downloader) DownloadNovelMeta(id uint64, path string) (*work.Work, erro
 	}
 
 	assets := []storage.Asset{}
-	path, err = pathext.FormatWorkPath(path, work)
+	paths, err = pathext.FormatWorkPaths(paths, w)
 	if err == nil {
-		err = storage.StoreWork(work, assets, path)
+		err = storage.StoreWork(w, assets, paths)
 	}
-	logext.LogSuccess(err, "stored metadata for novel %v in %v", id, path)
+	logext.LogSuccess(err, "stored metadata for novel %v in %v", id, paths)
 	logext.LogError(err, "failed to store metadata for novel %v", id)
-	return work, err
+	return w, err
 }
 
-func (d *Downloader) DownloadNovel(id uint64, path string) (*work.Work, error) {
-	work, content, coverUrl, err := fetch.NovelMeta(d.client, id)
+func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error) {
+	w, content, coverUrl, err := fetch.NovelMeta(d.client, id)
 	logext.LogSuccess(err, "fetched metadata for novel %v", id)
 	logext.LogError(err, "failed to fetch metadata for novel %v", id)
 	if err != nil {
@@ -46,11 +46,11 @@ func (d *Downloader) DownloadNovel(id uint64, path string) (*work.Work, error) {
 		{Bytes: []byte(*content), Extension: ".txt"},
 	}
 
-	path, err = pathext.FormatWorkPath(path, work)
+	paths, err = pathext.FormatWorkPaths(paths, w)
 	if err == nil {
-		err = storage.StoreWork(work, assets, path)
+		err = storage.StoreWork(w, assets, paths)
 	}
-	logext.LogSuccess(err, "stored files for novel %v in %v", id, path)
+	logext.LogSuccess(err, "stored files for novel %v in %v", id, paths)
 	logext.LogError(err, "failed to store files for novel %v", id)
-	return work, err
+	return w, err
 }

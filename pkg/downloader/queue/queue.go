@@ -7,6 +7,24 @@ import (
 
 type Queue []Item
 
+func (q *Queue) Push(items ...Item) {
+	*q = append(*q, items...)
+}
+
+func (q *Queue) Merge(mq *Queue) {
+	*q = append(*q, *mq...)
+}
+
+func (q *Queue) Pop() *Item {
+	if len(*q) == 0 {
+		return nil
+	}
+	item := &(*q)[0]
+	*q = (*q)[1:]
+
+	return item
+}
+
 func (q *Queue) String() string {
 	fmt.Println("download queue:")
 	builder := strings.Builder{}
@@ -25,12 +43,12 @@ func (q *Queue) String() string {
 	return builder.String()
 }
 
-func FromMap(m *map[uint64][]string, kind ItemKind) *Queue {
+func FromMap(m *map[uint64][]string, kind ItemKind, onlyMeta bool) *Queue {
 	queue := make(Queue, len(*m))
 
 	i := 0
 	for id, paths := range *m {
-		queue[i] = Item{id, kind, paths}
+		queue[i] = Item{id, kind, onlyMeta, paths}
 		i++
 	}
 

@@ -79,25 +79,15 @@ func continueDownload(flags flags) {
 			fmt.Printf("cannot infer work id from pattern %v: %v\n", *flags.inferId, err)
 			os.Exit(1)
 		}
-		q := queue.FromMap(result, queue.ItemKindFromString(*flags.kind))
+		q := queue.FromMap(result, queue.ItemKindFromString(*flags.kind), *flags.onlyMeta)
 		fmt.Println(q)
-
-		// TODO: implement download queue for this
-		fmt.Println("\ndownloading multiple works is not yet implemented")
-		os.Exit(1)
+		d.ScheduleQueue(q)
+	} else {
+		kind := queue.ItemKindFromString(*flags.kind)
+		paths := []string{*flags.path}
+		d.Schedule(*flags.id, kind, *flags.onlyMeta, paths)
 	}
 
-	var err error
-	if *flags.kind == queue.ItemKindNovelString && *flags.onlyMeta {
-		_, err = d.DownloadNovelMeta(*flags.id, *flags.path)
-	} else if *flags.kind == queue.ItemKindNovelString {
-		_, err = d.DownloadNovel(*flags.id, *flags.path)
-	} else if *flags.kind == queue.ItemKindArtworkString && *flags.onlyMeta {
-		_, err = d.DownloadArtworkMeta(*flags.id, *flags.path)
-	} else if *flags.kind == queue.ItemKindArtworkString {
-		_, err = d.DownloadArtwork(*flags.id, *flags.path, downloader.ImageSize(*flags.size))
-	}
-	if err != nil {
-		os.Exit(1)
+	for d.Listen() != nil {
 	}
 }

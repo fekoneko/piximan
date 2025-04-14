@@ -16,36 +16,37 @@ type Asset struct {
 	Extension string
 }
 
-func StoreWork(work *work.Work, assets []Asset, path string) error {
-	if err := os.MkdirAll(path, 0775); err != nil {
-		return err
-	}
-
+func StoreWork(work *work.Work, assets []Asset, paths []string) error {
 	dto := dto.ToDto(work)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {
 		return err
 	}
 
-	metadataPath := filepath.Join(path, "metadata.yaml")
-	if err := os.WriteFile(metadataPath, marshalled, 0664); err != nil {
-		return err
-	}
-
-	if len(assets) == 1 {
-		asset := assets[0]
-		filename := pathext.ToValidFilename(work.Title + asset.Extension)
-		path := filepath.Join(path, filename)
-		if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
+	for _, path := range paths {
+		if err := os.MkdirAll(path, 0775); err != nil {
 			return err
 		}
-	} else {
-		for i, asset := range assets {
-			filename := work.Title + " " + strconv.Itoa(i+1) + asset.Extension
-			filename = pathext.ToValidFilename(filename)
+		metadataPath := filepath.Join(path, "metadata.yaml")
+		if err := os.WriteFile(metadataPath, marshalled, 0664); err != nil {
+			return err
+		}
+
+		if len(assets) == 1 {
+			asset := assets[0]
+			filename := pathext.ToValidFilename(work.Title + asset.Extension)
 			path := filepath.Join(path, filename)
 			if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
 				return err
+			}
+		} else {
+			for i, asset := range assets {
+				filename := work.Title + " " + strconv.Itoa(i+1) + asset.Extension
+				filename = pathext.ToValidFilename(filename)
+				path := filepath.Join(path, filename)
+				if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
+					return err
+				}
 			}
 		}
 	}

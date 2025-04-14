@@ -38,6 +38,18 @@ func FormatWorkPath(pattern string, work *work.Work) (string, error) {
 	return filepath.Join(sections...), nil
 }
 
+func FormatWorkPaths(patterns []string, work *work.Work) ([]string, error) {
+	paths := make([]string, len(patterns))
+	for i, pattern := range patterns {
+		path, err := FormatWorkPath(pattern, work)
+		if err != nil {
+			return nil, err
+		}
+		paths[i] = path
+	}
+	return paths, nil
+}
+
 var inferPatternReplacer = strings.NewReplacer(
 	"\\", "\\\\",
 	"[", "\\[",
