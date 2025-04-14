@@ -99,6 +99,7 @@ func (d *Downloader) continueIllustOrManga(
 
 	assetChannel := make(chan storage.Asset, len(pages))
 	errorChannel := make(chan error, len(pages))
+	indexChannel := make(chan int, len(pages))
 	for i, urls := range pages {
 		go func() {
 			url := urls[size]
@@ -113,11 +114,13 @@ func (d *Downloader) continueIllustOrManga(
 			assets := storage.Asset{Bytes: bytes, Extension: extension}
 			assetChannel <- assets
 			errorChannel <- err
+			indexChannel <- i
 		}()
 	}
 
 	assets := make([]storage.Asset, len(pages))
-	for i := range pages {
+	for range pages {
+		i := <-indexChannel
 		assets[i] = <-assetChannel
 		err = <-errorChannel
 		if err != nil {
