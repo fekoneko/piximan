@@ -7,6 +7,7 @@ import (
 
 	"github.com/fekoneko/piximan/cmd/piximanctl/help"
 	"github.com/fekoneko/piximan/pkg/downloader"
+	"github.com/fekoneko/piximan/pkg/downloader/image"
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
 	"github.com/fekoneko/piximan/pkg/flagext"
 	"github.com/fekoneko/piximan/pkg/pathext"
@@ -25,7 +26,7 @@ func Run() {
 	flags := flags{
 		id:       flag.Uint64("id", 0, ""),
 		kind:     flag.String("type", "artwork", ""),
-		size:     flag.Uint("size", uint(downloader.ImageSizeDefault), ""),
+		size:     flag.Uint("size", uint(image.SizeDefault), ""),
 		path:     flag.String("path", "", ""),
 		inferId:  flag.String("inferid", "", ""),
 		onlyMeta: flag.Bool("onlymeta", false, ""),
@@ -72,6 +73,8 @@ func nonInteractive(flags flags) {
 
 func continueDownload(flags flags) {
 	d := downloader.New()
+	size := image.SizeFromUint(*flags.size)
+	kind := queue.ItemKindFromString(*flags.kind)
 
 	if flagext.Provided("inferid") {
 		result, err := pathext.InferIdsFromWorkPath(*flags.inferId)
@@ -79,13 +82,12 @@ func continueDownload(flags flags) {
 			fmt.Printf("cannot infer work id from pattern %v: %v\n", *flags.inferId, err)
 			os.Exit(1)
 		}
-		q := queue.FromMap(result, queue.ItemKindFromString(*flags.kind), *flags.onlyMeta)
+		q := queue.FromMap(result, kind, size, *flags.onlyMeta)
 		fmt.Println(q)
 		d.ScheduleQueue(q)
 	} else {
-		kind := queue.ItemKindFromString(*flags.kind)
 		paths := []string{*flags.path}
-		d.Schedule(*flags.id, kind, *flags.onlyMeta, paths)
+		d.Schedule(*flags.id, kind, size, *flags.onlyMeta, paths)
 	}
 
 	for d.Listen() != nil {

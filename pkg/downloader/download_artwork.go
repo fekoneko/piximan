@@ -1,9 +1,11 @@
 package downloader
 
 import (
+	"log"
 	"strings"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/pkg/downloader/image"
 	"github.com/fekoneko/piximan/pkg/encode"
 	"github.com/fekoneko/piximan/pkg/fetch"
 	"github.com/fekoneko/piximan/pkg/logext"
@@ -12,6 +14,8 @@ import (
 )
 
 func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work, error) {
+	log.Printf("started downloading metadata for artwork %v", id)
+
 	w, err := fetch.ArtworkMeta(d.client, id)
 	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
 	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
@@ -29,7 +33,9 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work,
 	return w, err
 }
 
-func (d *Downloader) DownloadArtwork(id uint64, size ImageSize, paths []string) (*work.Work, error) {
+func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
+	log.Printf("started downloading artwork %v", id)
+
 	w, err := fetch.ArtworkMeta(d.client, id)
 	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
 	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
@@ -82,7 +88,7 @@ func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) err
 }
 
 func (d *Downloader) continueIllustOrManga(
-	w *work.Work, id uint64, size ImageSize, paths []string,
+	w *work.Work, id uint64, size image.Size, paths []string,
 ) error {
 	pages, err := fetch.ArtworkUrls(d.client, id)
 	logext.LogSuccess(err, "fetched page urls for artwork %v", id)

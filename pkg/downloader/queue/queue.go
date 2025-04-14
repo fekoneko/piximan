@@ -3,6 +3,8 @@ package queue
 import (
 	"fmt"
 	"strings"
+
+	"github.com/fekoneko/piximan/pkg/downloader/image"
 )
 
 type Queue []Item
@@ -43,12 +45,12 @@ func (q *Queue) String() string {
 	return builder.String()
 }
 
-func FromMap(m *map[uint64][]string, kind ItemKind, onlyMeta bool) *Queue {
+func FromMap(m *map[uint64][]string, kind ItemKind, size image.Size, onlyMeta bool) *Queue {
 	queue := make(Queue, len(*m))
 
 	i := 0
 	for id, paths := range *m {
-		queue[i] = Item{id, kind, onlyMeta, paths}
+		queue[i] = Item{id, kind, size, onlyMeta, paths}
 		i++
 	}
 

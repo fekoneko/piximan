@@ -1,6 +1,8 @@
 package downloader
 
 import (
+	"log"
+
 	"github.com/fekoneko/piximan/pkg/collection/work"
 	"github.com/fekoneko/piximan/pkg/fetch"
 	"github.com/fekoneko/piximan/pkg/logext"
@@ -9,6 +11,8 @@ import (
 )
 
 func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, error) {
+	log.Printf("started downloading metadata for novel %v", id)
+
 	w, _, _, err := fetch.NovelMeta(d.client, id)
 	logext.LogSuccess(err, "fetched metadata for novel %v", id)
 	logext.LogError(err, "failed to fetch metadata for novel %v", id)
@@ -27,6 +31,8 @@ func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, e
 }
 
 func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error) {
+	log.Printf("started downloading novel %v", id)
+
 	w, content, coverUrl, err := fetch.NovelMeta(d.client, id)
 	logext.LogSuccess(err, "fetched metadata for novel %v", id)
 	logext.LogError(err, "failed to fetch metadata for novel %v", id)

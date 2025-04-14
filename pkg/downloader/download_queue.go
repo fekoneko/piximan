@@ -2,11 +2,12 @@ package downloader
 
 import (
 	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/pkg/downloader/image"
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
 )
 
-func (d *Downloader) Schedule(id uint64, kind queue.ItemKind, onlyMeta bool, paths []string) {
-	d.queue.Push(queue.Item{Id: id, Kind: kind, OnlyMeta: onlyMeta, Paths: paths})
+func (d *Downloader) Schedule(id uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string) {
+	d.queue.Push(queue.Item{Id: id, Kind: kind, Size: size, OnlyMeta: onlyMeta, Paths: paths})
 	d.tryDownloadUntilCap()
 }
 
@@ -55,8 +56,7 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	} else if item.Kind == queue.ItemKindArtwork && item.OnlyMeta {
 		w, err = d.DownloadArtworkMeta(item.Id, item.Paths)
 	} else if item.Kind == queue.ItemKindArtwork {
-		// TODO: pass size here!
-		w, err = d.DownloadArtwork(item.Id, ImageSizeDefault, item.Paths)
+		w, err = d.DownloadArtwork(item.Id, item.Size, item.Paths)
 	}
 
 	if err == nil {
