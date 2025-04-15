@@ -20,14 +20,26 @@ func MaybeError(err error, prefix string, args ...interface{}) {
 	}
 }
 
+func Info(message string, args ...interface{}) {
+	log.Printf("[INFO]       "+message+"\n", args...)
+}
+
 func Success(message string, args ...interface{}) {
-	log.Printf("[SUCCESS] "+message+"\n", args...)
+	log.Printf("[SUCCESS]    "+message+"\n", args...)
 }
 
 func Warning(message string, args ...interface{}) {
-	log.Printf("[WARNING] "+message+"\n", args...)
+	log.Printf("[WARNING]    "+message+"\n", args...)
 }
 
 func Error(message string, args ...interface{}) {
-	log.Printf("[ERROR]   "+message+"\n", args...)
+	log.Printf("[ERROR]      "+message+"\n", args...)
+}
+
+func Fetch(url string) {
+	log.Println("[FETCH]      " + url)
+}
+
+func AuthorizedFetch(url string) {
+	log.Println("[AUTH FETCH] " + url)
 }

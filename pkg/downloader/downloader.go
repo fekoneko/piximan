@@ -2,8 +2,6 @@ package downloader
 
 import (
 	"net/http"
-	"net/http/cookiejar"
-	"net/url"
 	"sync"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
@@ -21,23 +19,23 @@ type Downloader struct {
 	numPendingMutex sync.Mutex
 }
 
-type AuthorizedDownloader Downloader
+type AuthorizedDownloader struct {
+	Downloader
+	sessionId string
+}
 
 func New() *Downloader {
-	jar, _ := cookiejar.New(nil)
-	client := http.Client{Jar: jar}
+	client := http.Client{}
 	channel := make(chan *work.Work, CHANNEL_SIZE)
 	return &Downloader{client, channel, queue.Queue{}, 0, sync.Mutex{}}
 }
 
 // TODO: use this one to get bookmarked works
 func NewAuthorized(sessionId string) *AuthorizedDownloader {
-	url, _ := url.Parse("https://www.pixiv.net")
-	jar, _ := cookiejar.New(nil)
-	jar.SetCookies(url, []*http.Cookie{
-		{Name: "PHPSESSID", Value: sessionId},
-	})
-	client := http.Client{Jar: jar}
+	client := http.Client{}
 	channel := make(chan *work.Work, CHANNEL_SIZE)
-	return &AuthorizedDownloader{client, channel, queue.Queue{}, 0, sync.Mutex{}}
+	return &AuthorizedDownloader{
+		Downloader{client, channel, queue.Queue{}, 0, sync.Mutex{}},
+		sessionId,
+	}
 }

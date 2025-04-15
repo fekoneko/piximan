@@ -2,7 +2,6 @@ package downloader
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
@@ -15,7 +14,7 @@ import (
 )
 
 func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work, error) {
-	log.Printf("started downloading metadata for artwork %v", id)
+	logext.Info("started downloading metadata for artwork %v", id)
 
 	w, _, _, err := fetch.ArtworkMeta(d.client, id)
 	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
@@ -35,7 +34,7 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work,
 }
 
 func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
-	log.Printf("started downloading artwork %v", id)
+	logext.Info("started downloading artwork %v", id)
 
 	w, firstPageUrls, thumbnailUrls, err := fetch.ArtworkMeta(d.client, id)
 	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
@@ -106,7 +105,8 @@ func (d *Downloader) continueIllustOrManga(
 	}
 	logext.Warning("failed to download artwork %v with inferred page urls", id)
 
-	// TODO: if inferring failed this must be done with authorization
+	// TODO: - if inferring failed and R-18(G) - this must be done with authorization
+	//       - if inferring failed and no restriction - try without and then with authorization
 	pageUrls, err = fetch.ArtworkPages(d.client, id, size)
 	logext.MaybeSuccess(err, "fetched page urls for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch page urls for artwork %v", id)

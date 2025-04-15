@@ -4,16 +4,41 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/fekoneko/piximan/pkg/logext"
 )
 
 func Do(client http.Client, url string) ([]byte, error) {
+	if request, err := newRequest(url); err == nil {
+		logext.Fetch(url)
+		return doWithRequest(client, request)
+	} else {
+		return nil, err
+	}
+}
+
+func DoAuthorized(client http.Client, url string, sessionId string) ([]byte, error) {
+	if request, err := newRequest(url); err == nil {
+		request.Header.Add("Cookie", "PHPSESSID="+sessionId)
+		logext.AuthorizedFetch(url)
+		return doWithRequest(client, request)
+	} else {
+		return nil, err
+	}
+}
+
+func newRequest(url string) (*http.Request, error) {
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-
 	request.Header.Add("User-Agent", "Mozilla/5.0")
 	request.Header.Add("Referer", "https://www.pixiv.net/")
+
+	return request, nil
+}
+
+func doWithRequest(client http.Client, request *http.Request) ([]byte, error) {
 	response, err := client.Do(request)
 	if err != nil {
 		return nil, err
