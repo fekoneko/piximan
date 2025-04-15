@@ -2,22 +2,32 @@ package logext
 
 import "log"
 
-func LogIfSuccess(err error, message string, args ...interface{}) {
+func MaybeSuccess(err error, message string, args ...interface{}) {
 	if err == nil {
-		LogSuccess(message, args...)
+		Success(message, args...)
 	}
 }
 
-func LogIfError(err error, prefix string, args ...interface{}) {
+func MaybeWarning(err error, prefix string, args ...interface{}) {
 	if err != nil {
-		LogError(prefix+": "+err.Error(), args...)
+		Warning(prefix+": "+err.Error(), args...)
 	}
 }
 
-func LogSuccess(message string, args ...interface{}) {
+func MaybeError(err error, prefix string, args ...interface{}) {
+	if err != nil {
+		Error(prefix+": "+err.Error(), args...)
+	}
+}
+
+func Success(message string, args ...interface{}) {
 	log.Printf("[SUCCESS] "+message+"\n", args...)
 }
 
-func LogError(message string, args ...interface{}) {
-	log.Printf("[ERROR] "+message+"\n", args...)
+func Warning(message string, args ...interface{}) {
+	log.Printf("[WARNING] "+message+"\n", args...)
+}
+
+func Error(message string, args ...interface{}) {
+	log.Printf("[ERROR]   "+message+"\n", args...)
 }
