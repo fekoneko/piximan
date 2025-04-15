@@ -8,10 +8,11 @@ import (
 
 type Artwork struct {
 	Work
+	Page
 	IllustType uint8 `json:"illustType"`
 }
 
-func (dto *Artwork) FromDto(downloadTime time.Time) *work.Work {
+func (dto *Artwork) FromDto(downloadTime time.Time) (*work.Work, *[4]string) {
 	kind := work.KindFromUint(dto.IllustType)
-	return dto.Work.FromDto(kind, downloadTime)
+	return dto.Work.FromDto(kind, downloadTime), dto.Page.FromDto()
 }

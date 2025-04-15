@@ -1,6 +1,7 @@
 package downloader
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -16,9 +17,9 @@ import (
 func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work, error) {
 	log.Printf("started downloading metadata for artwork %v", id)
 
-	w, err := fetch.ArtworkMeta(d.client, id)
-	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
-	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
+	w, _, err := fetch.ArtworkMeta(d.client, id)
+	logext.LogIfSuccess(err, "fetched metadata for artwork %v", id)
+	logext.LogIfError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {
 		return nil, err
 	}
@@ -28,17 +29,17 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work,
 	if err == nil {
 		err = storage.StoreWork(w, assets, paths)
 	}
-	logext.LogSuccess(err, "stored metadata for artwork %v in %v", id, paths)
-	logext.LogError(err, "failed to store metadata for artwork %v", id)
+	logext.LogIfSuccess(err, "stored metadata for artwork %v in %v", id, paths)
+	logext.LogIfError(err, "failed to store metadata for artwork %v", id)
 	return w, err
 }
 
 func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
 	log.Printf("started downloading artwork %v", id)
 
-	w, err := fetch.ArtworkMeta(d.client, id)
-	logext.LogSuccess(err, "fetched metadata for artwork %v", id)
-	logext.LogError(err, "failed to fetch metadata for artwork %v", id)
+	w, firstPageUrls, err := fetch.ArtworkMeta(d.client, id)
+	logext.LogIfSuccess(err, "fetched metadata for artwork %v", id)
+	logext.LogIfError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +47,7 @@ func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string)
 	if w.Kind == work.KindUgoira {
 		err = d.continueUgoira(w, id, paths)
 	} else {
-		err = d.continueIllustOrManga(w, id, size, paths)
+		err = d.continueIllustOrManga(w, firstPageUrls, id, size, paths)
 	}
 	if err != nil {
 		return nil, err
@@ -57,22 +58,22 @@ func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string)
 
 func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) error {
 	data, frames, err := fetch.ArtworkFrames(d.client, id)
-	logext.LogSuccess(err, "fetched frames data for artwork %v", id)
-	logext.LogError(err, "failed to fetch frames data for artwork %v", id)
+	logext.LogIfSuccess(err, "fetched frames data for artwork %v", id)
+	logext.LogIfError(err, "failed to fetch frames data for artwork %v", id)
 	if err != nil {
 		return err
 	}
 
 	archive, err := fetch.Do(d.client, data)
-	logext.LogSuccess(err, "fetched frames for artwork %v", id)
-	logext.LogError(err, "failed to fetch frames for artwork %v", id)
+	logext.LogIfSuccess(err, "fetched frames for artwork %v", id)
+	logext.LogIfError(err, "failed to fetch frames for artwork %v", id)
 	if err != nil {
 		return err
 	}
 
 	gif, err := encode.GifFromFrames(archive, frames)
-	logext.LogSuccess(err, "encoded frames for artwork %v", id)
-	logext.LogError(err, "failed to encode frames for artwork %v", id)
+	logext.LogIfSuccess(err, "encoded frames for artwork %v", id)
+	logext.LogIfError(err, "failed to encode frames for artwork %v", id)
 	if err != nil {
 		return err
 	}
@@ -82,34 +83,50 @@ func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) err
 	if err == nil {
 		err = storage.StoreWork(w, assets, paths)
 	}
-	logext.LogSuccess(err, "stored files for artwork %v in %v", id, paths)
-	logext.LogError(err, "failed to store files for artwork %v", id)
+	logext.LogIfSuccess(err, "stored files for artwork %v in %v", id, paths)
+	logext.LogIfError(err, "failed to store files for artwork %v", id)
 	return err
 }
 
 func (d *Downloader) continueIllustOrManga(
-	w *work.Work, id uint64, size image.Size, paths []string,
+	w *work.Work, firstPageUrls *[4]string, id uint64, size image.Size, paths []string,
 ) error {
-	pages, err := fetch.ArtworkUrls(d.client, id)
-	logext.LogSuccess(err, "fetched page urls for artwork %v", id)
-	logext.LogError(err, "failed to fetch page urls for artwork %v", id)
+	// TODO: it seems like for new works the `urls` contains null values and
+	// `.../pages` doesn't  work - need another method
+	if firstPageUrls != nil {
+		pageUrls := inferPages((*firstPageUrls)[size], w.NumPages)
+		if err := d.continueArtworkWithPages(w, pageUrls, id, paths); err == nil {
+			return nil
+		}
+	}
+	logext.LogError("failed to infer page urls for artwork %v - trying to fetch them", id)
+
+	pageUrls, err := fetch.ArtworkPages(d.client, id, size)
+	logext.LogIfSuccess(err, "fetched page urls for artwork %v", id)
+	logext.LogIfError(err, "failed to fetch page urls for artwork %v", id)
 	if err != nil {
 		return err
 	}
+	return d.continueArtworkWithPages(w, pageUrls, id, paths)
+}
 
-	assetChannel := make(chan storage.Asset, len(pages))
-	errorChannel := make(chan error, len(pages))
-	indexChannel := make(chan int, len(pages))
-	for i, urls := range pages {
+func (d *Downloader) continueArtworkWithPages(
+	w *work.Work, pageUrls []string, id uint64, paths []string,
+) error {
+	assetChannel := make(chan storage.Asset, len(pageUrls))
+	errorChannel := make(chan error, len(pageUrls))
+	indexChannel := make(chan int, len(pageUrls))
+
+	for i, url := range pageUrls {
 		go func() {
-			url := urls[size]
 			bytes, err := fetch.Do(d.client, url)
-			logext.LogSuccess(err, "fetched page %v for artwork %v", i, id)
-			logext.LogError(err, "failed to fetch page %v for artwork %v", i, id)
+			logext.LogIfSuccess(err, "fetched page %v for artwork %v", i, id)
+			logext.LogIfError(err, "failed to fetch page %v for artwork %v", i, id)
+
 			dotIndex := strings.LastIndex(url, ".")
 			var extension string
 			if dotIndex != -1 {
-				extension = urls[size][dotIndex:]
+				extension = url[dotIndex:]
 			}
 			assets := storage.Asset{Bytes: bytes, Extension: extension}
 			assetChannel <- assets
@@ -118,21 +135,36 @@ func (d *Downloader) continueIllustOrManga(
 		}()
 	}
 
-	assets := make([]storage.Asset, len(pages))
-	for range pages {
+	assets := make([]storage.Asset, len(pageUrls))
+	for range pageUrls {
 		i := <-indexChannel
 		assets[i] = <-assetChannel
-		err = <-errorChannel
+		err := <-errorChannel
 		if err != nil {
 			return err
 		}
 	}
 
-	paths, err = pathext.FormatWorkPaths(paths, w)
+	paths, err := pathext.FormatWorkPaths(paths, w)
 	if err == nil {
 		err = storage.StoreWork(w, assets, paths)
 	}
-	logext.LogSuccess(err, "stored files for artwork %v in %v", id, paths)
-	logext.LogError(err, "failed to store files for artwork %v", id)
+	logext.LogIfSuccess(err, "stored files for artwork %v in %v", id, paths)
+	logext.LogIfError(err, "failed to store files for artwork %v", id)
 	return err
+}
+
+func inferPages(firstPageUrl string, numPages uint64) []string {
+	p0Index := strings.Index(firstPageUrl, "p0")
+	if p0Index == -1 {
+		return []string{firstPageUrl}
+	}
+
+	pageUrls := make([]string, numPages)
+	pageUrls[0] = firstPageUrl
+	for i := uint64(1); i < numPages; i++ {
+		pageUrls[i] = fmt.Sprintf("%vp%v%v", firstPageUrl[:p0Index], i, firstPageUrl[p0Index+2:])
+	}
+
+	return pageUrls
 }

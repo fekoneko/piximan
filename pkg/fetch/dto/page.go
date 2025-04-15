@@ -2,18 +2,28 @@ package dto
 
 type Page struct {
 	Urls struct {
-		ThumbMini string `json:"thumb_mini"`
-		Small     string `json:"small"`
-		Regular   string `json:"regular"`
-		Original  string `json:"original"`
+		Thumb     *string `json:"thumb"`
+		ThumbMini *string `json:"thumb_mini"`
+		Small     *string `json:"small"`
+		Regular   *string `json:"regular"`
+		Original  *string `json:"original"`
 	} `json:"urls"`
 }
 
 func (p *Page) FromDto() *[4]string {
+	thumbUrl := p.Urls.Thumb
+	if thumbUrl == nil {
+		thumbUrl = p.Urls.ThumbMini
+	}
+
+	if thumbUrl == nil || p.Urls.Small == nil || p.Urls.Regular == nil || p.Urls.Original == nil {
+		return nil
+	}
+
 	return &[4]string{
-		p.Urls.ThumbMini,
-		p.Urls.Small,
-		p.Urls.Regular,
-		p.Urls.Original,
+		*thumbUrl,
+		*p.Urls.Small,
+		*p.Urls.Regular,
+		*p.Urls.Original,
 	}
 }

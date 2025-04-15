@@ -10,19 +10,19 @@ import (
 	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
-func ArtworkMeta(client http.Client, id uint64) (*work.Work, error) {
+func ArtworkMeta(client http.Client, id uint64) (*work.Work, *[4]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
 	body, err := Do(client, url)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var unmarshalled dto.Response[dto.Artwork]
 	if err := json.Unmarshal(body, &unmarshalled); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	work := unmarshalled.Body.FromDto(time.Now())
+	work, firstPageUrls := unmarshalled.Body.FromDto(time.Now())
 
-	return work, nil
+	return work, firstPageUrls, nil
 }

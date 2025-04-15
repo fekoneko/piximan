@@ -14,8 +14,8 @@ func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, e
 	log.Printf("started downloading metadata for novel %v", id)
 
 	w, _, _, err := fetch.NovelMeta(d.client, id)
-	logext.LogSuccess(err, "fetched metadata for novel %v", id)
-	logext.LogError(err, "failed to fetch metadata for novel %v", id)
+	logext.LogIfSuccess(err, "fetched metadata for novel %v", id)
+	logext.LogIfError(err, "failed to fetch metadata for novel %v", id)
 	if err != nil {
 		return nil, err
 	}
@@ -25,8 +25,8 @@ func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, e
 	if err == nil {
 		err = storage.StoreWork(w, assets, paths)
 	}
-	logext.LogSuccess(err, "stored metadata for novel %v in %v", id, paths)
-	logext.LogError(err, "failed to store metadata for novel %v", id)
+	logext.LogIfSuccess(err, "stored metadata for novel %v in %v", id, paths)
+	logext.LogIfError(err, "failed to store metadata for novel %v", id)
 	return w, err
 }
 
@@ -34,15 +34,15 @@ func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error
 	log.Printf("started downloading novel %v", id)
 
 	w, content, coverUrl, err := fetch.NovelMeta(d.client, id)
-	logext.LogSuccess(err, "fetched metadata for novel %v", id)
-	logext.LogError(err, "failed to fetch metadata for novel %v", id)
+	logext.LogIfSuccess(err, "fetched metadata for novel %v", id)
+	logext.LogIfError(err, "failed to fetch metadata for novel %v", id)
 	if err != nil {
 		return nil, err
 	}
 
 	cover, err := fetch.Do(d.client, coverUrl)
-	logext.LogSuccess(err, "fetched cover for novel %v", id)
-	logext.LogError(err, "failed to fetch cover for novel %v", id)
+	logext.LogIfSuccess(err, "fetched cover for novel %v", id)
+	logext.LogIfError(err, "failed to fetch cover for novel %v", id)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error
 	if err == nil {
 		err = storage.StoreWork(w, assets, paths)
 	}
-	logext.LogSuccess(err, "stored files for novel %v in %v", id, paths)
-	logext.LogError(err, "failed to store files for novel %v", id)
+	logext.LogIfSuccess(err, "stored files for novel %v in %v", id, paths)
+	logext.LogIfError(err, "failed to store files for novel %v", id)
 	return w, err
 }

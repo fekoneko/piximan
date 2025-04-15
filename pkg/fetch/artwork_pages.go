@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/fekoneko/piximan/pkg/downloader/image"
 	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
-func ArtworkUrls(client http.Client, id uint64) ([][4]string, error) {
+func ArtworkPages(client http.Client, id uint64, size image.Size) ([]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/pages", id)
 	body, err := Do(client, url)
 	if err != nil {
@@ -20,10 +21,10 @@ func ArtworkUrls(client http.Client, id uint64) ([][4]string, error) {
 		return nil, err
 	}
 
-	urls := make([][4]string, len(unmarshalled.Body))
+	pageUrls := make([]string, len(unmarshalled.Body))
 	for i, page := range unmarshalled.Body {
-		urls[i] = *page.FromDto()
+		pageUrls[i] = page.FromDto()[size]
 	}
 
-	return urls, nil
+	return pageUrls, nil
 }
