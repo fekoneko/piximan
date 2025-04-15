@@ -19,6 +19,7 @@ func Do(client http.Client, url string) ([]byte, error) {
 		return nil, err
 	}
 
+	// TODO: should suspend and retry later if network issues occured
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("response status code is: %v", response.Status)
 	}

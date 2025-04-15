@@ -11,17 +11,17 @@ type Page struct {
 }
 
 func (p *Page) FromDto() *[4]string {
-	thumbUrl := p.Urls.Thumb
-	if thumbUrl == nil {
-		thumbUrl = p.Urls.ThumbMini
+	thumbnailUrl := p.Urls.Thumb
+	if thumbnailUrl == nil {
+		thumbnailUrl = p.Urls.ThumbMini
 	}
 
-	if thumbUrl == nil || p.Urls.Small == nil || p.Urls.Regular == nil || p.Urls.Original == nil {
+	if thumbnailUrl == nil || p.Urls.Small == nil || p.Urls.Regular == nil || p.Urls.Original == nil {
 		return nil
 	}
 
 	return &[4]string{
-		*thumbUrl,
+		*thumbnailUrl,
 		*p.Urls.Small,
 		*p.Urls.Regular,
 		*p.Urls.Original,
