@@ -201,7 +201,7 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 	return pageUrls, nil
 }
 
-var extensions = []string{".jpg", ".png"} // TODO: add more
+var extensions = []string{".jpg", ".png", ".gif"}
 
 func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bool, noLogErrors bool) ([]storage.Asset, error) {
 	if len(pageUrls) == 0 {
