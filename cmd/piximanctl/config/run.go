@@ -13,9 +13,8 @@ type flags struct {
 }
 
 func Run() {
-	// TODO: use different module for parsing flags that will provide good
-	//       way to know if the flag was provided - all of those should be
-	//       nil by default
+	// TODO: use different module for parsing flags that will provide good way
+	//       to know if the flag was provided - all of these should be nil by default
 	flags := flags{
 		sessionId: flag.String("sessionid", "", ""),
 		password:  flag.String("password", "", ""),

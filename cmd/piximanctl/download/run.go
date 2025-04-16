@@ -18,9 +18,8 @@ type flags struct {
 }
 
 func Run() {
-	// TODO: use different module for parsing flags that will provide good
-	//       way to know if the flag was provided - all of those should be
-	//       nil by default
+	// TODO: use different module for parsing flags that will provide good way
+	//       to know if the flag was provided - all of these should be nil by default
 	flags := flags{
 		id:       flag.Uint64("id", 0, ""),
 		kind:     flag.String("type", "artwork", ""),
