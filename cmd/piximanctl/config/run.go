@@ -4,12 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"syscall"
 
 	"github.com/fekoneko/piximan/cmd/piximanctl/help"
 	"github.com/fekoneko/piximan/pkg/flagext"
 	"github.com/fekoneko/piximan/pkg/secretstorage"
-	"golang.org/x/term"
+	"github.com/manifoldco/promptui"
 )
 
 type flags struct {
@@ -36,18 +35,30 @@ func Run() {
 	}
 }
 
+var sessionIdPrompt = promptui.Prompt{
+	Label: "Your session ID",
+	Mask:  '*',
+}
+var passwordPrompt = promptui.Prompt{
+	Label: "Encrypt with a password",
+	Mask:  '*',
+}
+
 func interactive(flags flags) {
-	fmt.Print("Your session ID: ")
-	fmt.Scanln(flags.sessionId)
+	sessionId, err := sessionIdPrompt.Run()
+	if err != nil {
+		fmt.Printf("failed to read session id: %v\n", err)
+		os.Exit(1)
+	}
+	*flags.sessionId = sessionId
+
 	if len(*flags.sessionId) != 0 {
-		fmt.Print("Encrypt session ID with a password: ")
-		password, err := term.ReadPassword(int(syscall.Stdin))
-		fmt.Println()
+		password, err := passwordPrompt.Run()
 		if err != nil {
 			fmt.Printf("failed to read password: %v\n", err)
 			os.Exit(1)
 		}
-		*flags.password = string(password)
+		*flags.password = password
 	}
 
 	continueSessionId(flags)
