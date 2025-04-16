@@ -96,6 +96,9 @@ func (d *Downloader) continueIllustOrManga(
 	size image.Size,
 	paths []string,
 ) error {
+	// TODO: try infering first only if:
+	//       - R-18(G)
+	//       - no restriction and not original size
 	pageUrls, withExtensions, err := inferPages(w, firstPageUrls, thumbnailUrls, size)
 	if err == nil {
 		assets, err := d.fetchAssets(id, pageUrls, withExtensions, true)

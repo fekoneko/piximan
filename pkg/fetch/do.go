@@ -10,7 +10,7 @@ import (
 
 func Do(client http.Client, url string) ([]byte, error) {
 	if request, err := newRequest(url); err == nil {
-		logext.Fetch(url)
+		logext.Request(url)
 		return doWithRequest(client, request)
 	} else {
 		return nil, err
@@ -20,7 +20,7 @@ func Do(client http.Client, url string) ([]byte, error) {
 func DoAuthorized(client http.Client, url string, sessionId string) ([]byte, error) {
 	if request, err := newRequest(url); err == nil {
 		request.Header.Add("Cookie", "PHPSESSID="+sessionId)
-		logext.AuthorizedFetch(url)
+		logext.AuthorizedRequest(url)
 		return doWithRequest(client, request)
 	} else {
 		return nil, err
