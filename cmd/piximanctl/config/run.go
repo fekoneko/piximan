@@ -4,10 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/fekoneko/piximan/cmd/piximanctl/help"
 	"github.com/fekoneko/piximan/pkg/flagext"
 	"github.com/fekoneko/piximan/pkg/secretstorage"
+	"golang.org/x/term"
 )
 
 type flags struct {
@@ -39,7 +41,13 @@ func interactive(flags flags) {
 	fmt.Scanln(flags.sessionId)
 	if len(*flags.sessionId) != 0 {
 		fmt.Print("Encrypt session ID with a password: ")
-		fmt.Scanln(flags.password) // TODO: hide password with asterisks
+		password, err := term.ReadPassword(int(syscall.Stdin))
+		fmt.Println()
+		if err != nil {
+			fmt.Printf("failed to read password: %v\n", err)
+			os.Exit(1)
+		}
+		*flags.password = string(password)
 	}
 
 	continueSessionId(flags)
