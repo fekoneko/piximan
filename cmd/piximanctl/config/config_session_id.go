@@ -8,17 +8,17 @@ import (
 )
 
 func configSessionId(flags flags) {
-	storage, err := secretstorage.Open(*flags.password)
-	if err != nil {
-		fmt.Printf("failed to set session id: %v\n", err)
-		os.Exit(1)
-	}
 	if len(*flags.sessionId) == 0 {
-		if err := storage.RemoveSessionId(); err != nil {
+		if err := secretstorage.RemoveSessionId(); err != nil {
 			fmt.Printf("failed to remove session id: %v\n", err)
 			os.Exit(1)
 		}
 	} else {
+		storage, err := secretstorage.Open(*flags.password)
+		if err != nil {
+			fmt.Printf("failed to open session id storage: %v\n", err)
+			os.Exit(1)
+		}
 		if err := storage.StoreSessionId(*flags.sessionId); err != nil {
 			fmt.Printf("failed to set session id: %v\n", err)
 			os.Exit(1)

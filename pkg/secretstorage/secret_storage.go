@@ -41,41 +41,6 @@ func Open(password string) (*SecretStorage, error) {
 	return &SecretStorage{aesCipher, gcm, nil}, nil
 }
 
-func (s *SecretStorage) StoreSessionId(sessionId string) error {
-	err := os.MkdirAll(filepath.Dir(sessionIdPath), 0775)
-	if err != nil {
-		return err
-	}
-
-	nonce := make([]byte, s.gcm.NonceSize())
-	_, err = rand.Read(nonce)
-	if err != nil {
-		return err
-	}
-
-	encrypted := s.gcm.Seal(nonce, nonce, []byte(sessionId), nil)
-
-	err = os.WriteFile(sessionIdPath, encrypted, 0600)
-	if err != nil {
-		return err
-	}
-
-	s.SessionId = &sessionId
-	return nil
-}
-
-func (s *SecretStorage) RemoveSessionId() error {
-	if err := os.Remove(sessionIdPath); err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return nil
-		} else {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (s *SecretStorage) Read() error {
 	if _, err := os.Stat(sessionIdPath); err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
@@ -100,5 +65,37 @@ func (s *SecretStorage) Read() error {
 
 	sessionId := string(decrypted)
 	s.SessionId = &sessionId
+	return nil
+}
+
+func (s *SecretStorage) StoreSessionId(sessionId string) error {
+	err := os.MkdirAll(filepath.Dir(sessionIdPath), 0775)
+	if err != nil {
+		return err
+	}
+
+	nonce := make([]byte, s.gcm.NonceSize())
+	_, err = rand.Read(nonce)
+	if err != nil {
+		return err
+	}
+
+	encrypted := s.gcm.Seal(nonce, nonce, []byte(sessionId), nil)
+
+	err = os.WriteFile(sessionIdPath, encrypted, 0600)
+	if err != nil {
+		return err
+	}
+
+	s.SessionId = &sessionId
+	return nil
+}
+
+func RemoveSessionId() error {
+	if err := os.Remove(sessionIdPath); err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return err
+		}
+	}
 	return nil
 }
