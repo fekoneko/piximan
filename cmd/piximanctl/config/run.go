@@ -25,7 +25,7 @@ func Run() {
 	}
 
 	if flag.NFlag() == 0 {
-		interactive(flags)
+		interactive()
 	} else {
 		nonInteractive(flags)
 	}

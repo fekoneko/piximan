@@ -7,32 +7,47 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-// TODO: write descriptions
+func interactive() {
+	sessionId := promptSessionId()
+
+	var password *string
+	if len(sessionId) != 0 {
+		p := promptPassword()
+		password = &p
+	}
+
+	flags := flags{
+		sessionId: &sessionId,
+		password:  password,
+	}
+
+	configSessionId(flags)
+}
+
 var sessionIdPrompt = promptui.Prompt{
 	Label: "Your session ID",
 	Mask:  '*',
 }
-var passwordPrompt = promptui.Prompt{
-	Label: "Encrypt with a password",
-	Mask:  '*',
-}
 
-func interactive(flags flags) {
+func promptSessionId() string {
 	sessionId, err := sessionIdPrompt.Run()
 	if err != nil {
 		fmt.Printf("failed to read session id: %v\n", err)
 		os.Exit(1)
 	}
-	*flags.sessionId = sessionId
+	return sessionId
+}
 
-	if len(*flags.sessionId) != 0 {
-		password, err := passwordPrompt.Run()
-		if err != nil {
-			fmt.Printf("failed to read password: %v\n", err)
-			os.Exit(1)
-		}
-		*flags.password = password
+var passwordPrompt = promptui.Prompt{
+	Label: "Encrypt with a password",
+	Mask:  '*',
+}
+
+func promptPassword() string {
+	password, err := passwordPrompt.Run()
+	if err != nil {
+		fmt.Printf("failed to read password: %v\n", err)
+		os.Exit(1)
 	}
-
-	configSessionId(flags)
+	return password
 }
