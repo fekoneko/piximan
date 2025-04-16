@@ -83,6 +83,11 @@ func continueDownload(flags flags) {
 			os.Exit(1)
 		}
 		q := queue.FromMap(result, kind, size, *flags.onlyMeta)
+		if flagext.Provided("path") {
+			for i := range *q {
+				(*q)[i].Paths = []string{*flags.path}
+			}
+		}
 		fmt.Println(q)
 		d.ScheduleQueue(q)
 	} else {
