@@ -35,6 +35,7 @@ func Run() {
 	}
 }
 
+// TODO: write descriptions
 var sessionIdPrompt = promptui.Prompt{
 	Label: "Your session ID",
 	Mask:  '*',
