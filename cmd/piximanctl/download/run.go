@@ -88,7 +88,7 @@ func continueDownload(flags flags) {
 				(*q)[i].Paths = []string{*flags.path}
 			}
 		}
-		fmt.Println(q)
+		fmt.Print(q, "\n\n")
 		d.ScheduleQueue(q)
 	} else {
 		paths := []string{*flags.path}
