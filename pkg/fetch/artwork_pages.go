@@ -10,8 +10,24 @@ import (
 )
 
 func ArtworkPages(client http.Client, id uint64, size image.Size) ([]string, error) {
+	return artworkPagesWith(func(url string) ([]byte, error) {
+		return Do(client, url)
+	}, id, size)
+}
+
+func ArtworkPagesAuthorized(client http.Client, id uint64, size image.Size, sessionId string) ([]string, error) {
+	return artworkPagesWith(func(url string) ([]byte, error) {
+		return DoAuthorized(client, url, sessionId)
+	}, id, size)
+}
+
+func artworkPagesWith(
+	do func(url string) ([]byte, error),
+	id uint64,
+	size image.Size,
+) ([]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/pages", id)
-	body, err := Do(client, url)
+	body, err := do(url)
 	if err != nil {
 		return nil, err
 	}

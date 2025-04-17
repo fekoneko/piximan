@@ -12,6 +12,7 @@ const CHANNEL_SIZE = 10
 const PENDING_CAP = 2
 
 type Downloader struct {
+	sessionId       *string
 	client          http.Client
 	channel         chan *work.Work
 	queue           queue.Queue
@@ -19,15 +20,12 @@ type Downloader struct {
 	numPendingMutex sync.Mutex
 }
 
-type AuthorizedDownloader struct {
-	Downloader
-	sessionId string
-}
+type AuthorizedDownloader Downloader
 
 func New() *Downloader {
 	client := http.Client{}
 	channel := make(chan *work.Work, CHANNEL_SIZE)
-	return &Downloader{client, channel, queue.Queue{}, 0, sync.Mutex{}}
+	return &Downloader{nil, client, channel, queue.Queue{}, 0, sync.Mutex{}}
 }
 
 // TODO: use this one to get bookmarked works
@@ -35,7 +33,6 @@ func NewAuthorized(sessionId string) *AuthorizedDownloader {
 	client := http.Client{}
 	channel := make(chan *work.Work, CHANNEL_SIZE)
 	return &AuthorizedDownloader{
-		Downloader{client, channel, queue.Queue{}, 0, sync.Mutex{}},
-		sessionId,
+		&sessionId, client, channel, queue.Queue{}, 0, sync.Mutex{},
 	}
 }

@@ -96,9 +96,6 @@ func (d *Downloader) continueIllustOrManga(
 	size image.Size,
 	paths []string,
 ) error {
-	// TODO: try infering first only if:
-	//       - R-18(G)
-	//       - no restriction and not original size
 	pageUrls, withExtensions, err := inferPages(w, firstPageUrls, thumbnailUrls, size)
 	if err == nil {
 		assets, err := d.fetchAssets(id, pageUrls, withExtensions, true)
@@ -108,11 +105,7 @@ func (d *Downloader) continueIllustOrManga(
 	}
 	logext.Warning("failed to download artwork %v with inferred page urls", id)
 
-	// TODO: - if inferring failed and R-18(G) - this must be done with authorization
-	//       - if inferring failed and no restriction - try without and then with authorization
-	pageUrls, err = fetch.ArtworkPages(d.client, id, size)
-	logext.MaybeSuccess(err, "fetched page urls for artwork %v", id)
-	logext.MaybeError(err, "failed to fetch page urls for artwork %v", id)
+	pageUrls, err = d.tryFetchPages(w, id, size)
 	if err != nil {
 		return err
 	}
@@ -121,6 +114,33 @@ func (d *Downloader) continueIllustOrManga(
 		return err
 	}
 	return storeWork(w, assets, paths)
+}
+
+func (d *Downloader) tryFetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
+	if w.Restriction == work.RestrictionNone || d.sessionId == nil {
+		pageUrls, err := fetch.ArtworkPages(d.client, id, size)
+		if err == nil {
+			logext.Success("fetched page urls for artwork %v", id)
+			return pageUrls, nil
+		} else if d.sessionId == nil {
+			logext.Error("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
+			return nil, err
+		} else {
+			logext.Warning("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
+		}
+	}
+
+	if d.sessionId != nil {
+		pageUrls, err := fetch.ArtworkPagesAuthorized(d.client, id, size, *d.sessionId)
+		logext.MaybeSuccess(err, "fetched page urls for artwork %v", id)
+		logext.MaybeError(err, "failed to fetch page urls for artwork %v", id)
+		if err != nil {
+			return nil, err
+		}
+		return pageUrls, nil
+	}
+
+	return nil, fmt.Errorf("authorization could be required")
 }
 
 func inferPages(
