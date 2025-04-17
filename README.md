@@ -17,9 +17,14 @@ Pixiv batch **downloader** and local collection **viewer**. Preserve your favori
 - Illustrations / manga / ugoira / novels are all supported for download
 - You can download different sizes (resolution) of the illustrations / manga
 - Useful metadata is saved with the downloaded work in _YAML_ format
-- Supperted substitutions in destination path: `{title}` / `{id}` / `{user}` / `{userid}`
+- Supported substitutions in destination path: `{title}` / `{id}` / `{user}` / `{userid}`
+- Supported inferring work IDs from existing collection paths
+- The utility tries to make as few authorized requests as possible
 
 ## Getting started with `piximanctl` CLI tool
+
+> [!NOTE]
+> This section is outdated and needs to be updated
 
 Before using the tool you need to configure the _session ID_. This will authorize you on _pixiv.net_ and
 let `piximanctl` fetch work metadata.
