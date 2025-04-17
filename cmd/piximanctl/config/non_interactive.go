@@ -1,13 +1,17 @@
 package config
 
-import "github.com/fekoneko/piximan/pkg/flagext"
+import (
+	"os"
 
-func nonInteractive(flags flags) {
-	if flagext.Provided("password") && !flagext.Provided("sessionid") {
-		flagext.BadUsage("flag -password requires -sessionid to be specified")
+	"github.com/jessevdk/go-flags"
+)
+
+func nonInteractive() {
+	options := &options{}
+	_, err := flags.Parse(options)
+	if err != nil {
+		os.Exit(2)
 	}
 
-	if flagext.Provided("sessionid") {
-		configSessionId(flags)
-	}
+	configSessionId(options)
 }

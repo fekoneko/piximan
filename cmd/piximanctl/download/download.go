@@ -10,28 +10,42 @@ import (
 	"github.com/fekoneko/piximan/pkg/pathext"
 )
 
-func download(flags flags, isInferIdProvided bool, isPathProvided bool) {
-	d := downloader.New()
-	size := image.SizeFromUint(*flags.size)
-	kind := queue.ItemKindFromString(*flags.kind)
+func download(options *options) {
+	size := image.SizeDefault
+	if options.Size != nil {
+		size = image.SizeFromUint(*options.Size)
+	}
+	kind := queue.ItemKindDefault
+	if options.King != nil {
+		kind = queue.ItemKindFromString(*options.King)
+	}
+	onlyMeta := false
+	if options.OnlyMeta != nil {
+		onlyMeta = *options.OnlyMeta
+	}
+	path := ""
+	if options.Path != nil {
+		path = *options.Path
+	}
 
-	if isInferIdProvided {
-		result, err := pathext.InferIdsFromWorkPath(*flags.inferId)
+	d := downloader.New()
+
+	if options.InferId != nil {
+		result, err := pathext.InferIdsFromWorkPath(*options.InferId)
 		if err != nil {
-			fmt.Printf("cannot infer work id from pattern %v: %v\n", *flags.inferId, err)
+			fmt.Printf("cannot infer work id from pattern %v: %v\n", *options.InferId, err)
 			os.Exit(1)
 		}
-		q := queue.FromMap(result, kind, size, *flags.onlyMeta)
-		if isPathProvided {
+		q := queue.FromMap(result, kind, size, onlyMeta)
+		if options.Path != nil {
 			for i := range *q {
-				(*q)[i].Paths = []string{*flags.path}
+				(*q)[i].Paths = []string{path}
 			}
 		}
 		fmt.Print(q, "\n\n")
 		d.ScheduleQueue(q)
 	} else {
-		paths := []string{*flags.path}
-		d.Schedule(*flags.id, kind, size, *flags.onlyMeta, paths)
+		d.Schedule(*options.Id, kind, size, onlyMeta, []string{path})
 	}
 
 	for d.Listen() != nil {

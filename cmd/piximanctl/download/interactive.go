@@ -28,17 +28,15 @@ func interactive() {
 		path = &p
 	}
 
-	flags := flags{
-		id:       id,
-		kind:     &kind,
-		size:     size,
-		path:     path,
-		inferId:  inferId,
-		onlyMeta: &onlyMeta,
-	}
-
 	fmt.Println()
-	download(flags, inferId != nil, path != nil)
+	download(&options{
+		Id:       id,
+		King:     &kind,
+		Size:     size,
+		Path:     path,
+		InferId:  inferId,
+		OnlyMeta: &onlyMeta,
+	})
 }
 
 var ArtworkOption = "Artwork"

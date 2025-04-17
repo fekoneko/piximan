@@ -16,12 +16,10 @@ func interactive() {
 		password = &p
 	}
 
-	flags := flags{
-		sessionId: &sessionId,
-		password:  password,
-	}
-
-	configSessionId(flags)
+	configSessionId(&options{
+		SessionId: sessionId,
+		Password:  password,
+	})
 }
 
 var sessionIdPrompt = promptui.Prompt{

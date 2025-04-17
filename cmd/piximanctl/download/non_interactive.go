@@ -1,25 +1,40 @@
 package download
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
-	"github.com/fekoneko/piximan/pkg/flagext"
+	"github.com/jessevdk/go-flags"
 )
 
-func nonInteractive(flags flags) {
-	if !flagext.Provided("id") && !flagext.Provided("inferid") {
-		flagext.BadUsage("one of these arguments is not provided: -id, -inferid")
+func nonInteractive() {
+	options := &options{}
+	_, err := flags.Parse(options)
+	if err != nil {
+		os.Exit(2)
 	}
-	if flagext.Provided("id") && flagext.Provided("inferid") {
-		flagext.BadUsage("providing these arguments together is not supporded: -id, -inferid")
+
+	if options.Id == nil && options.InferId == nil {
+		fmt.Println("one of these flags is not provided: `-i, --id` and `-I, --inferid`")
+		os.Exit(2)
 	}
-	if flagext.Provided("type") && flagext.Provided("size") && *flags.kind == queue.ItemKindNovelString {
-		flagext.BadUsage("cannot use -size argument with -type novel")
+	if options.Id != nil && options.InferId != nil {
+		fmt.Println("providing these flags together is not supported: `-i, --id` and `-I, --inferid`")
+		os.Exit(2)
 	}
-	if flagext.Provided("type") && queue.ValidItemKindString(*flags.kind) {
-		flagext.BadUsage("invalid argument value: -type")
+	if options.King != nil && options.Size != nil && *options.King == queue.ItemKindNovelString {
+		fmt.Println("cannot use `-s, --size` flag with `-t, --type` novel")
+		os.Exit(2)
 	}
-	if flagext.Provided("size") && *flags.size > 3 {
-		flagext.BadUsage("invalid argument value: -size")
+	if options.King != nil && !queue.ValidItemKindString(*options.King) {
+		fmt.Println("invalid argument for flag `-t, --type`")
+		os.Exit(2)
 	}
-	download(flags, flagext.Provided("inferid"), flagext.Provided("path"))
+	if options.Size != nil && *options.Size > 3 {
+		fmt.Println("invalid argument for flag `-s, --size`")
+		os.Exit(2)
+	}
+
+	download(options)
 }
