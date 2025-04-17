@@ -61,7 +61,7 @@ func selectKind() string {
 		fmt.Printf("invalid worktype: %s\n", kind)
 		os.Exit(1)
 	}
-	return ""
+	panic("unreachable")
 }
 
 var idModeOption = "Download by ID"
@@ -119,7 +119,7 @@ func selectMode() (*uint64, *string) {
 		fmt.Printf("incorrect download mode: %v\n", mode)
 		os.Exit(1)
 	}
-	return nil, nil
+	panic("unreachable")
 }
 
 var downloadAllOption = "Download metadata and images"
@@ -144,7 +144,7 @@ func selectOnlyMeta() bool {
 		fmt.Printf("incorrect downloaded files choice: %v\n", downloadFiles)
 		os.Exit(1)
 	}
-	return false
+	panic("unreachable")
 }
 
 var thumbnailSizeOption = "Thumbnail"
@@ -176,7 +176,7 @@ func selectSize() uint {
 		fmt.Printf("incorrect size: %v\n", size)
 		os.Exit(1)
 	}
-	return uint(image.SizeDefault)
+	panic("unreachable")
 }
 
 var inferredPathOption = "Save to inferred path"

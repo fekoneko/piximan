@@ -9,6 +9,7 @@ type options struct {
 	Path     *string `short:"p" long:"path"`
 	InferId  *string `short:"I" long:"inferid"`
 	OnlyMeta *bool   `short:"m" long:"onlymeta"`
+	Password *string `short:"P" long:"password"`
 }
 
 func Run() {

@@ -2,6 +2,7 @@ package logext
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/fatih/color"
@@ -39,6 +40,12 @@ func MaybeError(err error, prefix string, args ...any) {
 	}
 }
 
+func MaybeFatal(err error, prefix string, args ...any) {
+	if err != nil {
+		Fatal(prefix+": "+err.Error(), args...)
+	}
+}
+
 func Info(message string, args ...any) {
 	fmt.Fprintf(color.Output, timePrefix()+infoPrefix+message+"\n", args...)
 }
@@ -53,6 +60,11 @@ func Warning(message string, args ...any) {
 
 func Error(message string, args ...any) {
 	fmt.Fprintf(color.Output, timePrefix()+errorPrefix+message+"\n", args...)
+}
+
+func Fatal(message string, args ...any) {
+	fmt.Fprintf(color.Output, timePrefix()+errorPrefix+message+"\n", args...)
+	os.Exit(1)
 }
 
 func Request(url string) {

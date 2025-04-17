@@ -4,7 +4,7 @@ import "fmt"
 
 const configHelp = //
 `Usage:       Run without arguments to enter interactive mode.
-             piximanctl config [ --sessionid ... ] [ --password ... ]
+             piximanctl config [--sessionid ...] [--password ...]
 
 Description: Change permanent configuration for piximan. The configured settings
              will be used for all future commands by default.

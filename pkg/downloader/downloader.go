@@ -20,8 +20,6 @@ type Downloader struct {
 	numPendingMutex sync.Mutex
 }
 
-type AuthorizedDownloader Downloader
-
 func New() *Downloader {
 	client := http.Client{}
 	channel := make(chan *work.Work, CHANNEL_SIZE)
@@ -29,10 +27,10 @@ func New() *Downloader {
 }
 
 // TODO: use this one to get bookmarked works
-func NewAuthorized(sessionId string) *AuthorizedDownloader {
+func NewAuthorized(sessionId string) *Downloader {
 	client := http.Client{}
 	channel := make(chan *work.Work, CHANNEL_SIZE)
-	return &AuthorizedDownloader{
+	return &Downloader{
 		&sessionId, client, channel, queue.Queue{}, 0, sync.Mutex{},
 	}
 }

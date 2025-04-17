@@ -4,9 +4,10 @@ import "fmt"
 
 const downloadHelp = //
 `Usage:       Run without arguments to enter interactive mode.
-             piximanctl download [ --id        ... ] [ --type     artwork ]
-                                 [ --size      0-3 ]              novel
-                                 [ --path      ... ] [ --onlymeta         ]
+             piximanctl download [--id ...]   [--type artwork|novel]
+                                 [--size 0-3] [--inferid ...]
+                                 [--path ...] [--password ...]
+                                 [--onlymeta]
 
 Description: Download the work files and metadata from pixiv.net to the given
              directory. This command does not require a session ID. All the
@@ -45,9 +46,14 @@ Description: Download the work files and metadata from pixiv.net to the given
 --onlymeta   Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.
 
+--password   The master password that is used to decrypt session ID if one has been
+ -P          set. If omited, you will be prompted for the password when needed.
+             Do not paste the value directly in the command line as it could
+             be logged in the terminal history (e.g. ~/.bash_history).
+
 Examples:    piximanctl download -id 12345 -size 1 -password $(xclip -o)
              piximanctl download -id 12345 -type novel -path ./{userid}/{id}
-             piximanctl download -inferid ./{any}/{any}{id} -onlymeta
+             piximanctl download -inferid "./*/* {id}" -onlymeta -noauth
 `
 
 func RunDownload() {
