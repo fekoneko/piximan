@@ -9,6 +9,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
+// TODO: test R-18(G) without authorization
 func ArtworkFrames(client http.Client, id uint64) (string, []encode.Frame, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/ugoira_meta", id)
 	body, err := Do(client, url)

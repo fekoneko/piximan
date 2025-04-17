@@ -9,7 +9,7 @@ import (
 )
 
 const CHANNEL_SIZE = 10
-const PENDING_CAP = 2
+const PENDING_LIMIT = 2
 
 type Downloader struct {
 	sessionId       *string

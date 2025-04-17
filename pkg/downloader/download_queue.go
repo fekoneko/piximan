@@ -6,14 +6,16 @@ import (
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
 )
 
-func (d *Downloader) Schedule(id uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string) {
+func (d *Downloader) Schedule(
+	id uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
+) {
 	d.queue.Push(queue.Item{Id: id, Kind: kind, Size: size, OnlyMeta: onlyMeta, Paths: paths})
-	d.tryDownloadUntilCap()
+	d.tryDownloadUntilLimit()
 }
 
 func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	d.queue.Merge(q)
-	d.tryDownloadUntilCap()
+	d.tryDownloadUntilLimit()
 }
 
 func (d *Downloader) Listen() *work.Work {
@@ -31,11 +33,11 @@ func (d *Downloader) NumRemaining() int {
 	return len(d.queue) + d.numPending
 }
 
-func (d *Downloader) tryDownloadUntilCap() {
+func (d *Downloader) tryDownloadUntilLimit() {
 	d.numPendingMutex.Lock()
 	defer d.numPendingMutex.Unlock()
 
-	for d.numPending < PENDING_CAP {
+	for d.numPending < PENDING_LIMIT {
 		item := d.queue.Pop()
 		if item == nil {
 			break
@@ -69,5 +71,5 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	d.numPending--
 	d.numPendingMutex.Unlock()
 
-	d.tryDownloadUntilCap()
+	d.tryDownloadUntilLimit()
 }

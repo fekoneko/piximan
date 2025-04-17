@@ -46,7 +46,7 @@ func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error
 	}
 
 	assets := []storage.Asset{
-		{Bytes: cover, Extension: ".jpg"},
+		{Bytes: cover, Extension: ".jpg"}, // TODO: check if it's always .jpg
 		{Bytes: []byte(*content), Extension: ".txt"},
 	}
 

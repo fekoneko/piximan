@@ -8,6 +8,11 @@ import (
 	"github.com/fekoneko/piximan/pkg/logext"
 )
 
+// TODO: add some delay to avoid flooding
+//       - how much delay is needed?
+//       - should we do separate dalays for pixiv.net and pximg.net?
+//       - should the delay be different for authorized requests?
+
 func Do(client http.Client, url string) ([]byte, error) {
 	if request, err := newRequest(url); err == nil {
 		logext.Request(url)
