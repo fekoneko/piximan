@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/joho/godotenv"
 )
 
@@ -11,10 +11,7 @@ var version string
 
 func main() {
 	err := godotenv.Load()
-	if err != nil {
-		fmt.Printf("failed to load .env: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to load .env")
 
 	fmt.Printf("piximan v%v\n", version)
 }

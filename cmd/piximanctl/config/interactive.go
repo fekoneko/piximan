@@ -1,9 +1,7 @@
 package config
 
 import (
-	"fmt"
-	"os"
-
+	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/manifoldco/promptui"
 )
 
@@ -29,10 +27,7 @@ var sessionIdPrompt = promptui.Prompt{
 
 func promptSessionId() string {
 	sessionId, err := sessionIdPrompt.Run()
-	if err != nil {
-		fmt.Printf("failed to read session id: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to read session id")
 	return sessionId
 }
 
@@ -43,9 +38,6 @@ var passwordPrompt = promptui.Prompt{
 
 func promptPassword() string {
 	password, err := passwordPrompt.Run()
-	if err != nil {
-		fmt.Printf("failed to read password: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to read password")
 	return password
 }

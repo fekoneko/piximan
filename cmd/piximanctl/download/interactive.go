@@ -2,12 +2,12 @@ package download
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/fekoneko/piximan/pkg/downloader/image"
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
+	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/manifoldco/promptui"
 )
 
@@ -48,18 +48,15 @@ var kindSelect = promptui.Select{
 
 func selectKind() string {
 	_, kind, err := kindSelect.Run()
-	if err != nil {
-		fmt.Printf("failed to read work type: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to read work type")
+
 	switch kind {
 	case ArtworkOption:
 		return queue.ItemKindArtworkString
 	case NovelOption:
 		return queue.ItemKindNovelString
 	default:
-		fmt.Printf("invalid worktype: %s\n", kind)
-		os.Exit(1)
+		logext.Fatal("invalid worktype: %s", kind)
 	}
 	panic("unreachable")
 }
@@ -91,33 +88,24 @@ var inferIdPrompt = promptui.Prompt{
 
 func selectMode() (*uint64, *string) {
 	_, mode, err := modeSelect.Run()
-	if err != nil {
-		fmt.Printf("failed to read mode: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to read mode")
+
 	switch mode {
 	case idModeOption:
 		idString, err := idPrompt.Run()
-		if err != nil {
-			fmt.Printf("failed to read ID: %v\n", err)
-			os.Exit(1)
-		}
+		logext.MaybeFatal(err, "failed to read ID")
+
 		id, err := strconv.ParseUint(idString, 10, 64)
-		if err != nil {
-			fmt.Printf("failed to parse ID: %v\n", err)
-			os.Exit(1)
-		}
+		logext.MaybeFatal(err, "failed to parse ID")
+
 		return &id, nil
 	case inferIdModeOption:
 		inferId, err := inferIdPrompt.Run()
-		if err != nil {
-			fmt.Printf("failed to read pattern: %v\n", err)
-			os.Exit(1)
-		}
+		logext.MaybeFatal(err, "failed to read pattern")
+
 		return nil, &inferId
 	default:
-		fmt.Printf("incorrect download mode: %v\n", mode)
-		os.Exit(1)
+		logext.Fatal("incorrect download mode: %v", mode)
 	}
 	panic("unreachable")
 }
@@ -131,18 +119,15 @@ var downloadFilesSelect = promptui.Select{
 
 func selectOnlyMeta() bool {
 	_, downloadFiles, err := downloadFilesSelect.Run()
-	if err != nil {
-		fmt.Printf("failed to read downloaded files choice: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to read downloaded files choice")
+
 	switch downloadFiles {
 	case downloadAllOption:
 		return false
 	case downloadMetaOption:
 		return true
 	default:
-		fmt.Printf("incorrect downloaded files choice: %v\n", downloadFiles)
-		os.Exit(1)
+		logext.Fatal("incorrect downloaded files choice: %v", downloadFiles)
 	}
 	panic("unreachable")
 }
@@ -159,10 +144,8 @@ var sizeSelect = promptui.Select{
 
 func selectSize() uint {
 	_, size, err := sizeSelect.Run()
-	if err != nil {
-		fmt.Printf("failed to read size: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to read size")
+
 	switch size {
 	case thumbnailSizeOption:
 		return uint(image.SizeThumbnail)
@@ -173,8 +156,7 @@ func selectSize() uint {
 	case originalSizeOption:
 		return uint(image.SizeOriginal)
 	default:
-		fmt.Printf("incorrect size: %v\n", size)
-		os.Exit(1)
+		logext.Fatal("incorrect size: %v", size)
 	}
 	panic("unreachable")
 }
@@ -188,10 +170,7 @@ var pathSelect = promptui.Select{
 
 func selectAskPath() bool {
 	_, pathChoice, err := pathSelect.Run()
-	if err != nil {
-		fmt.Printf("failed to read path choice: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to read path choice")
 	return pathChoice == customPathOption
 }
 
@@ -201,9 +180,6 @@ var pathPrompt = promptui.Prompt{
 
 func promptPath() string {
 	path, err := pathPrompt.Run()
-	if err != nil {
-		fmt.Printf("failed to read path: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to read path")
 	return path
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/fekoneko/piximan/cmd/piximanctl/config"
 	"github.com/fekoneko/piximan/cmd/piximanctl/download"
 	"github.com/fekoneko/piximan/cmd/piximanctl/help"
+	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/joho/godotenv"
 )
 
@@ -14,10 +15,7 @@ var version string
 
 func main() {
 	err := godotenv.Load()
-	if err != nil {
-		fmt.Printf("failed to load .env: %v\n", err)
-		os.Exit(1)
-	}
+	logext.MaybeFatal(err, "failed to load .env")
 
 	fmt.Printf("piximanctl v%v\n\n", version)
 

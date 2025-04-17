@@ -23,9 +23,8 @@ func download(options *options) {
 
 	if options.InferId != nil {
 		result, err := pathext.InferIdsFromWorkPath(*options.InferId)
-		if err != nil {
-			logext.Fatal("cannot infer work id from pattern %v: %v", *options.InferId, err)
-		}
+		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferId)
+
 		q := queue.FromMap(result, kind, size, onlyMeta)
 		if options.Path != nil {
 			for i := range *q {
@@ -60,7 +59,7 @@ func chooseDownloader(passwordPtr *string) *downloader.Downloader {
 	} else if storage.SessionId == nil && passwordPtr != nil {
 		logext.Fatal("no session id were configured, but password was provided")
 	} else if storage.SessionId == nil {
-		logext.Info("no session id were configured, using only anonymous requests\n")
+		logext.Info("no session id were configured, using only anonymous requests")
 		return downloader.New()
 	} else {
 		return downloader.NewAuthorized(*storage.SessionId)
