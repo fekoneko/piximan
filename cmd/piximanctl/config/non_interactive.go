@@ -8,8 +8,7 @@ import (
 
 func nonInteractive() {
 	options := &options{}
-	_, err := flags.Parse(options)
-	if err != nil {
+	if _, err := flags.Parse(options); err != nil {
 		os.Exit(2)
 	}
 

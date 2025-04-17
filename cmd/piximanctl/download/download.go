@@ -9,27 +9,15 @@ import (
 	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/fekoneko/piximan/pkg/pathext"
 	"github.com/fekoneko/piximan/pkg/secretstorage"
+	"github.com/fekoneko/piximan/pkg/util"
 	"github.com/manifoldco/promptui"
 )
 
 func download(options *options) {
-	size := image.SizeDefault
-	if options.Size != nil {
-		size = image.SizeFromUint(*options.Size)
-	}
-	kind := queue.ItemKindDefault
-	if options.King != nil {
-		kind = queue.ItemKindFromString(*options.King)
-	}
-	onlyMeta := false
-	if options.OnlyMeta != nil {
-		onlyMeta = *options.OnlyMeta
-	}
-	// TODO: make util to make this more pretty
-	path := ""
-	if options.Path != nil {
-		path = *options.Path
-	}
+	size := util.FromPtrTransform(options.Size, image.SizeFromUint, image.SizeDefault)
+	kind := util.FromPtrTransform(options.King, queue.ItemKindFromString, queue.ItemKindDefault)
+	onlyMeta := util.FromPtr(options.OnlyMeta, false)
+	path := util.FromPtr(options.Path, "")
 
 	d := chooseDownloader(options.Password)
 
@@ -55,10 +43,7 @@ func download(options *options) {
 }
 
 func chooseDownloader(passwordPtr *string) *downloader.Downloader {
-	password := ""
-	if passwordPtr != nil {
-		password = *passwordPtr
-	}
+	password := util.FromPtr(passwordPtr, "")
 
 	storage, err := secretstorage.Open(password)
 	if err != nil && passwordPtr != nil {
