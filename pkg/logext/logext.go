@@ -14,6 +14,7 @@ var yellow = color.New(color.FgHiYellow, color.Bold).SprintFunc()
 var red = color.New(color.FgHiRed, color.Bold).SprintFunc()
 var magenta = color.New(color.FgHiMagenta, color.Bold).SprintFunc()
 var white = color.New(color.FgHiWhite, color.Bold).SprintFunc()
+var gray = color.New(color.FgHiBlack).SprintFunc()
 
 var infoPrefix = cyan("[INFO]") + "    "
 var successPrefix = green("[SUCCESS]") + " "
@@ -76,5 +77,5 @@ func AuthorizedRequest(url string) {
 }
 
 func timePrefix() string {
-	return time.Now().Format(time.DateTime) + " "
+	return gray(time.Now().Format(time.DateTime)) + " "
 }
