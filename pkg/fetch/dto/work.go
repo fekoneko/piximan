@@ -23,7 +23,7 @@ type Work struct {
 	CommentCount  uint64 `json:"commentCount"`
 	UploadDate    string `json:"uploadDate"`
 	SeriesNavData struct {
-		SeriesId *string `json:"seriesId"`
+		SeriesId *uint64 `json:"seriesId"`
 		Order    *uint64 `json:"order"`
 		Title    *string `json:"title"`
 	} `json:"seriesNavData"`
@@ -38,12 +38,6 @@ func (dto *Work) FromDto(kind work.Kind, downloadTime time.Time) *work.Work {
 	id, _ := strconv.ParseUint(dto.Id, 10, 64)
 	userId, _ := strconv.ParseUint(dto.UserId, 10, 64)
 	uploadTime, _ := time.Parse(time.RFC3339, dto.UploadDate)
-
-	var seriesId *uint64
-	if dto.SeriesNavData.SeriesId != nil {
-		id, _ := strconv.ParseUint(*dto.SeriesNavData.SeriesId, 10, 64)
-		seriesId = &id
-	}
 
 	tags := make([]string, len(dto.Tags.Tags))
 	for i, tag := range dto.Tags.Tags {
@@ -67,7 +61,7 @@ func (dto *Work) FromDto(kind work.Kind, downloadTime time.Time) *work.Work {
 		NumComments:  dto.CommentCount,
 		UploadTime:   uploadTime.Local(),
 		DownloadTime: downloadTime.Local(),
-		SeriesId:     seriesId,
+		SeriesId:     dto.SeriesNavData.SeriesId,
 		SeriesTitle:  dto.SeriesNavData.Title,
 		SeriesOrder:  dto.SeriesNavData.Order,
 		Tags:         tags,
