@@ -1,9 +1,9 @@
 package storage
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
 	"github.com/fekoneko/piximan/pkg/pathext"
@@ -14,6 +14,7 @@ import (
 type Asset struct {
 	Bytes     []byte
 	Extension string
+	Page      uint64
 }
 
 func StoreWork(work *work.Work, assets []Asset, paths []string) error {
@@ -32,21 +33,15 @@ func StoreWork(work *work.Work, assets []Asset, paths []string) error {
 			return err
 		}
 
-		if len(assets) == 1 {
-			asset := assets[0]
-			filename := pathext.ToValidFilename(work.Title + asset.Extension)
+		for _, asset := range assets {
+			filename := work.Title + asset.Extension
+			if asset.Page != 0 {
+				filename = fmt.Sprintf("%03d. %v", asset.Page, filename)
+			}
+			filename = pathext.ToValidFilename(filename)
 			path := filepath.Join(path, filename)
 			if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
 				return err
-			}
-		} else {
-			for i, asset := range assets {
-				filename := work.Title + " " + strconv.Itoa(i+1) + asset.Extension
-				filename = pathext.ToValidFilename(filename)
-				path := filepath.Join(path, filename)
-				if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
-					return err
-				}
 			}
 		}
 	}

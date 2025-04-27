@@ -109,8 +109,8 @@ func (d *Downloader) continueIllustOrManga(
 	return storeArtwork(w, id, assets, paths)
 }
 
-// For illustrations and manga it's possible to omit the request to fetch page urls and infer them.
-// We can also avoid authorization if the work has age restriction.
+// For illustrations and manga it's possible to omit the request for fetching page urls
+// and infer them. This way we can also avoid authorization if the work has age restriction.
 // This function receives the data derived from metadata request:
 // - urls for different sizes of the first page (available only for works without restriction)
 // - thumbnail url (available for all works but cannot be used to derive the extension)
@@ -232,73 +232,81 @@ var extensions = []string{".jpg", ".png", ".gif"}
 // page with different extensions until it finds the correct one. The list of guessed extensions
 // is small and contains only the extensions that Pixiv accepts to be uploaded.
 func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bool, noLogErrors bool) ([]storage.Asset, error) {
+	logErrorOrWarning := logext.Error
+	if noLogErrors {
+		logErrorOrWarning = logext.Warning
+	}
 	if len(pageUrls) == 0 {
 		err := fmt.Errorf("no pages to download")
-		logext.Error(err.Error())
+		logErrorOrWarning(err.Error())
 		return nil, err
 	}
 
 	assetChannel := make(chan storage.Asset, len(pageUrls))
-	errorChannel := make(chan error, len(pageUrls))
-	indexChannel := make(chan int, len(pageUrls))
+	errorChannel := make(chan error)
 
-	urlSuffix := ""
+	guessedExtension := ""
 	if !withExtensions {
 		for _, extension := range extensions {
 			go func() {
 				bytes, err := fetch.Do(d.client, pageUrls[0]+extension)
-				logext.MaybeSuccess(err, "fetched page 1 with guessed extension %v for artwork %v", extension, id)
-				logext.MaybeWarning(err, "guessed extension %v was incorrect for artwork %v", extension, id)
+				if err != nil {
+					logext.Warning("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
+					errorChannel <- err
+				}
 
-				assets := storage.Asset{Bytes: bytes, Extension: extension}
+				logext.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
+				assets := storage.Asset{Bytes: bytes, Extension: extension, Page: 1}
 				assetChannel <- assets
-				errorChannel <- err
 			}()
 
-			if <-errorChannel == nil {
-				errorChannel <- nil
-				indexChannel <- 0
-				urlSuffix = extension
+			select {
+			case <-errorChannel:
+			case asset := <-assetChannel:
+				assetChannel <- asset
+				guessedExtension = extension
+			}
+			if guessedExtension != "" {
 				break
 			}
-			<-assetChannel
 		}
-		if urlSuffix == "" {
+		if guessedExtension == "" {
 			return nil, fmt.Errorf("failed to guess extension for artwork %v", id)
 		}
 	}
 
+	// TODO: The extensions could be different for each page, so we should try to fetch each page
+	//       with different extensions, but prefer `guessedExtension`.
 	for i, url := range pageUrls {
 		if !withExtensions && i == 0 {
 			continue
 		}
 		go func() {
-			bytes, err := fetch.Do(d.client, url+urlSuffix)
-			logext.MaybeSuccess(err, "fetched page %v for artwork %v", i+1, id)
-			if noLogErrors {
-				logext.MaybeWarning(err, "failed to fetch page %v for artwork %v", i+1, id)
-			} else {
-				logext.MaybeError(err, "failed to fetch page %v for artwork %v", i+1, id)
+			bytes, err := fetch.Do(d.client, url+guessedExtension)
+			if err != nil {
+				logErrorOrWarning("failed to fetch page %v for artwork %v: %v", i+1, id, err)
+				errorChannel <- err
+				return
 			}
 
-			dotIndex := strings.LastIndex(url, ".")
-			var extension string
-			if dotIndex != -1 {
-				extension = url[dotIndex:]
+			logext.Success("fetched page %v for artwork %v", i+1, id)
+			var extension = guessedExtension
+			if withExtensions {
+				dotIndex := strings.LastIndex(url, ".")
+				if dotIndex != -1 {
+					extension = url[dotIndex:]
+				}
 			}
-			assets := storage.Asset{Bytes: bytes, Extension: extension}
+			assets := storage.Asset{Bytes: bytes, Extension: extension, Page: uint64(i + 1)}
 			assetChannel <- assets
-			errorChannel <- err
-			indexChannel <- i
 		}()
 	}
 
 	assets := make([]storage.Asset, len(pageUrls))
-	for range pageUrls {
-		i := <-indexChannel
-		assets[i] = <-assetChannel
-		err := <-errorChannel
-		if err != nil {
+	for i := range pageUrls {
+		select {
+		case assets[i] = <-assetChannel:
+		case err := <-errorChannel:
 			return nil, err
 		}
 	}
