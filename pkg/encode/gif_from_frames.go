@@ -5,16 +5,20 @@ import (
 	"bytes"
 	"fmt"
 	"image"
-	"image/color/palette"
+	"image/color"
 	"image/draw"
 	"image/gif"
 	"image/jpeg"
+
+	"github.com/ericpauley/go-quantize/quantize"
 )
 
 type Frame struct {
 	Filename string
 	Duration int
 }
+
+var quantizer = quantize.MedianCutQuantizer{}
 
 // TODO: better quality for GIFs
 func GifFromFrames(archive []byte, frames []Frame) ([]byte, error) {
@@ -41,14 +45,14 @@ func GifFromFrames(archive []byte, frames []Frame) ([]byte, error) {
 		}
 		defer reader.Close()
 
-		// NOTE: assume the files in the archive to be of JPEG format
 		decodedImage, err := jpeg.Decode(reader)
 		if err != nil {
 			return nil, err
 		}
 
 		bounds := decodedImage.Bounds()
-		palettedImage := image.NewPaletted(bounds, palette.Plan9)
+		plt := quantizer.Quantize(make([]color.Color, 0, 256), decodedImage)
+		palettedImage := image.NewPaletted(bounds, plt)
 		draw.Draw(palettedImage, bounds, decodedImage, bounds.Min, draw.Src)
 		encodedGif.Image = append(encodedGif.Image, palettedImage)
 		encodedGif.Delay = append(encodedGif.Delay, frame.Duration)

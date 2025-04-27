@@ -3,6 +3,7 @@ module github.com/fekoneko/piximan
 go 1.24.1
 
 require (
+	github.com/ericpauley/go-quantize v0.0.0-20200331213906-ae555eb2afa4
 	github.com/fatih/color v1.18.0
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/joho/godotenv v1.5.1
