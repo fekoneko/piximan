@@ -28,7 +28,6 @@ func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, e
 	return w, err
 }
 
-// TODO: authorized if R-18(G)
 func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading novel %v", id)
 

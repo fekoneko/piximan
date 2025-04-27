@@ -8,7 +8,7 @@ import (
 
 type Novel struct {
 	Work
-	Content            string        `json:"content"`
+	Content            string        `json:"content"` // TODO: look at the format
 	CoverUrl           string        `json:"coverUrl"`
 	TextEmbeddedImages []interface{} `json:"textEmbeddedImages"` // TODO: implement
 }

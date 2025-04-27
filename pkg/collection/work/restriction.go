@@ -9,8 +9,8 @@ const (
 	RestrictionDefault             = RestrictionNone
 
 	RestrictionNoneString    = "none"
-	RestrictionR18String     = "R18"
-	RestrictionR18GString    = "R18-G"
+	RestrictionR18String     = "R-18"
+	RestrictionR18GString    = "R-18G"
 	RestrictionDefaultString = RestrictionNoneString
 )
 
