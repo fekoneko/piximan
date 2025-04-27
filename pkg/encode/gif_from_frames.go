@@ -20,7 +20,6 @@ type Frame struct {
 
 var quantizer = quantize.MedianCutQuantizer{}
 
-// TODO: better quality for GIFs
 func GifFromFrames(archive []byte, frames []Frame) ([]byte, error) {
 	reader, err := zip.NewReader(bytes.NewReader(archive), int64(len(archive)))
 	if err != nil {

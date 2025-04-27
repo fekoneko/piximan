@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
@@ -335,10 +336,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			logext.Success("fetched page %v for artwork %v", i+1, id)
 			var extension = guessedExtension
 			if withExtensions {
-				dotIndex := strings.LastIndex(url, ".")
-				if dotIndex != -1 {
-					extension = url[dotIndex:]
-				}
+				extension = path.Ext(url)
 			}
 			assets := storage.Asset{Bytes: bytes, Extension: extension, Page: uint64(i + 1)}
 			assetChannel <- assets

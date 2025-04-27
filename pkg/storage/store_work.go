@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
 	"github.com/fekoneko/piximan/pkg/pathext"
@@ -34,11 +35,13 @@ func StoreWork(work *work.Work, assets []Asset, paths []string) error {
 		}
 
 		for _, asset := range assets {
-			filename := work.Title + asset.Extension
+			builder := strings.Builder{}
 			if asset.Page != 0 {
-				filename = fmt.Sprintf("%03d. %v", asset.Page, filename)
+				builder.WriteString(fmt.Sprintf("%03d. ", asset.Page))
 			}
-			filename = pathext.ToValidFilename(filename)
+			builder.WriteString(work.Title)
+			builder.WriteString(asset.Extension)
+			filename := pathext.ToValidFilename(builder.String())
 			path := filepath.Join(path, filename)
 			if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
 				return err

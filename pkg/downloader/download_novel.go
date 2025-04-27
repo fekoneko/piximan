@@ -1,6 +1,8 @@
 package downloader
 
 import (
+	"path"
+
 	"github.com/fekoneko/piximan/pkg/collection/work"
 	"github.com/fekoneko/piximan/pkg/fetch"
 	"github.com/fekoneko/piximan/pkg/logext"
@@ -46,7 +48,7 @@ func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error
 	}
 
 	assets := []storage.Asset{
-		{Bytes: cover, Extension: ".jpg"}, // TODO: check if it's always .jpg
+		{Bytes: cover, Extension: path.Ext(coverUrl)},
 		{Bytes: []byte(*content), Extension: ".txt"},
 	}
 
