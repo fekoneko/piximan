@@ -9,10 +9,28 @@ import (
 	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
-// TODO: test R-18(G) without authorization
+// Ugoira artwork is expected for this function
 func ArtworkFrames(client http.Client, id uint64) (string, []encode.Frame, error) {
+	return artworkFramesWith(func(url string) ([]byte, error) {
+		return Do(client, url)
+	}, id)
+}
+
+// Ugoira artwork is expected for this function
+func ArtworkFramesAuthorized(
+	client http.Client, id uint64, sessionId string,
+) (string, []encode.Frame, error) {
+	return artworkFramesWith(func(url string) ([]byte, error) {
+		return DoAuthorized(client, url, sessionId)
+	}, id)
+}
+
+func artworkFramesWith(
+	do func(url string) ([]byte, error),
+	id uint64,
+) (string, []encode.Frame, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/ugoira_meta", id)
-	body, err := Do(client, url)
+	body, err := do(url)
 	if err != nil {
 		return "", nil, err
 	}

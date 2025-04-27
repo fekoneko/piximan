@@ -9,13 +9,17 @@ import (
 	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
+// Illustration or manga artwork is expected for this function
 func ArtworkPages(client http.Client, id uint64, size image.Size) ([]string, error) {
 	return artworkPagesWith(func(url string) ([]byte, error) {
 		return Do(client, url)
 	}, id, size)
 }
 
-func ArtworkPagesAuthorized(client http.Client, id uint64, size image.Size, sessionId string) ([]string, error) {
+// Illustration or manga artwork is expected for this function
+func ArtworkPagesAuthorized(
+	client http.Client, id uint64, size image.Size, sessionId string,
+) ([]string, error) {
 	return artworkPagesWith(func(url string) ([]byte, error) {
 		return DoAuthorized(client, url, sessionId)
 	}, id, size)

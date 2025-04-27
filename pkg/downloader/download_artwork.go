@@ -56,14 +56,12 @@ func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string)
 }
 
 func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) error {
-	data, frames, err := fetch.ArtworkFrames(d.client, id)
-	logext.MaybeSuccess(err, "fetched frames data for artwork %v", id)
-	logext.MaybeError(err, "failed to fetch frames data for artwork %v", id)
+	url, frames, err := d.tryFetchFrames(w, id)
 	if err != nil {
 		return err
 	}
 
-	archive, err := fetch.Do(d.client, data)
+	archive, err := fetch.Do(d.client, url)
 	logext.MaybeSuccess(err, "fetched frames for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch frames for artwork %v", id)
 	if err != nil {
@@ -79,6 +77,39 @@ func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) err
 
 	assets := []storage.Asset{{Bytes: gif, Extension: ".gif"}}
 	return storeArtwork(w, id, assets, paths)
+}
+
+// The function is used to fetch the information about animation frames for ugoira.
+// First the function will try to make the request without authorization and then with one.
+// If the work has age restriction, there's no point in fetching page urls without authorization,
+// so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
+func (d *Downloader) tryFetchFrames(w *work.Work, id uint64) (string, []encode.Frame, error) {
+	if w.Restriction == work.RestrictionNone || d.sessionId == nil {
+		url, frames, err := fetch.ArtworkFrames(d.client, id)
+		if err == nil {
+			logext.Success("fetched frames data for artwork %v", id)
+			return url, frames, nil
+		} else if d.sessionId == nil {
+			logext.Error("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
+			return "", nil, err
+		} else {
+			logext.Warning("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
+		}
+	}
+
+	if d.sessionId != nil {
+		url, frames, err := fetch.ArtworkFramesAuthorized(d.client, id, *d.sessionId)
+		logext.MaybeSuccess(err, "fetched frames data for artwork %v", id)
+		logext.MaybeError(err, "failed to fetch frames data for artwork %v", id)
+		if err != nil {
+			return "", nil, err
+		}
+		return url, frames, nil
+	}
+
+	err := fmt.Errorf("authorization could be required")
+	logext.Error("failed to fetch frames data for artwork %v: %v", id, err)
+	return "", nil, err
 }
 
 func (d *Downloader) continueIllustOrManga(
@@ -205,7 +236,7 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 }
 
 // The function is called if the images were not available by inferred page urls.
-// Firstly the function will try to make the request without authorization and then with one.
+// First the function will try to make the request without authorization and then with one.
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
 func (d *Downloader) tryFetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
