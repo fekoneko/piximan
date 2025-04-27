@@ -90,13 +90,14 @@ func (d *Downloader) continueIllustOrManga(
 	paths []string,
 ) error {
 	pageUrls, withExtensions, err := inferPages(w, firstPageUrls, thumbnailUrls, size)
-	if err == nil {
+	if err != nil {
+		logext.Warning("failed to infer page urls for artwork %v: %v", id, err)
+	} else {
 		assets, err := d.fetchAssets(id, pageUrls, withExtensions, true)
 		if err == nil {
 			return storeArtwork(w, id, assets, paths)
 		}
 	}
-	logext.Warning("failed to download artwork %v with inferred page urls", id)
 
 	pageUrls, err = d.tryFetchPages(w, id, size)
 	if err != nil {
@@ -147,12 +148,21 @@ func inferPages(
 		return pageUrls, true, nil
 	}
 
-	const prefix = "https://i.pximg.net/c/250x250_80_a2/img-master/img/"
-	const urlDateStart = len(prefix)
-	const urlDateEnd = len(prefix) + len("0000/00/00/00/00/00")
-	if !strings.HasPrefix(thumbnailUrl, prefix) ||
-		len(thumbnailUrl) < urlDateEnd {
-		return nil, false, fmt.Errorf("thumbnail url has incorrect format")
+	const prefixMaster = "https://i.pximg.net/c/250x250_80_a2/img-master/img/"
+	const prefixCustom = "https://i.pximg.net/c/250x250_80_a2/custom-thumb/img/"
+	var prefixLength int
+	if strings.HasPrefix(thumbnailUrl, prefixMaster) {
+		prefixLength = len(prefixMaster)
+	} else if strings.HasPrefix(thumbnailUrl, prefixCustom) {
+		prefixLength = len(prefixCustom)
+	} else {
+		return nil, false, fmt.Errorf("thumbnail url has incorrect prefix")
+	}
+
+	urlDateStart := prefixLength
+	urlDateEnd := prefixLength + len("0000/00/00/00/00/00")
+	if len(thumbnailUrl) < urlDateEnd {
+		return nil, false, fmt.Errorf("thumbnail url is too short")
 	}
 	urlDate := thumbnailUrl[urlDateStart:urlDateEnd]
 
@@ -194,7 +204,7 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 	return pageUrls, nil
 }
 
-// The function is called if the images were not awailable by inferred page urls.
+// The function is called if the images were not available by inferred page urls.
 // Firstly the function will try to make the request without authorization and then with one.
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
@@ -222,15 +232,21 @@ func (d *Downloader) tryFetchPages(w *work.Work, id uint64, size image.Size) ([]
 		return pageUrls, nil
 	}
 
-	return nil, fmt.Errorf("authorization could be required")
+	err := fmt.Errorf("authorization could be required")
+	logext.Error("failed to fetch page urls for artwork %v: %v", id, err)
+	return nil, err
 }
 
 var extensions = []string{".jpg", ".png", ".gif"}
 
-// The function fetchest the assets (images) using inferred or fetched page urls.
+// The function fetches the assets (images) using inferred or fetched page urls.
 // If the url was inferred and the extension is not known, the function will try to fetch first
 // page with different extensions until it finds the correct one. The list of guessed extensions
 // is small and contains only the extensions that Pixiv accepts to be uploaded.
+// TODO: The extensions of each page could differ from the one inferred from the first page, so the
+// function will first try the inferred extension and then retry with the rest.
+// TODO: If the work has more than one page, the function infers the extension from the second one
+// as the first page could very likely be a thumbnail with a different extension.
 func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bool, noLogErrors bool) ([]storage.Asset, error) {
 	logErrorOrWarning := logext.Error
 	if noLogErrors {
@@ -238,7 +254,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 	}
 	if len(pageUrls) == 0 {
 		err := fmt.Errorf("no pages to download")
-		logErrorOrWarning(err.Error())
+		logErrorOrWarning("failed to fetch assets for artwork %v: %v", id, err)
 		return nil, err
 	}
 
@@ -271,12 +287,12 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			}
 		}
 		if guessedExtension == "" {
-			return nil, fmt.Errorf("failed to guess extension for artwork %v", id)
+			err := fmt.Errorf("all tried extensions were incorrect")
+			logErrorOrWarning("failed to guess extension for artwork %v: %v", id, err)
+			return nil, err
 		}
 	}
 
-	// TODO: The extensions could be different for each page, so we should try to fetch each page
-	//       with different extensions, but prefer `guessedExtension`.
 	for i, url := range pageUrls {
 		if !withExtensions && i == 0 {
 			continue
