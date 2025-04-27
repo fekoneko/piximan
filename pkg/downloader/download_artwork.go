@@ -243,10 +243,6 @@ var extensions = []string{".jpg", ".png", ".gif"}
 // If the url was inferred and the extension is not known, the function will try to fetch first
 // page with different extensions until it finds the correct one. The list of guessed extensions
 // is small and contains only the extensions that Pixiv accepts to be uploaded.
-// TODO: The extensions of each page could differ from the one inferred from the first page, so the
-// function will first try the inferred extension and then retry with the rest.
-// TODO: If the work has more than one page, the function infers the extension from the second one
-// as the first page could very likely be a thumbnail with a different extension.
 func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bool, noLogErrors bool) ([]storage.Asset, error) {
 	logErrorOrWarning := logext.Error
 	if noLogErrors {
