@@ -49,7 +49,7 @@ func chooseDownloader(passwordPtr *string) *downloader.Downloader {
 		logext.Fatal("cannot open session id storage: %v", err)
 	} else if err != nil {
 		logext.Warning("cannot open session id storage, using only anonymous requests: %v\n", err)
-		return downloader.New()
+		return downloader.New(nil)
 	}
 
 	if err := storage.Read(); err != nil && passwordPtr != nil {
@@ -60,9 +60,9 @@ func chooseDownloader(passwordPtr *string) *downloader.Downloader {
 		logext.Fatal("no session id were configured, but password was provided")
 	} else if storage.SessionId == nil {
 		logext.Info("no session id were configured, using only anonymous requests")
-		return downloader.New()
+		return downloader.New(nil)
 	} else {
-		return downloader.NewAuthorized(*storage.SessionId)
+		return downloader.New(storage.SessionId)
 	}
 	panic("unreachable")
 }
@@ -78,23 +78,23 @@ func promptPassword() *downloader.Downloader {
 		password, err := passwordPrompt.Run()
 		if err != nil {
 			logext.Warning("failed to read password, using only anonymous requests: %v\n", err)
-			return downloader.New()
+			return downloader.New(nil)
 		}
 
 		storage, err := secretstorage.Open(password)
 		if err != nil {
 			logext.Warning("cannot open session id storage, using only anonymous requests: %v\n", err)
-			return downloader.New()
+			return downloader.New(nil)
 		}
 
 		if err = storage.Read(); err == nil && storage.SessionId != nil {
-			return downloader.NewAuthorized(*storage.SessionId)
+			return downloader.New(storage.SessionId)
 		} else if err == nil {
 			logext.Info("no session id were configured, using only anonymous requests\n")
-			return downloader.New()
+			return downloader.New(nil)
 		} else if tries == 2 {
 			logext.Warning("cannot read session id, using only anonymous requests: %v\n", err)
-			return downloader.New()
+			return downloader.New(nil)
 		}
 	}
 }
