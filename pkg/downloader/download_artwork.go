@@ -121,7 +121,7 @@ func (d *Downloader) continueIllustOrManga(
 	size image.Size,
 	paths []string,
 ) error {
-	pageUrls, withExtensions, err := inferPages(w, firstPageUrls, thumbnailUrls, size)
+	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrls, size)
 	if err != nil {
 		logext.Warning("failed to infer page urls for artwork %v: %v", id, err)
 	} else {
@@ -150,7 +150,7 @@ func (d *Downloader) continueIllustOrManga(
 // ! The extension for restricted images in original size cannot be derived, thus we'll have to
 // ! try each one later.
 func inferPages(
-	w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, size image.Size,
+	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, size image.Size,
 ) ([]string, bool, error) {
 	if firstPageUrls != nil {
 		firstPageUrl := (*firstPageUrls)[size]
@@ -163,21 +163,9 @@ func inferPages(
 		}
 	}
 
-	thumbnailUrl, ok := thumbnailUrls[w.Id]
+	thumbnailUrl, ok := thumbnailUrls[id]
 	if !ok {
 		return nil, false, fmt.Errorf("cannot find urls to infer from")
-	}
-
-	if size == image.SizeThumbnail {
-		firstPageUrl := thumbnailUrl
-		if w.NumPages <= 1 {
-			return []string{firstPageUrl}, true, nil
-		}
-		pageUrls, err := inferPagesFromFirstUrl(firstPageUrl, w.NumPages)
-		if err != nil {
-			return nil, false, err
-		}
-		return pageUrls, true, nil
 	}
 
 	const prefixMaster = "https://i.pximg.net/c/250x250_80_a2/img-master/img/"
@@ -201,20 +189,25 @@ func inferPages(
 	var firstPageUrl string
 	withExtensions := true
 	switch size {
+	case image.SizeThumbnail:
+		firstPageUrl = fmt.Sprintf(
+			"https://i.pximg.net/c/128x128/img-master/img/%v/%v_p0_square1200.jpg",
+			urlDate, id,
+		)
 	case image.SizeSmall:
 		firstPageUrl = fmt.Sprintf(
 			"https://i.pximg.net/c/540x540_70/img-master/img/%v/%v_p0_master1200.jpg",
-			urlDate, w.Id,
+			urlDate, id,
 		)
 	case image.SizeMedium:
 		firstPageUrl = fmt.Sprintf(
 			"https://i.pximg.net/img-master/img/%v/%v_p0_master1200.jpg",
-			urlDate, w.Id,
+			urlDate, id,
 		)
 	case image.SizeOriginal:
 		firstPageUrl = fmt.Sprintf(
 			"https://i.pximg.net/img-original/img/%v/%v_p0",
-			urlDate, w.Id,
+			urlDate, id,
 		)
 		withExtensions = false
 	}
