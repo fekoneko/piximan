@@ -34,7 +34,7 @@ func download(options *options) {
 		fmt.Print(q, "\n\n")
 		d.ScheduleQueue(q)
 	} else {
-		d.Schedule(*options.Id, kind, size, onlyMeta, []string{path})
+		d.Schedule(*options.Ids, kind, size, onlyMeta, []string{path})
 	}
 
 	for d.Listen() != nil {

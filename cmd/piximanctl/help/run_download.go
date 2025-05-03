@@ -15,6 +15,7 @@ Description: Download the work files and metadata from pixiv.net to the given
 
 --id         ID of the downloaded work. You can found it in the work URI:
  -i          https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
+             Can be provided multiple times.
 
 --type       The type of work to download. Defaults to artwork.
  -t          Available options are:
@@ -51,7 +52,7 @@ Description: Download the work files and metadata from pixiv.net to the given
              Do not paste the value directly in the command line as it could
              be logged in the terminal history (e.g. ~/.bash_history).
 
-Examples:    piximanctl download -id 12345 -size 1 -password $(xclip -o)
+Examples:    piximanctl download -id 12345 -id 23456 -size 1 -password $(xclip -o)
              piximanctl download -id 12345 -type novel -path ./{userid}/{id}
              piximanctl download -inferid "./*/* {id}" -onlymeta -noauth
 `

@@ -7,14 +7,16 @@ import (
 )
 
 func (d *Downloader) Schedule(
-	id uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
+	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
 ) {
-	d.queue.Push(queue.Item{Id: id, Kind: kind, Size: size, OnlyMeta: onlyMeta, Paths: paths})
+	for _, id := range ids {
+		d.queue.Push(queue.Item{Id: id, Kind: kind, Size: size, OnlyMeta: onlyMeta, Paths: paths})
+	}
 	d.tryDownloadUntilLimit()
 }
 
 func (d *Downloader) ScheduleQueue(q *queue.Queue) {
-	d.queue.Merge(q)
+	d.queue.Push(*q...)
 	d.tryDownloadUntilLimit()
 }
 

@@ -14,11 +14,11 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 
-	if options.Id == nil && options.InferId == nil {
+	if options.Ids == nil && options.InferId == nil {
 		fmt.Println("one of these flags is not provided: `-i, --id` and `-I, --inferid`")
 		os.Exit(2)
 	}
-	if options.Id != nil && options.InferId != nil {
+	if options.Ids != nil && options.InferId != nil {
 		fmt.Println("providing these flags together is not supported: `-i, --id` and `-I, --inferid`")
 		os.Exit(2)
 	}

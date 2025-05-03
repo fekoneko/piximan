@@ -13,7 +13,7 @@ import (
 
 func interactive() {
 	kind := selectKind()
-	id, inferId := selectMode()
+	ids, inferId := selectMode()
 	onlyMeta := selectOnlyMeta()
 
 	var size *uint
@@ -30,7 +30,7 @@ func interactive() {
 
 	fmt.Println()
 	download(&options{
-		Id:       id,
+		Ids:      ids,
 		King:     &kind,
 		Size:     size,
 		Path:     path,
@@ -68,10 +68,10 @@ var modeSelect = promptui.Select{
 	Items: []string{idModeOption, inferIdModeOption},
 }
 var idPrompt = promptui.Prompt{
-	Label: "Work ID",
+	Label: "Work IDs",
 	Validate: func(input string) error {
-		if _, err := strconv.ParseUint(input, 10, 64); err != nil {
-			return fmt.Errorf("ID must be a number")
+		if _, err := parseIdsString(input); err != nil {
+			return fmt.Errorf("IDs must be a comma-separated list of numbers")
 		}
 		return nil
 	},
@@ -86,19 +86,19 @@ var inferIdPrompt = promptui.Prompt{
 	},
 }
 
-func selectMode() (*uint64, *string) {
+func selectMode() (*[]uint64, *string) {
 	_, mode, err := modeSelect.Run()
 	logext.MaybeFatal(err, "failed to read mode")
 
 	switch mode {
 	case idModeOption:
-		idString, err := idPrompt.Run()
-		logext.MaybeFatal(err, "failed to read ID")
+		idsString, err := idPrompt.Run()
+		logext.MaybeFatal(err, "failed to read IDs")
 
-		id, err := strconv.ParseUint(idString, 10, 64)
-		logext.MaybeFatal(err, "failed to parse ID")
+		ids, err := parseIdsString(idsString)
+		logext.MaybeFatal(err, "failed to parse IDs")
 
-		return &id, nil
+		return &ids, nil
 	case inferIdModeOption:
 		inferId, err := inferIdPrompt.Run()
 		logext.MaybeFatal(err, "failed to read pattern")
@@ -108,6 +108,29 @@ func selectMode() (*uint64, *string) {
 		logext.Fatal("incorrect download mode: %v", mode)
 	}
 	panic("unreachable")
+}
+
+func parseIdsString(idsString string) ([]uint64, error) {
+	idSubstrs := strings.Split(idsString, ",")
+	ids := []uint64{}
+
+	for _, idSubstr := range idSubstrs {
+		trimmed := strings.TrimSpace(idSubstr)
+		if trimmed == "" {
+			continue
+		}
+		id, err := strconv.ParseUint(trimmed, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+
+	if len(ids) == 0 {
+		return nil, fmt.Errorf("no IDs provided")
+	}
+
+	return ids, nil
 }
 
 var downloadAllOption = "Download metadata and images"

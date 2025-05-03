@@ -2,6 +2,7 @@ package queue
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/fekoneko/piximan/pkg/downloader/image"
@@ -10,11 +11,29 @@ import (
 type Queue []Item
 
 func (q *Queue) Push(items ...Item) {
-	*q = append(*q, items...)
-}
+	for _, item := range items {
+		if len(item.Paths) == 0 {
+			continue
+		}
 
-func (q *Queue) Merge(mq *Queue) {
-	*q = append(*q, *mq...)
+		existing := slices.IndexFunc(*q, func(queueItem Item) bool {
+			return item.Id == queueItem.Id &&
+				item.Kind == queueItem.Kind &&
+				item.Size == queueItem.Size &&
+				item.OnlyMeta == queueItem.OnlyMeta
+		})
+
+		if existing == -1 {
+			*q = append(*q, item)
+			continue
+		}
+
+		for _, path := range item.Paths {
+			if !slices.Contains((*q)[existing].Paths, path) {
+				(*q)[existing].Paths = append((*q)[existing].Paths, path)
+			}
+		}
+	}
 }
 
 func (q *Queue) Pop() *Item {
