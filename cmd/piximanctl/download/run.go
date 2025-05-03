@@ -2,6 +2,8 @@ package download
 
 import "os"
 
+// TODO: add downloading form list (file with ids)
+
 type options struct {
 	Ids      *[]uint64 `short:"i" long:"id"`
 	King     *string   `short:"t" long:"type"`
