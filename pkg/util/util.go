@@ -1,5 +1,12 @@
 package util
 
+func If[T any](condition bool, value T, defaultValue T) T {
+	if condition {
+		return value
+	}
+	return defaultValue
+}
+
 func FromPtr[T any](ptr *T, defaultValue T) T {
 	if ptr == nil {
 		return defaultValue

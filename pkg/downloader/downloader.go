@@ -25,3 +25,7 @@ func New(sessionId *string) *Downloader {
 	channel := make(chan *work.Work, CHANNEL_SIZE)
 	return &Downloader{sessionId, client, channel, queue.Queue{}, 0, sync.Mutex{}}
 }
+
+func (d *Downloader) String() string {
+	return d.queue.String()
+}

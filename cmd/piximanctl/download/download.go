@@ -21,9 +21,9 @@ func download(options *options) {
 
 	d := chooseDownloader(options.Password)
 
-	if options.InferId != nil {
-		result, err := pathext.InferIdsFromWorkPath(*options.InferId)
-		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferId)
+	if options.InferIdPath != nil {
+		result, err := pathext.InferIdsFromWorkPath(*options.InferIdPath)
+		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
 
 		q := queue.FromMap(result, kind, size, onlyMeta)
 		if options.Path != nil {
@@ -31,14 +31,14 @@ func download(options *options) {
 				(*q)[i].Paths = []string{path}
 			}
 		}
-		fmt.Print(q, "\n\n")
 		d.ScheduleQueue(q)
-	} else {
+	} else if options.Ids != nil {
 		d.Schedule(*options.Ids, kind, size, onlyMeta, []string{path})
 	}
 
-	for d.Listen() != nil {
-	}
+	fmt.Println(d)
+	d.Run() // TODO: confirmation by user (or -y flag)
+	d.WaitDone()
 }
 
 func chooseDownloader(passwordPtr *string) *downloader.Downloader {

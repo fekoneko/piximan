@@ -12,30 +12,13 @@ func (d *Downloader) Schedule(
 	for _, id := range ids {
 		d.queue.Push(queue.Item{Id: id, Kind: kind, Size: size, OnlyMeta: onlyMeta, Paths: paths})
 	}
-	d.tryDownloadUntilLimit()
 }
 
 func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	d.queue.Push(*q...)
-	d.tryDownloadUntilLimit()
 }
 
-func (d *Downloader) Listen() *work.Work {
-	var w *work.Work
-	for w == nil && d.NumRemaining() > 0 {
-		w = <-d.channel
-	}
-	return w
-}
-
-func (d *Downloader) NumRemaining() int {
-	d.numPendingMutex.Lock()
-	defer d.numPendingMutex.Unlock()
-
-	return len(d.queue) + d.numPending
-}
-
-func (d *Downloader) tryDownloadUntilLimit() {
+func (d *Downloader) Run() {
 	d.numPendingMutex.Lock()
 	defer d.numPendingMutex.Unlock()
 
@@ -47,6 +30,26 @@ func (d *Downloader) tryDownloadUntilLimit() {
 		go d.downloadItem(item)
 		d.numPending++
 	}
+}
+
+func (d *Downloader) WaitNext() *work.Work {
+	var w *work.Work
+	for w == nil && d.NumRemaining() > 0 {
+		w = <-d.channel
+	}
+	return w
+}
+
+func (d *Downloader) WaitDone() {
+	for d.WaitNext() != nil {
+	}
+}
+
+func (d *Downloader) NumRemaining() int {
+	d.numPendingMutex.Lock()
+	defer d.numPendingMutex.Unlock()
+
+	return len(d.queue) + d.numPending
 }
 
 func (d *Downloader) downloadItem(item *queue.Item) {
@@ -73,5 +76,5 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	d.numPending--
 	d.numPendingMutex.Unlock()
 
-	d.tryDownloadUntilLimit()
+	d.Run()
 }

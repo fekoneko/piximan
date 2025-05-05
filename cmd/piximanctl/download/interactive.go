@@ -8,85 +8,32 @@ import (
 	"github.com/fekoneko/piximan/pkg/downloader/image"
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
 	"github.com/fekoneko/piximan/pkg/logext"
+	"github.com/fekoneko/piximan/pkg/util"
 	"github.com/manifoldco/promptui"
 )
 
 func interactive() {
-	kind := selectKind()
-	ids, inferId := selectMode()
-	onlyMeta := selectOnlyMeta()
+	ids, inferIdPath, queuePath := selectMode()
+	withQueue := queuePath != nil
+	withInferId := inferIdPath != nil
 
-	var size *uint
-	if !onlyMeta {
-		s := selectSize()
-		size = &s
-	}
-
-	var path *string
-	if inferId == nil || selectAskPath() {
-		p := promptPath()
-		path = &p
-	}
+	kind := selectKind(withQueue)
+	onlyMeta := selectOnlyMeta(withQueue)
+	size := selectSize(withQueue, onlyMeta)
+	path := promptPath(withInferId, withQueue)
 
 	fmt.Println()
 	download(&options{
-		Ids:      ids,
-		Kind:     &kind,
-		Size:     size,
-		Path:     path,
-		InferId:  inferId,
-		OnlyMeta: &onlyMeta,
+		Ids:         ids,
+		Kind:        &kind,
+		Size:        size,
+		Path:        path,
+		InferIdPath: inferIdPath,
+		OnlyMeta:    &onlyMeta,
 	})
 }
 
-var ArtworkOption = "Artwork"
-var NovelOption = "Novel"
-var kindSelect = promptui.Select{
-	Label: "Type of work to download",
-	Items: []string{ArtworkOption, NovelOption},
-}
-
-func selectKind() string {
-	_, kind, err := kindSelect.Run()
-	logext.MaybeFatal(err, "failed to read work type")
-
-	switch kind {
-	case ArtworkOption:
-		return queue.ItemKindArtworkString
-	case NovelOption:
-		return queue.ItemKindNovelString
-	default:
-		logext.Fatal("invalid worktype: %s", kind)
-	}
-	panic("unreachable")
-}
-
-var idModeOption = "Download by ID"
-var inferIdModeOption = "Infer IDs from path"
-var modeSelect = promptui.Select{
-	Label: "Download mode",
-	Items: []string{idModeOption, inferIdModeOption},
-}
-var idPrompt = promptui.Prompt{
-	Label: "Work IDs",
-	Validate: func(input string) error {
-		if _, err := parseIdsString(input); err != nil {
-			return fmt.Errorf("IDs must be a comma-separated list of numbers")
-		}
-		return nil
-	},
-}
-var inferIdPrompt = promptui.Prompt{
-	Label: "Path pattern",
-	Validate: func(input string) error {
-		if !strings.Contains(input, "{id}") {
-			return fmt.Errorf("pattern must contain {id}")
-		}
-		return nil
-	},
-}
-
-func selectMode() (*[]uint64, *string) {
+func selectMode() (*[]uint64, *string, *string) {
 	_, mode, err := modeSelect.Run()
 	logext.MaybeFatal(err, "failed to read mode")
 
@@ -94,20 +41,95 @@ func selectMode() (*[]uint64, *string) {
 	case idModeOption:
 		idsString, err := idPrompt.Run()
 		logext.MaybeFatal(err, "failed to read IDs")
-
 		ids, err := parseIdsString(idsString)
 		logext.MaybeFatal(err, "failed to parse IDs")
+		return &ids, nil, nil
 
-		return &ids, nil
 	case inferIdModeOption:
-		inferId, err := inferIdPrompt.Run()
+		inferIdPath, err := inferIdPathPrompt.Run()
 		logext.MaybeFatal(err, "failed to read pattern")
+		return nil, &inferIdPath, nil
 
-		return nil, &inferId
+	case queueModeOption:
+		queuePath, err := queuePathPrompt.Run()
+		logext.MaybeFatal(err, "failed to read list path")
+		return nil, nil, &queuePath
+
 	default:
 		logext.Fatal("incorrect download mode: %v", mode)
 	}
 	panic("unreachable")
+}
+
+func selectKind(withQueue bool) string {
+	_, kind, err := kindSelect(withQueue).Run()
+	logext.MaybeFatal(err, "failed to read work type")
+
+	switch kind {
+	case artworkOption:
+		return queue.ItemKindArtworkString
+	case novelOption:
+		return queue.ItemKindNovelString
+	default:
+		logext.Fatal("invalid worktype: %s", kind)
+	}
+	panic("unreachable")
+}
+
+func selectOnlyMeta(withQueue bool) bool {
+	_, downloadFiles, err := onlyMetaSelect(withQueue).Run()
+	logext.MaybeFatal(err, "failed to read downloaded files choice")
+
+	switch downloadFiles {
+	case downloadAllOption:
+		return false
+	case downloadMetaOption:
+		return true
+	default:
+		logext.Fatal("incorrect downloaded files choice: %v", downloadFiles)
+	}
+	panic("unreachable")
+}
+
+func selectSize(withQueue bool, onlyMeta bool) *uint {
+	if onlyMeta {
+		return nil
+	}
+
+	_, size, err := sizeSelect(withQueue).Run()
+	logext.MaybeFatal(err, "failed to read size")
+
+	switch size {
+	case thumbnailSizeOption:
+		result := uint(image.SizeThumbnail)
+		return &result
+	case smallSizeOption:
+		result := uint(image.SizeSmall)
+		return &result
+	case mediumSizeOption:
+		result := uint(image.SizeMedium)
+		return &result
+	case originalSizeOption:
+		result := uint(image.SizeOriginal)
+		return &result
+	default:
+		logext.Fatal("incorrect size: %v", size)
+	}
+	panic("unreachable")
+}
+
+func promptPath(withInferId bool, withQueue bool) *string {
+	if withInferId {
+		_, pathChoice, err := pathSelect.Run()
+		logext.MaybeFatal(err, "failed to read path choice")
+		if pathChoice == inferredPathOption {
+			return nil
+		}
+	}
+
+	path, err := pathPrompt(withQueue).Run()
+	logext.MaybeFatal(err, "failed to read path")
+	return &path
 }
 
 func parseIdsString(idsString string) ([]uint64, error) {
@@ -133,76 +155,99 @@ func parseIdsString(idsString string) ([]uint64, error) {
 	return ids, nil
 }
 
+var modeSelectLabel = "Download mode"
+var idModeOption = "Download by ID"
+var inferIdModeOption = "Infer IDs from path"
+var queueModeOption = "Download from list"
+
+var modeSelect = promptui.Select{
+	Label: modeSelectLabel,
+	Items: []string{idModeOption, inferIdModeOption, queueModeOption},
+}
+
+var idPromptLabel = "Work IDs"
+
+var idPrompt = promptui.Prompt{
+	Label: idPromptLabel,
+	Validate: func(input string) error {
+		if _, err := parseIdsString(input); err != nil {
+			return fmt.Errorf("IDs must be a comma-separated list of numbers")
+		}
+		return nil
+	},
+}
+
+var inferIdPathPromptLabel = "Path pattern"
+
+var inferIdPathPrompt = promptui.Prompt{
+	Label: inferIdPathPromptLabel,
+	Validate: func(input string) error {
+		if !strings.Contains(input, "{id}") {
+			return fmt.Errorf("pattern must contain {id}")
+		}
+		return nil
+	},
+}
+
+var queuePathPromptLabel = "Path to YAML list"
+
+var queuePathPrompt = promptui.Prompt{
+	Label: queuePathPromptLabel,
+}
+
+var kindSelectLabel = "Type of work to download"
+var kindSelectWithQueueLabel = "Default type of work to download"
+var artworkOption = "Artwork"
+var novelOption = "Novel"
+
+func kindSelect(withQueue bool) *promptui.Select {
+	return &promptui.Select{
+		Label: util.If(withQueue, kindSelectWithQueueLabel, kindSelectLabel),
+		Items: []string{artworkOption, novelOption},
+	}
+}
+
+var onlyMetaSelectLabel = "Only download metadata"
+var onlyMetaSelectWithQueueLabel = "Only download metadata by default"
 var downloadAllOption = "Download metadata and images"
 var downloadMetaOption = "Only download metadata"
-var downloadFilesSelect = promptui.Select{
-	Label: "Downloaded files",
-	Items: []string{downloadAllOption, downloadMetaOption},
-}
 
-func selectOnlyMeta() bool {
-	_, downloadFiles, err := downloadFilesSelect.Run()
-	logext.MaybeFatal(err, "failed to read downloaded files choice")
-
-	switch downloadFiles {
-	case downloadAllOption:
-		return false
-	case downloadMetaOption:
-		return true
-	default:
-		logext.Fatal("incorrect downloaded files choice: %v", downloadFiles)
+func onlyMetaSelect(withQueue bool) *promptui.Select {
+	return &promptui.Select{
+		Label: util.If(withQueue, onlyMetaSelectWithQueueLabel, onlyMetaSelectLabel),
+		Items: []string{downloadAllOption, downloadMetaOption},
 	}
-	panic("unreachable")
 }
 
+var sizeSelectLabel = "Size of downloaded images"
+var sizeSelectWithQueueLabel = "Default size of downloaded images"
 var thumbnailSizeOption = "Thumbnail"
 var smallSizeOption = "Small"
 var mediumSizeOption = "Medium"
 var originalSizeOption = "Original"
-var sizeSelect = promptui.Select{
-	Label:     "Size of downloaded images",
-	Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
-	CursorPos: 3,
-}
 
-func selectSize() uint {
-	_, size, err := sizeSelect.Run()
-	logext.MaybeFatal(err, "failed to read size")
-
-	switch size {
-	case thumbnailSizeOption:
-		return uint(image.SizeThumbnail)
-	case smallSizeOption:
-		return uint(image.SizeSmall)
-	case mediumSizeOption:
-		return uint(image.SizeMedium)
-	case originalSizeOption:
-		return uint(image.SizeOriginal)
-	default:
-		logext.Fatal("incorrect size: %v", size)
+func sizeSelect(withQueue bool) *promptui.Select {
+	return &promptui.Select{
+		Label:     util.If(withQueue, sizeSelectWithQueueLabel, sizeSelectLabel),
+		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
+		CursorPos: 3,
 	}
-	panic("unreachable")
 }
 
+var pathSelectLabel = "Where to save downloaded works?"
 var inferredPathOption = "Save to inferred path"
 var customPathOption = "Specify different path"
+
 var pathSelect = promptui.Select{
-	Label: "Where to save downloaded works?",
+	Label: pathSelectLabel,
 	Items: []string{inferredPathOption, customPathOption},
 }
 
-func selectAskPath() bool {
-	_, pathChoice, err := pathSelect.Run()
-	logext.MaybeFatal(err, "failed to read path choice")
-	return pathChoice == customPathOption
-}
+var pathPromptLabel = "Save to directory"
+var pathPromptWithQueueLabel = "Default saving path"
 
-var pathPrompt = promptui.Prompt{
-	Label: "Save to directory",
-}
-
-func promptPath() string {
-	path, err := pathPrompt.Run()
-	logext.MaybeFatal(err, "failed to read path")
-	return path
+func pathPrompt(withQueue bool) *promptui.Prompt {
+	return &promptui.Prompt{
+		Label: util.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
+	}
 }

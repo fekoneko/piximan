@@ -14,24 +14,28 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 
-	if options.Ids == nil && options.InferId == nil {
-		fmt.Println("one of these flags is not provided: `-i, --id` and `-I, --inferid`")
+	if options.Ids == nil && options.InferIdPath == nil {
+		fmt.Println("one of these flags is not provided: `-i, --id' and `-I, --inferid'")
 		os.Exit(2)
 	}
-	if options.Ids != nil && options.InferId != nil {
-		fmt.Println("providing these flags together is not supported: `-i, --id` and `-I, --inferid`")
+	if options.Ids != nil && options.InferIdPath != nil {
+		fmt.Println("providing these flags together is not supported: `-i, --id' and `-I, --inferid'")
+		os.Exit(2)
+	}
+	if options.QueuePath != nil && options.InferIdPath != nil {
+		fmt.Println("providing these flags together is not supported: `-l, --list' and `-I, --inferid'")
 		os.Exit(2)
 	}
 	if options.Kind != nil && options.Size != nil && *options.Kind == queue.ItemKindNovelString {
-		fmt.Println("cannot use `-s, --size` flag with `-t, --type` novel")
+		fmt.Println("cannot use `-s, --size' flag with `-t, --type' novel")
 		os.Exit(2)
 	}
 	if options.Kind != nil && !queue.ValidItemKindString(*options.Kind) {
-		fmt.Println("invalid argument for flag `-t, --type`")
+		fmt.Println("invalid argument for flag `-t, --type'")
 		os.Exit(2)
 	}
 	if options.Size != nil && *options.Size > 3 {
-		fmt.Println("invalid argument for flag `-s, --size`")
+		fmt.Println("invalid argument for flag `-s, --size'")
 		os.Exit(2)
 	}
 
