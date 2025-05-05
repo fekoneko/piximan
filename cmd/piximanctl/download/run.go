@@ -2,13 +2,12 @@ package download
 
 import "os"
 
-// TODO: add downloading form list (file with ids)
-
 type options struct {
 	Ids      *[]uint64 `short:"i" long:"id"`
-	King     *string   `short:"t" long:"type"`
+	Kind     *string   `short:"t" long:"type"`
 	Size     *uint     `short:"s" long:"size"`
-	Path     *string   `short:"p" long:"path"`
+	Path     *string   `short:"p" long:"path"` // TODO: Paths array
+	List     *string   `short:"l" long:"list"` // TODO: interactive and non-interactive
 	InferId  *string   `short:"I" long:"inferid"`
 	OnlyMeta *bool     `short:"m" long:"onlymeta"`
 	Password *string   `short:"P" long:"password"`

@@ -17,7 +17,7 @@ func configSessionId(options *options) {
 		storage, err := secretstorage.Open(password)
 		logext.MaybeFatal(err, "failed to open session id storage")
 
-		err = storage.StoreSessionId(options.SessionId)
+		err = storage.WriteSessionId(options.SessionId)
 		logext.MaybeFatal(err, "failed to set session id")
 	}
 }

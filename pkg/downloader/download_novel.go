@@ -23,7 +23,7 @@ func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, e
 	assets := []storage.Asset{}
 	paths, err = pathext.FormatWorkPaths(paths, w)
 	if err == nil {
-		err = storage.StoreWork(w, assets, paths)
+		err = storage.WriteWork(w, assets, paths)
 	}
 	logext.MaybeSuccess(err, "stored metadata for novel %v in %v", id, paths)
 	logext.MaybeError(err, "failed to store metadata for novel %v", id)
@@ -54,7 +54,7 @@ func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error
 
 	paths, err = pathext.FormatWorkPaths(paths, w)
 	if err == nil {
-		err = storage.StoreWork(w, assets, paths)
+		err = storage.WriteWork(w, assets, paths)
 	}
 	logext.MaybeSuccess(err, "stored files for novel %v in %v", id, paths)
 	logext.MaybeError(err, "failed to store files for novel %v", id)

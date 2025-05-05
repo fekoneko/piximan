@@ -38,6 +38,16 @@ Description: Download the work files and metadata from pixiv.net to the given
              padded with underscores, reserved characters - replaced and any dots
              or spaces in front or end of the filenames will be trimmed.
 
+--list       Path to a file with information about which works to download.
+ -l          The file must contain a list in YAML format. Example:
+             - id: 12345                # defaults to the --id argument
+               type: artwork            # defaults to the --type argument
+               size: 1                  # defaults to the --size argument
+               onlymeta: true           # defaults to the --onlymeta argument
+               paths: [./{userid}/{id}] # defaults to the --path argument
+             - id: 23456
+               type: novel
+
 --inferid    Infer the IDs of works from the given path. Useful for updating
  -I          the metadata in existing collection when coupled with -onlymeta flag.
              The path may contain the following patterns:
@@ -52,9 +62,10 @@ Description: Download the work files and metadata from pixiv.net to the given
              Do not paste the value directly in the command line as it could
              be logged in the terminal history (e.g. ~/.bash_history).
 
-Examples:    piximanctl download -id 12345 -id 23456 -size 1 -password $(xclip -o)
-             piximanctl download -id 12345 -type novel -path ./{userid}/{id}
-             piximanctl download -inferid "./*/* {id}" -onlymeta -noauth
+Examples:    piximanctl download --id 12345 --id 23456 --size 1 --password $(xclip -o)
+             piximanctl download --id 12345 --type novel --path ./{userid}/{id}
+             piximanctl download --inferid "./*/* {id}" --onlymeta
+             piximanctl download --list ./list.yaml --path ./{userid}/{id}
 `
 
 func RunDownload() {

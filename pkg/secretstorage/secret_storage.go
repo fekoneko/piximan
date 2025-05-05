@@ -68,7 +68,7 @@ func (s *SecretStorage) Read() error {
 	return nil
 }
 
-func (s *SecretStorage) StoreSessionId(sessionId string) error {
+func (s *SecretStorage) WriteSessionId(sessionId string) error {
 	err := os.MkdirAll(filepath.Dir(sessionIdPath), 0775)
 	if err != nil {
 		return err

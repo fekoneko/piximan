@@ -15,7 +15,7 @@ import (
 
 func download(options *options) {
 	size := util.FromPtrTransform(options.Size, image.SizeFromUint, image.SizeDefault)
-	kind := util.FromPtrTransform(options.King, queue.ItemKindFromString, queue.ItemKindDefault)
+	kind := util.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
 	onlyMeta := util.FromPtr(options.OnlyMeta, false)
 	path := util.FromPtr(options.Path, "")
 

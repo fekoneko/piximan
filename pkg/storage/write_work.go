@@ -18,7 +18,7 @@ type Asset struct {
 	Page      uint64
 }
 
-func StoreWork(work *work.Work, assets []Asset, paths []string) error {
+func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 	dto := dto.ToDto(work)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {

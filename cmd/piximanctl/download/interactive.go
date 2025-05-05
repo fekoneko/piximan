@@ -31,7 +31,7 @@ func interactive() {
 	fmt.Println()
 	download(&options{
 		Ids:      ids,
-		King:     &kind,
+		Kind:     &kind,
 		Size:     size,
 		Path:     path,
 		InferId:  inferId,

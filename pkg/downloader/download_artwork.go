@@ -27,7 +27,7 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work,
 	assets := []storage.Asset{}
 	paths, err = pathext.FormatWorkPaths(paths, w)
 	if err == nil {
-		err = storage.StoreWork(w, assets, paths)
+		err = storage.WriteWork(w, assets, paths)
 	}
 	logext.MaybeSuccess(err, "stored metadata for artwork %v in %v", id, paths)
 	logext.MaybeError(err, "failed to store metadata for artwork %v", id)
@@ -351,7 +351,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 func storeArtwork(w *work.Work, id uint64, assets []storage.Asset, paths []string) error {
 	paths, err := pathext.FormatWorkPaths(paths, w)
 	if err == nil {
-		err = storage.StoreWork(w, assets, paths)
+		err = storage.WriteWork(w, assets, paths)
 	}
 	logext.MaybeSuccess(err, "stored files for artwork %v in %v", id, paths)
 	logext.MaybeError(err, "failed to store files for artwork %v", id)

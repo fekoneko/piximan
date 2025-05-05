@@ -23,8 +23,8 @@ Description: Change permanent configuration for piximan. The configured settings
  -p          session ID. If omited the password will be set to an empty string.
              Similarly to the session ID, avoid pasting the value directly.
 
-Examples:    piximanctl config -sessionid $(xclip -o)
-             piximanctl config -sessionid $PHPSESSID -password $PASSWORD
+Examples:    piximanctl config --sessionid $(xclip -o)
+             piximanctl config --sessionid $PHPSESSID --password $PASSWORD
 `
 
 func RunConfig() {

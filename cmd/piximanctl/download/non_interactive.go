@@ -22,11 +22,11 @@ func nonInteractive() {
 		fmt.Println("providing these flags together is not supported: `-i, --id` and `-I, --inferid`")
 		os.Exit(2)
 	}
-	if options.King != nil && options.Size != nil && *options.King == queue.ItemKindNovelString {
+	if options.Kind != nil && options.Size != nil && *options.Kind == queue.ItemKindNovelString {
 		fmt.Println("cannot use `-s, --size` flag with `-t, --type` novel")
 		os.Exit(2)
 	}
-	if options.King != nil && !queue.ValidItemKindString(*options.King) {
+	if options.Kind != nil && !queue.ValidItemKindString(*options.Kind) {
 		fmt.Println("invalid argument for flag `-t, --type`")
 		os.Exit(2)
 	}
