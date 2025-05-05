@@ -8,6 +8,8 @@ import (
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
 )
 
+// TODO: download own bookmarks or by user id
+
 const CHANNEL_SIZE = 10
 const PENDING_LIMIT = 2
 
