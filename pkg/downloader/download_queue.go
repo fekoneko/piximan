@@ -33,10 +33,11 @@ func (d *Downloader) Run() {
 }
 
 func (d *Downloader) WaitNext() *work.Work {
-	for d.NumRemaining() > 0 {
-		return <-d.channel
+	var w *work.Work
+	for w == nil && d.NumRemaining() > 0 {
+		w = <-d.channel
 	}
-	return nil
+	return w
 }
 
 func (d *Downloader) WaitDone() {
