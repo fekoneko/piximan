@@ -6,8 +6,8 @@ const downloadHelp = //
 `Usage:       Run without arguments to enter interactive mode.
              piximanctl download [--id ...]   [--type artwork|novel]
                                  [--size 0-3] [--inferid ...]
-                                 [--path ...] [--password ...]
-                                 [--onlymeta]
+                                 [--path ...] [--list ...]
+                                 [--onlymeta] [--password ...]
 
 Description: Download the work files and metadata from pixiv.net to the given
              directory. This command does not require a session ID. All the
