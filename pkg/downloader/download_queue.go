@@ -45,15 +45,11 @@ func (d *Downloader) WaitDone() {
 	}
 }
 
-func (d *Downloader) NumPending() int {
+func (d *Downloader) NumRemaining() int {
 	d.numPendingMutex.Lock()
 	defer d.numPendingMutex.Unlock()
 
-	return d.numPending
-}
-
-func (d *Downloader) NumRemaining() int {
-	return len(d.queue) + d.NumPending()
+	return len(d.queue) + d.numPending
 }
 
 func (d *Downloader) downloadItem(item *queue.Item) {
