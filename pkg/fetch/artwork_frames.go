@@ -12,7 +12,7 @@ import (
 // Ugoira artwork is expected for this function
 func ArtworkFrames(client http.Client, id uint64) (string, []encode.Frame, error) {
 	return artworkFramesWith(func(url string) ([]byte, error) {
-		return Do(client, url)
+		return Do(client, url, nil)
 	}, id)
 }
 
@@ -21,7 +21,7 @@ func ArtworkFramesAuthorized(
 	client http.Client, id uint64, sessionId string,
 ) (string, []encode.Frame, error) {
 	return artworkFramesWith(func(url string) ([]byte, error) {
-		return DoAuthorized(client, url, sessionId)
+		return DoAuthorized(client, url, sessionId, nil)
 	}, id)
 }
 

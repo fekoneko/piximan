@@ -40,7 +40,7 @@ func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error
 		return nil, err
 	}
 
-	cover, err := fetch.Do(d.client, coverUrl)
+	cover, err := fetch.Do(d.client, coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
 	logext.MaybeError(err, "failed to fetch cover for novel %v", id)
 	if err != nil {

@@ -62,7 +62,7 @@ func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) err
 		return err
 	}
 
-	archive, err := fetch.Do(d.client, url)
+	archive, err := fetch.Do(d.client, url, nil)
 	logext.MaybeSuccess(err, "fetched frames for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch frames for artwork %v", id)
 	if err != nil {
@@ -286,7 +286,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 	if !withExtensions {
 		for _, extension := range extensions {
 			go func() {
-				bytes, err := fetch.Do(d.client, pageUrls[0]+extension)
+				bytes, err := fetch.Do(d.client, pageUrls[0]+extension, nil)
 				if err != nil {
 					logext.Warning("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
 					errorChannel <- err
@@ -319,7 +319,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			continue
 		}
 		go func() {
-			bytes, err := fetch.Do(d.client, url+guessedExtension)
+			bytes, err := fetch.Do(d.client, url+guessedExtension, nil)
 			if err != nil {
 				logErrorOrWarning("failed to fetch page %v for artwork %v: %v", i+1, id, err)
 				errorChannel <- err
