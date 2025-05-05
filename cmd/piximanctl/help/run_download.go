@@ -39,12 +39,12 @@ Description: Download the work files and metadata from pixiv.net to the given
              or spaces in front or end of the filenames will be trimmed.
 
 --list       Path to a file with information about which works to download.
- -l          The file must contain a list in YAML format. Example:
-             - id: 12345                # defaults to the --id argument
-               type: artwork            # defaults to the --type argument
-               size: 1                  # defaults to the --size argument
-               onlymeta: true           # defaults to the --onlymeta argument
-               paths: [./{userid}/{id}] # defaults to the --path argument
+ -l          The file must contain a list in YAML format, for example:
+             - id: 12345                  # required
+               type: artwork              # defaults to the --type argument
+               size: 1                    # defaults to the --size argument
+               onlymeta: true             # defaults to the --onlymeta argument
+               paths: ['./{userid}/{id}'] # defaults to the --path argument
              - id: 23456
                type: novel
 

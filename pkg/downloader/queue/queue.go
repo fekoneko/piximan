@@ -68,11 +68,27 @@ func (q *Queue) String() string {
 	return builder.String()
 }
 
-func FromMap(m *map[uint64][]string, kind ItemKind, size image.Size, onlyMeta bool) *Queue {
+func FromMap(
+	m *map[uint64][]string, kind ItemKind, size image.Size, onlyMeta bool,
+) *Queue {
 	queue := make(Queue, len(*m))
 
 	i := 0
 	for id, paths := range *m {
+		queue[i] = Item{id, kind, size, onlyMeta, paths}
+		i++
+	}
+
+	return &queue
+}
+
+func FromMapWithPaths(
+	m *map[uint64][]string, kind ItemKind, size image.Size, onlyMeta bool, paths []string,
+) *Queue {
+	queue := make(Queue, len(*m))
+
+	i := 0
+	for id := range *m {
 		queue[i] = Item{id, kind, size, onlyMeta, paths}
 		i++
 	}

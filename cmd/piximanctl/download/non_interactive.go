@@ -14,12 +14,16 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 
-	if options.Ids == nil && options.InferIdPath == nil {
-		fmt.Println("one of these flags is not provided: `-i, --id' and `-I, --inferid'")
+	if options.Ids == nil && options.InferIdPath == nil && options.QueuePath == nil {
+		fmt.Println("one of these flags is not provided: `-i, --id', `-I, --inferid' or `-l, --list'")
 		os.Exit(2)
 	}
 	if options.Ids != nil && options.InferIdPath != nil {
 		fmt.Println("providing these flags together is not supported: `-i, --id' and `-I, --inferid'")
+		os.Exit(2)
+	}
+	if options.QueuePath != nil && options.Ids != nil {
+		fmt.Println("providing these flags together is not supported: `-l, --list' and `-i, --id'")
 		os.Exit(2)
 	}
 	if options.QueuePath != nil && options.InferIdPath != nil {

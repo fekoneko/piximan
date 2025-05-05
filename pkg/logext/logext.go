@@ -23,30 +23,6 @@ var errorPrefix = red("[ERROR]") + "   "
 var requestPrefix = magenta("[REQUEST]") + " " + white("(unauthorized)") + " "
 var authRequestPrefix = magenta("[REQUEST]") + " " + red("(authorized)") + " "
 
-func MaybeSuccess(err error, message string, args ...any) {
-	if err == nil {
-		Success(message, args...)
-	}
-}
-
-func MaybeWarning(err error, prefix string, args ...any) {
-	if err != nil {
-		Warning(prefix+": "+err.Error(), args...)
-	}
-}
-
-func MaybeError(err error, prefix string, args ...any) {
-	if err != nil {
-		Error(prefix+": "+err.Error(), args...)
-	}
-}
-
-func MaybeFatal(err error, prefix string, args ...any) {
-	if err != nil {
-		Fatal(prefix+": "+err.Error(), args...)
-	}
-}
-
 func Info(message string, args ...any) {
 	fmt.Fprintf(color.Output, timePrefix()+infoPrefix+message+"\n", args...)
 }
@@ -74,6 +50,42 @@ func Request(url string) {
 
 func AuthorizedRequest(url string) {
 	fmt.Fprintln(color.Output, timePrefix()+authRequestPrefix+url)
+}
+
+func MaybeSuccess(err error, message string, args ...any) {
+	if err == nil {
+		Success(message, args...)
+	}
+}
+
+func MaybeWarning(err error, prefix string, args ...any) {
+	if err != nil {
+		Warning(prefix+": "+err.Error(), args...)
+	}
+}
+
+func MaybeError(err error, prefix string, args ...any) {
+	if err != nil {
+		Error(prefix+": "+err.Error(), args...)
+	}
+}
+
+func MaybeFatal(err error, prefix string, args ...any) {
+	if err != nil {
+		Fatal(prefix+": "+err.Error(), args...)
+	}
+}
+
+func MaybeWarnings(errs []error, prefix string, args ...any) {
+	for _, err := range errs {
+		MaybeWarning(err, prefix, args...)
+	}
+}
+
+func MaybeErrors(errs []error, prefix string, args ...any) {
+	for _, err := range errs {
+		MaybeError(err, prefix, args...)
+	}
 }
 
 func timePrefix() string {

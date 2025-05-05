@@ -33,11 +33,10 @@ func (d *Downloader) Run() {
 }
 
 func (d *Downloader) WaitNext() *work.Work {
-	var w *work.Work
-	for w == nil && d.NumRemaining() > 0 {
-		w = <-d.channel
+	for d.NumRemaining() > 0 {
+		return <-d.channel
 	}
-	return w
+	return nil
 }
 
 func (d *Downloader) WaitDone() {
@@ -45,11 +44,15 @@ func (d *Downloader) WaitDone() {
 	}
 }
 
-func (d *Downloader) NumRemaining() int {
+func (d *Downloader) NumPending() int {
 	d.numPendingMutex.Lock()
 	defer d.numPendingMutex.Unlock()
 
-	return len(d.queue) + d.numPending
+	return d.numPending
+}
+
+func (d *Downloader) NumRemaining() int {
+	return len(d.queue) + d.NumPending()
 }
 
 func (d *Downloader) downloadItem(item *queue.Item) {

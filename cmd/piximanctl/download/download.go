@@ -9,6 +9,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/fekoneko/piximan/pkg/pathext"
 	"github.com/fekoneko/piximan/pkg/secretstorage"
+	"github.com/fekoneko/piximan/pkg/storage"
 	"github.com/fekoneko/piximan/pkg/util"
 	"github.com/manifoldco/promptui"
 )
@@ -21,19 +22,28 @@ func download(options *options) {
 
 	d := chooseDownloader(options.Password)
 
-	if options.InferIdPath != nil {
+	if options.Ids != nil {
+		paths := []string{path}
+		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
+	} else if options.InferIdPath != nil {
 		result, err := pathext.InferIdsFromWorkPath(*options.InferIdPath)
 		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
 
-		q := queue.FromMap(result, kind, size, onlyMeta)
-		if options.Path != nil {
-			for i := range *q {
-				(*q)[i].Paths = []string{path}
-			}
+		if options.Path == nil {
+			q := queue.FromMap(result, kind, size, onlyMeta)
+			d.ScheduleQueue(q)
+		} else {
+			paths := []string{path}
+			q := queue.FromMapWithPaths(result, kind, size, onlyMeta, paths)
+			d.ScheduleQueue(q)
 		}
+	} else if options.QueuePath != nil {
+		paths := []string{path}
+		q, warnings, err := storage.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
+		logext.MaybeWarnings(warnings, "while reading queue from %v", *options.QueuePath)
+		logext.MaybeFatal(err, "cannot read queue from %v", *options.QueuePath)
+
 		d.ScheduleQueue(q)
-	} else if options.Ids != nil {
-		d.Schedule(*options.Ids, kind, size, onlyMeta, []string{path})
 	}
 
 	fmt.Println(d)
