@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +14,7 @@ import (
 
 // TODO: separate files
 
+const NUM_REQUEST_SLOTS = 5
 const REQUEST_URL_LENGTH = 36
 const BAR_LENGTH = 36
 
@@ -34,7 +35,8 @@ var authRequestPrefix = magenta("[REQUEST]") + " " + red("(authorized)") + " "
 
 var mutex = sync.Mutex{}
 var requests = map[int]*request{}
-var numRequests = int(0)
+var requestSlots = make([]int, NUM_REQUEST_SLOTS)
+var prevRequestSlotsShown = false
 var requestsTotal = int(0)
 
 type request struct {
@@ -142,32 +144,50 @@ func log(message string, args ...any) {
 }
 
 func printWithRequests(s string, args ...any) {
+	builder := strings.Builder{}
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	builder := strings.Builder{}
-
-	if numRequests > 0 {
-		for range numRequests + 1 {
+	if prevRequestSlotsShown {
+		for range NUM_REQUEST_SLOTS + 1 {
 			builder.WriteString("\033[2K\033[A\033[2K\r")
 		}
 	}
+
 	builder.WriteString(fmt.Sprintf(s, args...))
-	if len(requests) > 0 {
-		builder.WriteByte('\n')
+
+	if len(requests) == 0 {
+		prevRequestSlotsShown = false
+		fmt.Fprint(color.Output, builder.String())
+		return
 	}
-	indeces := make([]int, 0, len(requests))
-	for index := range requests {
-		indeces = append(indeces, index)
-	}
-	sort.Ints(indeces)
-	for _, index := range indeces {
-		builder.WriteString(requests[index].String())
+
+	builder.WriteByte('\n')
+	hasNewRequests := true
+	for i, index := range requestSlots {
+		if request, ok := requests[index]; ok {
+			builder.WriteString(request.String())
+			builder.WriteByte('\n')
+			continue
+		}
+		requestSlots[i] = 0
+		if !hasNewRequests {
+			builder.WriteByte('\n')
+			continue
+		}
+		for index := range requests {
+			if !slices.Contains(requestSlots, index) {
+				requestSlots[i] = index
+				hasNewRequests = false
+				break
+			}
+		}
 		builder.WriteByte('\n')
 	}
 
+	prevRequestSlotsShown = true
 	fmt.Fprint(color.Output, builder.String())
-	numRequests = len(requests)
 }
 
 func handleRequest(url string) (func(), func(int, int)) {
@@ -181,6 +201,7 @@ func handleRequest(url string) (func(), func(int, int)) {
 		mutex.Lock()
 		delete(requests, requestIndex)
 		mutex.Unlock()
+		printWithRequests("")
 	}
 
 	updateBar := func(current int, total int) {
