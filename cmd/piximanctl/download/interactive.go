@@ -8,7 +8,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/downloader/image"
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
 	"github.com/fekoneko/piximan/pkg/logext"
-	"github.com/fekoneko/piximan/pkg/util"
+	"github.com/fekoneko/piximan/pkg/utils"
 	"github.com/manifoldco/promptui"
 )
 
@@ -202,7 +202,7 @@ var novelOption = "Novel"
 
 func kindSelect(withQueue bool) *promptui.Select {
 	return &promptui.Select{
-		Label: util.If(withQueue, kindSelectWithQueueLabel, kindSelectLabel),
+		Label: utils.If(withQueue, kindSelectWithQueueLabel, kindSelectLabel),
 		Items: []string{artworkOption, novelOption},
 	}
 }
@@ -214,7 +214,7 @@ var downloadMetaOption = "Only download metadata"
 
 func onlyMetaSelect(withQueue bool) *promptui.Select {
 	return &promptui.Select{
-		Label: util.If(withQueue, onlyMetaSelectWithQueueLabel, onlyMetaSelectLabel),
+		Label: utils.If(withQueue, onlyMetaSelectWithQueueLabel, onlyMetaSelectLabel),
 		Items: []string{downloadAllOption, downloadMetaOption},
 	}
 }
@@ -228,7 +228,7 @@ var originalSizeOption = "Original"
 
 func sizeSelect(withQueue bool) *promptui.Select {
 	return &promptui.Select{
-		Label:     util.If(withQueue, sizeSelectWithQueueLabel, sizeSelectLabel),
+		Label:     utils.If(withQueue, sizeSelectWithQueueLabel, sizeSelectLabel),
 		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
 		CursorPos: 3,
 	}
@@ -248,6 +248,6 @@ var pathPromptWithQueueLabel = "Default saving path"
 
 func pathPrompt(withQueue bool) *promptui.Prompt {
 	return &promptui.Prompt{
-		Label: util.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
+		Label: utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
 	}
 }

@@ -11,15 +11,15 @@ import (
 	"github.com/fekoneko/piximan/pkg/secretstorage"
 	"github.com/fekoneko/piximan/pkg/storage"
 	"github.com/fekoneko/piximan/pkg/termext"
-	"github.com/fekoneko/piximan/pkg/util"
+	"github.com/fekoneko/piximan/pkg/utils"
 	"github.com/manifoldco/promptui"
 )
 
 func download(options *options) {
-	size := util.FromPtrTransform(options.Size, image.SizeFromUint, image.SizeDefault)
-	kind := util.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
-	onlyMeta := util.FromPtr(options.OnlyMeta, false)
-	path := util.FromPtr(options.Path, "")
+	size := utils.FromPtrTransform(options.Size, image.SizeFromUint, image.SizeDefault)
+	kind := utils.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
+	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
+	path := utils.FromPtr(options.Path, "")
 
 	d := chooseDownloader(options.Password)
 
@@ -59,7 +59,7 @@ func download(options *options) {
 }
 
 func chooseDownloader(passwordPtr *string) *downloader.Downloader {
-	password := util.FromPtr(passwordPtr, "")
+	password := utils.FromPtr(passwordPtr, "")
 
 	storage, err := secretstorage.Open(password)
 	if err != nil && passwordPtr != nil {

@@ -1,4 +1,4 @@
-package util
+package utils
 
 func If[T any](condition bool, value T, defaultValue T) T {
 	if condition {

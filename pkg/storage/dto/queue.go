@@ -5,7 +5,7 @@ import (
 
 	"github.com/fekoneko/piximan/pkg/downloader/image"
 	"github.com/fekoneko/piximan/pkg/downloader/queue"
-	"github.com/fekoneko/piximan/pkg/util"
+	"github.com/fekoneko/piximan/pkg/utils"
 )
 
 type Queue []struct {
@@ -33,10 +33,10 @@ func (dto *Queue) FromDto(
 
 		q[i] = queue.Item{
 			Id:       *itemDto.Id,
-			Kind:     util.FromPtrTransform(itemDto.Kind, queue.ItemKindFromString, defaultKind),
-			Size:     util.FromPtrTransform(itemDto.Size, image.SizeFromUint, defaultSize),
-			OnlyMeta: util.FromPtr(itemDto.OnlyMeta, defaultOnlyMeta),
-			Paths:    util.FromPtr(itemDto.Paths, defaultPaths),
+			Kind:     utils.FromPtrTransform(itemDto.Kind, queue.ItemKindFromString, defaultKind),
+			Size:     utils.FromPtrTransform(itemDto.Size, image.SizeFromUint, defaultSize),
+			OnlyMeta: utils.FromPtr(itemDto.OnlyMeta, defaultOnlyMeta),
+			Paths:    utils.FromPtr(itemDto.Paths, defaultPaths),
 		}
 	}
 
