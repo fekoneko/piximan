@@ -2,7 +2,7 @@ package help
 
 import "fmt"
 
-const downloadHelp = //
+const DOWNLOAD_HELP = //
 `Usage:       Run without arguments to enter interactive mode.
              piximanctl download [--id ...]   [--type artwork|novel]
                                  [--size 0-3] [--inferid ...]
@@ -69,5 +69,5 @@ Examples:    piximanctl download --id 12345 --id 23456 --size 1 --password $(xcl
 `
 
 func RunDownload() {
-	fmt.Print(downloadHelp)
+	fmt.Print(DOWNLOAD_HELP)
 }

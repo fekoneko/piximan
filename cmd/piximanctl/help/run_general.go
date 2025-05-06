@@ -2,7 +2,7 @@ package help
 
 import "fmt"
 
-const generalHelp = //
+const GENERAL_HELP = //
 `Configure:   piximanctl config         # Run in interactive mode
              piximanctl help config    # Run for more information
 
@@ -11,5 +11,5 @@ Download:    piximanctl download       # Run in interactive mode
 `
 
 func RunGeneral() {
-	fmt.Print(generalHelp)
+	fmt.Print(GENERAL_HELP)
 }

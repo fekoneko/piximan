@@ -7,9 +7,8 @@ const (
 	SizeSmall     Size = 1
 	SizeMedium    Size = 2
 	SizeOriginal  Size = 3
+	SizeDefault        = SizeOriginal
 )
-
-const SizeDefault = SizeOriginal
 
 func SizeFromUint(size uint) Size {
 	if size <= 3 {

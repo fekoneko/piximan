@@ -17,7 +17,8 @@ func Do(client http.Client, url string, onProgress func(int, int)) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	delayRequest(request)
+	lock(request)
+	defer unlock(request)
 
 	removeBar, updateBar := logext.Request(url)
 	defer removeBar()
@@ -37,7 +38,8 @@ func DoAuthorized(
 	if err != nil {
 		return nil, err
 	}
-	delayRequest(request)
+	lock(request)
+	defer unlock(request)
 
 	request.Header.Add("Cookie", "PHPSESSID="+sessionId)
 	removeBar, updateBar := logext.AuthorizedRequest(url)
@@ -102,44 +104,43 @@ func doWithRequest(
 	}
 }
 
-var pixivMutex = sync.Mutex{}
+const PXIMG_DELAY = time.Second * 1
+const DEFAULT_DELAY = time.Second * 2
+
 var pximgMutex = sync.Mutex{}
-var otherMutex = sync.Mutex{}
+var defaultMutex = sync.Mutex{}
 
-const pixivDelay = time.Second * 3
-const pximgDelay = time.Second * 1
-const otherDelay = time.Second * 3
-
-var prevPixivTime time.Time
 var prevPximgTime time.Time
-var prevOtherTime time.Time
+var prevDefaultTime time.Time
 
-func delayRequest(request *http.Request) {
+func lock(request *http.Request) {
 	if request == nil || request.URL == nil {
 		return
 	}
 
 	switch request.URL.Host {
-	case "www.pixiv.net":
-		pixivMutex.Lock()
-		duration := time.Until(prevPixivTime.Add(pixivDelay))
-		time.Sleep(duration)
-		prevPixivTime = time.Now()
-		pixivMutex.Unlock()
-
 	case "i.pximg.net":
 		// TODO: download in batches of 5 for i.pximg.net
 		pximgMutex.Lock()
-		duration := time.Until(prevPximgTime.Add(pximgDelay))
+		duration := time.Until(prevPximgTime.Add(PXIMG_DELAY))
 		time.Sleep(duration)
+
+	default:
+		defaultMutex.Lock()
+		duration := time.Until(prevDefaultTime.Add(DEFAULT_DELAY))
+		time.Sleep(duration)
+	}
+
+}
+
+func unlock(request *http.Request) {
+	switch request.URL.Host {
+	case "i.pximg.net":
 		prevPximgTime = time.Now()
 		pximgMutex.Unlock()
 
 	default:
-		otherMutex.Lock()
-		duration := time.Until(prevOtherTime.Add(otherDelay))
-		time.Sleep(duration)
-		prevOtherTime = time.Now()
-		otherMutex.Unlock()
+		prevDefaultTime = time.Now()
+		defaultMutex.Unlock()
 	}
 }

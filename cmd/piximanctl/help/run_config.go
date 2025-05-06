@@ -2,7 +2,7 @@ package help
 
 import "fmt"
 
-const configHelp = //
+const CONFIG_HELP = //
 `Usage:       Run without arguments to enter interactive mode.
              piximanctl config [--sessionid ...] [--password ...]
 
@@ -28,5 +28,5 @@ Examples:    piximanctl config --sessionid $(xclip -o)
 `
 
 func RunConfig() {
-	fmt.Print(configHelp)
+	fmt.Print(CONFIG_HELP)
 }

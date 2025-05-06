@@ -15,7 +15,7 @@ import (
 
 // TODO: separate files
 
-const NUM_REQUEST_SLOTS = 5
+const NUM_REQUEST_SLOTS = 6
 const REQUEST_URL_LENGTH = 36
 const BAR_LENGTH = 36
 

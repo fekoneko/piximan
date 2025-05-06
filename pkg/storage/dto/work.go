@@ -6,7 +6,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/collection/work"
 )
 
-const version = 1
+const VERSION = 1
 
 type Work struct {
 	Version     uint64   `yaml:"_version"`
@@ -34,7 +34,7 @@ type Work struct {
 
 func ToDto(work *work.Work) *Work {
 	return &Work{
-		Version:     version,
+		Version:     VERSION,
 		Id:          work.Id,
 		Title:       work.Title,
 		Kind:        work.Kind.String(),
