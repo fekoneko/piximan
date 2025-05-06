@@ -54,8 +54,10 @@ func download(options *options) {
 	logext.EnableRequestSlots()
 	defer logext.DisableRequestSlots()
 
+	logext.Info("download started")
 	d.Run() // TODO: confirmation by user (or -y flag)
 	d.WaitDone()
+	logext.Info("download finished")
 }
 
 func chooseDownloader(passwordPtr *string) *downloader.Downloader {

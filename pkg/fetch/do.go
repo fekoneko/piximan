@@ -11,6 +11,7 @@ import (
 )
 
 const BUFFER_SIZE = 4096
+const PXIMG_PENDING_LIMIT = 5
 
 func Do(client http.Client, url string, onProgress func(int, int)) ([]byte, error) {
 	request, err := newRequest(url)
@@ -107,10 +108,9 @@ func doWithRequest(
 const PXIMG_DELAY = time.Second * 1
 const DEFAULT_DELAY = time.Second * 2
 
-var pximgMutex = sync.Mutex{}
+var pximgPending = 0
+var pximgCond = sync.NewCond(&sync.Mutex{})
 var defaultMutex = sync.Mutex{}
-
-var prevPximgTime time.Time
 var prevDefaultTime time.Time
 
 func lock(request *http.Request) {
@@ -120,24 +120,27 @@ func lock(request *http.Request) {
 
 	switch request.URL.Host {
 	case "i.pximg.net":
-		// TODO: download in batches of 5 for i.pximg.net
-		pximgMutex.Lock()
-		duration := time.Until(prevPximgTime.Add(PXIMG_DELAY))
-		time.Sleep(duration)
+		pximgCond.L.Lock()
+		for pximgPending >= PXIMG_PENDING_LIMIT {
+			pximgCond.Wait()
+		}
+		pximgPending++
+		pximgCond.L.Unlock()
 
 	default:
 		defaultMutex.Lock()
 		duration := time.Until(prevDefaultTime.Add(DEFAULT_DELAY))
 		time.Sleep(duration)
 	}
-
 }
 
 func unlock(request *http.Request) {
 	switch request.URL.Host {
 	case "i.pximg.net":
-		prevPximgTime = time.Now()
-		pximgMutex.Unlock()
+		pximgCond.L.Lock()
+		pximgPending--
+		pximgCond.Broadcast()
+		pximgCond.L.Unlock()
 
 	default:
 		prevDefaultTime = time.Now()
