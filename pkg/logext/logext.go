@@ -2,7 +2,10 @@ package logext
 
 import (
 	"fmt"
+	"math"
 	"os"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -10,6 +13,9 @@ import (
 )
 
 // TODO: separate files
+
+const REQUEST_URL_LENGTH = 36
+const BAR_LENGTH = 36
 
 var cyan = color.New(color.FgHiCyan, color.Bold).SprintFunc()
 var green = color.New(color.FgHiGreen, color.Bold).SprintFunc()
@@ -27,9 +33,9 @@ var requestPrefix = magenta("[REQUEST]") + " " + white("(unauthorized)") + " "
 var authRequestPrefix = magenta("[REQUEST]") + " " + red("(authorized)") + " "
 
 var mutex = sync.Mutex{}
-var requests = map[uint]*request{}
-var numRequestsDisplayed = int(0)
-var requestsTotal = uint(0)
+var requests = map[int]*request{}
+var numRequests = int(0)
+var requestsTotal = int(0)
 
 type request struct {
 	url     string
@@ -38,11 +44,27 @@ type request struct {
 }
 
 func (r *request) String() string {
-	percent := 0
-	if r.total > 0 && r.current > 0 {
-		percent = int(float64(r.current) / float64(r.total) * 100)
+	var url string
+	domainStart := strings.Index(r.url, "://") + 3
+	if domainStart == 2 {
+		domainStart = 0
 	}
-	return fmt.Sprintf("%+3v%% | %v", percent, r.url)
+	domainEnd := strings.Index(r.url[domainStart:], "/")
+	if domainEnd == -1 {
+		url = r.url[domainStart:]
+	} else {
+		domainEnd += domainStart
+		domain := r.url[domainStart:domainEnd]
+		suffixStart := len(r.url) - (REQUEST_URL_LENGTH - 4 - len(domain))
+		if suffixStart-domainEnd <= 4 {
+			url = r.url[domainStart:]
+		} else {
+			url = domain + "/..." + r.url[suffixStart:]
+		}
+	}
+
+	bar := barString(r.current, r.total)
+	return fmt.Sprintf(gray("%-*v "), REQUEST_URL_LENGTH, url) + bar
 }
 
 func Info(message string, args ...any) {
@@ -103,41 +125,49 @@ func MaybeErrors(errs []error, prefix string, args ...any) {
 }
 
 func Request(url string) (func(), func(int, int)) {
-	settle, updateProgress := handleRequest(url)
+	removeBar, updateBar := handleRequest(url)
 	log(requestPrefix + url)
-	return settle, updateProgress
+	return removeBar, updateBar
 }
 
 func AuthorizedRequest(url string) (func(), func(int, int)) {
-	settle, updateProgress := handleRequest(url)
+	removeBar, updateBar := handleRequest(url)
 	log(authRequestPrefix + url)
-	return settle, updateProgress
+	return removeBar, updateBar
 }
 
 func log(message string, args ...any) {
 	timePrefix := gray(time.Now().Format(time.DateTime)) + " "
-	print(timePrefix+message+"\n", args...)
+	printWithRequests(timePrefix+message+"\n", args...)
 }
 
-func print(s string, args ...any) {
+func printWithRequests(s string, args ...any) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if numRequestsDisplayed > 0 {
-		for range numRequestsDisplayed + 1 {
-			fmt.Print("\033[2K\033[A\033[2K\r")
+	builder := strings.Builder{}
+
+	if numRequests > 0 {
+		for range numRequests + 1 {
+			builder.WriteString("\033[2K\033[A\033[2K\r")
 		}
 	}
-
-	fmt.Fprintf(color.Output, s, args...)
-
+	builder.WriteString(fmt.Sprintf(s, args...))
 	if len(requests) > 0 {
-		fmt.Fprintln(color.Output)
+		builder.WriteByte('\n')
 	}
-	for _, request := range requests {
-		fmt.Fprintf(color.Output, gray("%v\n"), request)
+	indeces := make([]int, 0, len(requests))
+	for index := range requests {
+		indeces = append(indeces, index)
 	}
-	numRequestsDisplayed = len(requests)
+	sort.Ints(indeces)
+	for _, index := range indeces {
+		builder.WriteString(requests[index].String())
+		builder.WriteByte('\n')
+	}
+
+	fmt.Fprint(color.Output, builder.String())
+	numRequests = len(requests)
 }
 
 func handleRequest(url string) (func(), func(int, int)) {
@@ -147,19 +177,43 @@ func handleRequest(url string) (func(), func(int, int)) {
 	requests[requestIndex] = &request{url, 0, -1}
 	mutex.Unlock()
 
-	settle := func() {
+	removeBar := func() {
 		mutex.Lock()
 		delete(requests, requestIndex)
 		mutex.Unlock()
 	}
 
-	updateProgress := func(current int, total int) {
+	updateBar := func(current int, total int) {
 		mutex.Lock()
 		requests[requestIndex].current = current
 		requests[requestIndex].total = total
 		mutex.Unlock()
-		print("")
+		printWithRequests("")
 	}
 
-	return settle, updateProgress
+	return removeBar, updateBar
+}
+
+func barString(current int, total int) string {
+	fraction := float64(0)
+	if total > 0 && current > 0 {
+		fraction = float64(current) / float64(total)
+	}
+	percent := int(math.Round(fraction * 100))
+	chars := int(math.Round(fraction * float64(BAR_LENGTH)))
+	builder := strings.Builder{}
+
+	builder.WriteString(fmt.Sprintf(gray("%3v%% "), percent))
+
+	for i := 0; i < BAR_LENGTH; i++ {
+		if i < chars {
+			builder.WriteString(white("━"))
+		} else if i == chars && i != 0 {
+			builder.WriteString(gray("╶"))
+		} else {
+			builder.WriteString(gray("─"))
+		}
+	}
+
+	return builder.String()
 }
