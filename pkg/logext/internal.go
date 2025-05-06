@@ -3,17 +3,13 @@ package logext
 import (
 	"fmt"
 	"math"
-	"os"
 	"slices"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/fekoneko/piximan/pkg/termext"
 )
-
-// TODO: separate files
 
 const NUM_REQUEST_SLOTS = 6
 const REQUEST_URL_LENGTH = 36
@@ -72,94 +68,34 @@ func (r *request) String() string {
 	return fmt.Sprintf(gray("%-*v "), REQUEST_URL_LENGTH, url) + bar
 }
 
-func Info(message string, args ...any) {
-	log(infoPrefix+message, args...)
-}
-
-func Success(message string, args ...any) {
-	log(successPrefix+message, args...)
-}
-
-func Warning(message string, args ...any) {
-	log(warningPrefix+message, args...)
-}
-
-func Error(message string, args ...any) {
-	log(errorPrefix+message, args...)
-}
-
-func Fatal(message string, args ...any) {
-	log(errorPrefix+message, args...)
-	termext.RestoreInputEcho()
-	DisableRequestSlots()
-	os.Exit(1)
-}
-
-func MaybeSuccess(err error, message string, args ...any) {
-	if err == nil {
-		Success(message, args...)
-	}
-}
-
-func MaybeWarning(err error, prefix string, args ...any) {
-	if err != nil {
-		Warning(prefix+": "+err.Error(), args...)
-	}
-}
-
-func MaybeError(err error, prefix string, args ...any) {
-	if err != nil {
-		Error(prefix+": "+err.Error(), args...)
-	}
-}
-
-func MaybeFatal(err error, prefix string, args ...any) {
-	if err != nil {
-		Fatal(prefix+": "+err.Error(), args...)
-	}
-}
-
-func MaybeWarnings(errs []error, prefix string, args ...any) {
-	for _, err := range errs {
-		MaybeWarning(err, prefix, args...)
-	}
-}
-
-func MaybeErrors(errs []error, prefix string, args ...any) {
-	for _, err := range errs {
-		MaybeError(err, prefix, args...)
-	}
-}
-
-func Request(url string) (func(), func(int, int)) {
-	removeBar, updateBar := handleRequest(url)
-	log(requestPrefix + url)
-	return removeBar, updateBar
-}
-
-func AuthorizedRequest(url string) (func(), func(int, int)) {
-	removeBar, updateBar := handleRequest(url)
-	log(authRequestPrefix + url)
-	return removeBar, updateBar
-}
-
-func EnableRequestSlots() {
-	mutex.Lock()
-	requestSlotsShown = true
-	mutex.Unlock()
-	printWithRequestSlots("")
-}
-
-func DisableRequestSlots() {
-	mutex.Lock()
-	requestSlotsShown = false
-	mutex.Unlock()
-	printWithRequestSlots("")
-}
-
 func log(message string, args ...any) {
 	timePrefix := subtleGray(time.Now().Format(time.DateTime)) + " "
 	printWithRequestSlots(timePrefix+message+"\n", args...)
+}
+
+func handleRequest(url string) (func(), func(int, int)) {
+	mutex.Lock()
+	requestsTotal++
+	requestIndex := requestsTotal
+	requests[requestIndex] = &request{url, 0, -1}
+	mutex.Unlock()
+
+	removeBar := func() {
+		mutex.Lock()
+		delete(requests, requestIndex)
+		mutex.Unlock()
+		printWithRequestSlots("")
+	}
+
+	updateBar := func(current int, total int) {
+		mutex.Lock()
+		requests[requestIndex].current = current
+		requests[requestIndex].total = total
+		mutex.Unlock()
+		printWithRequestSlots("")
+	}
+
+	return removeBar, updateBar
 }
 
 func printWithRequestSlots(s string, args ...any) {
@@ -219,31 +155,6 @@ func addSlotToBuilder(builder *strings.Builder, request *request) {
 		builder.WriteString(request.String())
 		builder.WriteByte('\n')
 	}
-}
-
-func handleRequest(url string) (func(), func(int, int)) {
-	mutex.Lock()
-	requestsTotal++
-	requestIndex := requestsTotal
-	requests[requestIndex] = &request{url, 0, -1}
-	mutex.Unlock()
-
-	removeBar := func() {
-		mutex.Lock()
-		delete(requests, requestIndex)
-		mutex.Unlock()
-		printWithRequestSlots("")
-	}
-
-	updateBar := func(current int, total int) {
-		mutex.Lock()
-		requests[requestIndex].current = current
-		requests[requestIndex].total = total
-		mutex.Unlock()
-		printWithRequestSlots("")
-	}
-
-	return removeBar, updateBar
 }
 
 func barString(current int, total int) string {
