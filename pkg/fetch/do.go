@@ -4,22 +4,20 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/fekoneko/piximan/pkg/logext"
 )
 
 const BUFFER_SIZE = 4096
 
-// TODO: add some delay to avoid flooding
-//       - how much delay is needed?
-//       - should we do separate dalays for pixiv.net and pximg.net?
-//       - should the delay be different for authorized requests?
-
 func Do(client http.Client, url string, onProgress func(int, int)) ([]byte, error) {
 	request, err := newRequest(url)
 	if err != nil {
 		return nil, err
 	}
+	delayRequest(request)
 
 	removeBar, updateBar := logext.Request(url)
 	defer removeBar()
@@ -39,6 +37,7 @@ func DoAuthorized(
 	if err != nil {
 		return nil, err
 	}
+	delayRequest(request)
 
 	request.Header.Add("Cookie", "PHPSESSID="+sessionId)
 	removeBar, updateBar := logext.AuthorizedRequest(url)
@@ -100,5 +99,47 @@ func doWithRequest(
 				onProgress(len(body), int(response.ContentLength))
 			}
 		}
+	}
+}
+
+var pixivMutex = sync.Mutex{}
+var pximgMutex = sync.Mutex{}
+var otherMutex = sync.Mutex{}
+
+const pixivDelay = time.Second * 3
+const pximgDelay = time.Second * 1
+const otherDelay = time.Second * 3
+
+var prevPixivTime time.Time
+var prevPximgTime time.Time
+var prevOtherTime time.Time
+
+func delayRequest(request *http.Request) {
+	if request == nil || request.URL == nil {
+		return
+	}
+
+	switch request.URL.Host {
+	case "www.pixiv.net":
+		pixivMutex.Lock()
+		duration := time.Until(prevPixivTime.Add(pixivDelay))
+		time.Sleep(duration)
+		prevPixivTime = time.Now()
+		pixivMutex.Unlock()
+
+	case "i.pximg.net":
+		// TODO: download in batches of 5 for i.pximg.net
+		pximgMutex.Lock()
+		duration := time.Until(prevPximgTime.Add(pximgDelay))
+		time.Sleep(duration)
+		prevPximgTime = time.Now()
+		pximgMutex.Unlock()
+
+	default:
+		otherMutex.Lock()
+		duration := time.Until(prevOtherTime.Add(otherDelay))
+		time.Sleep(duration)
+		prevOtherTime = time.Now()
+		otherMutex.Unlock()
 	}
 }

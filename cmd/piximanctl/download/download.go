@@ -49,8 +49,11 @@ func download(options *options) {
 
 		d.ScheduleQueue(q)
 	}
-
 	fmt.Println(d)
+
+	logext.EnableRequestSlots()
+	defer logext.DisableRequestSlots()
+
 	d.Run() // TODO: confirmation by user (or -y flag)
 	d.WaitDone()
 }

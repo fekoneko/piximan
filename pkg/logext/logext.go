@@ -25,7 +25,8 @@ var yellow = color.New(color.FgHiYellow, color.Bold).SprintFunc()
 var red = color.New(color.FgHiRed, color.Bold).SprintFunc()
 var magenta = color.New(color.FgHiMagenta, color.Bold).SprintFunc()
 var white = color.New(color.FgHiWhite, color.Bold).SprintFunc()
-var gray = color.New(color.FgHiBlack).SprintFunc()
+var gray = color.New(color.FgHiBlack, color.Bold).SprintFunc()
+var subtleGray = color.New(color.FgHiBlack).SprintFunc()
 
 var infoPrefix = cyan("[INFO]") + "    "
 var successPrefix = green("[SUCCESS]") + " "
@@ -37,6 +38,7 @@ var authRequestPrefix = magenta("[REQUEST]") + " " + red("(authorized)") + " "
 var mutex = sync.Mutex{}
 var requests = map[int]*request{}
 var requestSlots = make([]int, NUM_REQUEST_SLOTS)
+var requestSlotsShown = false
 var prevRequestSlotsShown = false
 var requestsTotal = int(0)
 
@@ -89,6 +91,7 @@ func Error(message string, args ...any) {
 func Fatal(message string, args ...any) {
 	log(errorPrefix+message, args...)
 	termext.RestoreInputEcho()
+	DisableRequestSlots()
 	os.Exit(1)
 }
 
@@ -140,12 +143,26 @@ func AuthorizedRequest(url string) (func(), func(int, int)) {
 	return removeBar, updateBar
 }
 
-func log(message string, args ...any) {
-	timePrefix := gray(time.Now().Format(time.DateTime)) + " "
-	printWithRequests(timePrefix+message+"\n", args...)
+func EnableRequestSlots() {
+	mutex.Lock()
+	requestSlotsShown = true
+	mutex.Unlock()
+	printWithRequestSlots("")
 }
 
-func printWithRequests(s string, args ...any) {
+func DisableRequestSlots() {
+	mutex.Lock()
+	requestSlotsShown = false
+	mutex.Unlock()
+	printWithRequestSlots("")
+}
+
+func log(message string, args ...any) {
+	timePrefix := subtleGray(time.Now().Format(time.DateTime)) + " "
+	printWithRequestSlots(timePrefix+message+"\n", args...)
+}
+
+func printWithRequestSlots(s string, args ...any) {
 	builder := strings.Builder{}
 
 	mutex.Lock()
@@ -157,39 +174,51 @@ func printWithRequests(s string, args ...any) {
 		}
 	}
 
-	builder.WriteString(fmt.Sprintf(s, args...))
-
-	if len(requests) == 0 {
+	if !requestSlotsShown {
 		prevRequestSlotsShown = false
+		builder.WriteString(fmt.Sprintf(s, args...))
 		fmt.Fprint(color.Output, builder.String())
 		return
 	}
+
+	builder.WriteString(fmt.Sprintf(s, args...))
 
 	builder.WriteByte('\n')
 	hasNewRequests := true
 	for i, index := range requestSlots {
 		if request, ok := requests[index]; ok {
-			builder.WriteString(request.String())
-			builder.WriteByte('\n')
+			addSlotToBuilder(&builder, request)
 			continue
 		}
 		requestSlots[i] = 0
-		if !hasNewRequests {
-			builder.WriteByte('\n')
-			continue
-		}
-		for index := range requests {
-			if !slices.Contains(requestSlots, index) {
-				requestSlots[i] = index
-				hasNewRequests = false
-				break
+		var request *request
+		if hasNewRequests {
+			for index := range requests {
+				if !slices.Contains(requestSlots, index) {
+					requestSlots[i] = index
+					request = requests[index]
+					hasNewRequests = false
+					break
+				}
 			}
 		}
-		builder.WriteByte('\n')
+		addSlotToBuilder(&builder, request)
 	}
 
 	prevRequestSlotsShown = true
 	fmt.Fprint(color.Output, builder.String())
+}
+
+func addSlotToBuilder(builder *strings.Builder, request *request) {
+	if request == nil {
+		for range REQUEST_URL_LENGTH + BAR_LENGTH + 6 {
+			builder.WriteString(subtleGray("╶"))
+		}
+		builder.WriteByte('\n')
+	} else {
+		builder.WriteString(request.String())
+		builder.WriteByte('\n')
+	}
 }
 
 func handleRequest(url string) (func(), func(int, int)) {
@@ -203,7 +232,7 @@ func handleRequest(url string) (func(), func(int, int)) {
 		mutex.Lock()
 		delete(requests, requestIndex)
 		mutex.Unlock()
-		printWithRequests("")
+		printWithRequestSlots("")
 	}
 
 	updateBar := func(current int, total int) {
@@ -211,7 +240,7 @@ func handleRequest(url string) (func(), func(int, int)) {
 		requests[requestIndex].current = current
 		requests[requestIndex].total = total
 		mutex.Unlock()
-		printWithRequests("")
+		printWithRequestSlots("")
 	}
 
 	return removeBar, updateBar
@@ -226,15 +255,15 @@ func barString(current int, total int) string {
 	chars := int(math.Round(fraction * float64(BAR_LENGTH)))
 	builder := strings.Builder{}
 
-	builder.WriteString(fmt.Sprintf(gray("%3v%% "), percent))
+	builder.WriteString(fmt.Sprintf(subtleGray("%3v%% "), percent))
 
 	for i := 0; i < BAR_LENGTH; i++ {
 		if i < chars {
 			builder.WriteString(white("━"))
 		} else if i == chars && i != 0 {
-			builder.WriteString(gray("╶"))
+			builder.WriteString(subtleGray("╶"))
 		} else {
-			builder.WriteString(gray("─"))
+			builder.WriteString(subtleGray("─"))
 		}
 	}
 
