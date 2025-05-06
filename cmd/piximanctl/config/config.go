@@ -3,9 +3,13 @@ package config
 import (
 	"github.com/fekoneko/piximan/pkg/logext"
 	"github.com/fekoneko/piximan/pkg/secretstorage"
+	"github.com/fekoneko/piximan/pkg/termext"
 )
 
-func configSessionId(options *options) {
+func config(options *options) {
+	termext.DisableInputEcho()
+	defer termext.RestoreInputEcho()
+
 	if len(options.SessionId) == 0 {
 		err := secretstorage.RemoveSessionId()
 		logext.MaybeFatal(err, "failed to remove session id")

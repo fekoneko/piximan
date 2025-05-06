@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/fekoneko/piximan/pkg/termext"
 )
 
 // TODO: separate files
@@ -87,6 +88,7 @@ func Error(message string, args ...any) {
 
 func Fatal(message string, args ...any) {
 	log(errorPrefix+message, args...)
+	termext.RestoreInputEcho()
 	os.Exit(1)
 }
 

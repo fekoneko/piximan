@@ -12,5 +12,5 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 
-	configSessionId(options)
+	config(options)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/fekoneko/piximan/pkg/pathext"
 	"github.com/fekoneko/piximan/pkg/secretstorage"
 	"github.com/fekoneko/piximan/pkg/storage"
+	"github.com/fekoneko/piximan/pkg/termext"
 	"github.com/fekoneko/piximan/pkg/util"
 	"github.com/manifoldco/promptui"
 )
@@ -21,6 +22,9 @@ func download(options *options) {
 	path := util.FromPtr(options.Path, "")
 
 	d := chooseDownloader(options.Password)
+
+	termext.DisableInputEcho()
+	defer termext.RestoreInputEcho()
 
 	if options.Ids != nil {
 		paths := []string{path}

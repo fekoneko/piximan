@@ -14,7 +14,7 @@ func interactive() {
 		password = &p
 	}
 
-	configSessionId(&options{
+	config(&options{
 		SessionId: sessionId,
 		Password:  password,
 	})
