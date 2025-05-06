@@ -66,13 +66,13 @@ func MaybeErrors(errs []error, prefix string, args ...any) {
 }
 
 func Request(url string) (func(), func(int, int)) {
-	removeBar, updateBar := handleRequest(url)
+	removeBar, updateBar := handleRequest(url, false)
 	log(requestPrefix + url)
 	return removeBar, updateBar
 }
 
 func AuthorizedRequest(url string) (func(), func(int, int)) {
-	removeBar, updateBar := handleRequest(url)
+	removeBar, updateBar := handleRequest(url, true)
 	log(authRequestPrefix + url)
 	return removeBar, updateBar
 }

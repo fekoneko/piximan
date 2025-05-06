@@ -36,7 +36,8 @@ var requests = map[int]*request{}
 var requestSlots = make([]int, NUM_REQUEST_SLOTS)
 var requestSlotsShown = false
 var prevRequestSlotsShown = false
-var requestsTotal = int(0)
+var numRequests = int(0)
+var numAuthorizedRequests = int(0)
 
 type request struct {
 	url     string
@@ -73,11 +74,14 @@ func log(message string, args ...any) {
 	printWithRequestSlots(timePrefix+message+"\n", args...)
 }
 
-func handleRequest(url string) (func(), func(int, int)) {
+func handleRequest(url string, authorized bool) (func(), func(int, int)) {
 	mutex.Lock()
-	requestsTotal++
-	requestIndex := requestsTotal
+	numRequests++
+	requestIndex := numRequests
 	requests[requestIndex] = &request{url, 0, -1}
+	if authorized {
+		numAuthorizedRequests++
+	}
 	mutex.Unlock()
 
 	removeBar := func() {
@@ -105,7 +109,7 @@ func printWithRequestSlots(s string, args ...any) {
 	defer mutex.Unlock()
 
 	if prevRequestSlotsShown {
-		for range NUM_REQUEST_SLOTS + 1 {
+		for range NUM_REQUEST_SLOTS + 2 {
 			builder.WriteString("\033[2K\033[A\033[2K\r")
 		}
 	}
@@ -118,8 +122,8 @@ func printWithRequestSlots(s string, args ...any) {
 	}
 
 	builder.WriteString(fmt.Sprintf(s, args...))
-
 	builder.WriteByte('\n')
+
 	hasNewRequests := true
 	for i, index := range requestSlots {
 		if request, ok := requests[index]; ok {
@@ -140,6 +144,11 @@ func printWithRequestSlots(s string, args ...any) {
 		}
 		addSlotToBuilder(&builder, request)
 	}
+
+	builder.WriteString(fmt.Sprintf(
+		"pending: %-6v unauthorized: %-6v authorized: %-6v total: %v\n",
+		len(requests), numRequests-numAuthorizedRequests, numAuthorizedRequests, numRequests),
+	)
 
 	prevRequestSlotsShown = true
 	fmt.Fprint(color.Output, builder.String())
