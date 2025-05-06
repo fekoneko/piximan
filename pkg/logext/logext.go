@@ -3,10 +3,13 @@ package logext
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/fatih/color"
 )
+
+// TODO: separate files
 
 var cyan = color.New(color.FgHiCyan, color.Bold).SprintFunc()
 var green = color.New(color.FgHiGreen, color.Bold).SprintFunc()
@@ -23,33 +26,44 @@ var errorPrefix = red("[ERROR]") + "   "
 var requestPrefix = magenta("[REQUEST]") + " " + white("(unauthorized)") + " "
 var authRequestPrefix = magenta("[REQUEST]") + " " + red("(authorized)") + " "
 
+var mutex = sync.Mutex{}
+var requests = map[uint]*request{}
+var numRequestsDisplayed = int(0)
+var requestsTotal = uint(0)
+
+type request struct {
+	url     string
+	current int
+	total   int
+}
+
+func (r *request) String() string {
+	percent := 0
+	if r.total > 0 && r.current > 0 {
+		percent = int(float64(r.current) / float64(r.total) * 100)
+	}
+	return fmt.Sprintf("%+3v%% | %v", percent, r.url)
+}
+
 func Info(message string, args ...any) {
-	fmt.Fprintf(color.Output, timePrefix()+infoPrefix+message+"\n", args...)
+	log(infoPrefix+message, args...)
 }
 
 func Success(message string, args ...any) {
-	fmt.Fprintf(color.Output, timePrefix()+successPrefix+message+"\n", args...)
+	log(successPrefix+message, args...)
 }
 
 func Warning(message string, args ...any) {
-	fmt.Fprintf(color.Output, timePrefix()+warningPrefix+message+"\n", args...)
+	log(warningPrefix+message, args...)
 }
 
 func Error(message string, args ...any) {
-	fmt.Fprintf(color.Output, timePrefix()+errorPrefix+message+"\n", args...)
+	log(errorPrefix+message, args...)
 }
 
 func Fatal(message string, args ...any) {
-	fmt.Fprintf(color.Output, timePrefix()+errorPrefix+message+"\n", args...)
+	log(errorPrefix+message, args...)
 	os.Exit(1)
-}
-
-func Request(url string) {
-	fmt.Fprintln(color.Output, timePrefix()+requestPrefix+url)
-}
-
-func AuthorizedRequest(url string) {
-	fmt.Fprintln(color.Output, timePrefix()+authRequestPrefix+url)
 }
 
 func MaybeSuccess(err error, message string, args ...any) {
@@ -88,6 +102,64 @@ func MaybeErrors(errs []error, prefix string, args ...any) {
 	}
 }
 
-func timePrefix() string {
-	return gray(time.Now().Format(time.DateTime)) + " "
+func Request(url string) (func(), func(int, int)) {
+	settle, updateProgress := handleRequest(url)
+	log(requestPrefix + url)
+	return settle, updateProgress
+}
+
+func AuthorizedRequest(url string) (func(), func(int, int)) {
+	settle, updateProgress := handleRequest(url)
+	log(authRequestPrefix + url)
+	return settle, updateProgress
+}
+
+func log(message string, args ...any) {
+	timePrefix := gray(time.Now().Format(time.DateTime)) + " "
+	print(timePrefix+message+"\n", args...)
+}
+
+func print(s string, args ...any) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if numRequestsDisplayed > 0 {
+		for range numRequestsDisplayed + 1 {
+			fmt.Print("\033[2K\033[A\033[2K\r")
+		}
+	}
+
+	fmt.Fprintf(color.Output, s, args...)
+
+	if len(requests) > 0 {
+		fmt.Fprintln(color.Output)
+	}
+	for _, request := range requests {
+		fmt.Fprintf(color.Output, gray("%v\n"), request)
+	}
+	numRequestsDisplayed = len(requests)
+}
+
+func handleRequest(url string) (func(), func(int, int)) {
+	mutex.Lock()
+	requestsTotal++
+	requestIndex := requestsTotal
+	requests[requestIndex] = &request{url, 0, -1}
+	mutex.Unlock()
+
+	settle := func() {
+		mutex.Lock()
+		delete(requests, requestIndex)
+		mutex.Unlock()
+	}
+
+	updateProgress := func(current int, total int) {
+		mutex.Lock()
+		requests[requestIndex].current = current
+		requests[requestIndex].total = total
+		mutex.Unlock()
+		print("")
+	}
+
+	return settle, updateProgress
 }

@@ -15,25 +15,41 @@ const BUFFER_SIZE = 4096
 //       - should we do separate dalays for pixiv.net and pximg.net?
 //       - should the delay be different for authorized requests?
 
-func Do(client http.Client, url string, onProgress func(int64, int64)) ([]byte, error) {
-	if request, err := newRequest(url); err == nil {
-		logext.Request(url)
-		return doWithRequest(client, request, onProgress)
-	} else {
+func Do(client http.Client, url string, onProgress func(int, int)) ([]byte, error) {
+	request, err := newRequest(url)
+	if err != nil {
 		return nil, err
 	}
+
+	settleLog, updateProgressLog := logext.Request(url)
+	defer settleLog()
+
+	return doWithRequest(client, request, func(current int, total int) {
+		updateProgressLog(current, total)
+		if onProgress != nil {
+			onProgress(current, total)
+		}
+	})
 }
 
 func DoAuthorized(
-	client http.Client, url string, sessionId string, onProgress func(int64, int64),
+	client http.Client, url string, sessionId string, onProgress func(int, int),
 ) ([]byte, error) {
-	if request, err := newRequest(url); err == nil {
-		request.Header.Add("Cookie", "PHPSESSID="+sessionId)
-		logext.AuthorizedRequest(url)
-		return doWithRequest(client, request, onProgress)
-	} else {
+	request, err := newRequest(url)
+	if err != nil {
 		return nil, err
 	}
+
+	request.Header.Add("Cookie", "PHPSESSID="+sessionId)
+	settleLog, updateProgressLog := logext.AuthorizedRequest(url)
+	defer settleLog()
+
+	return doWithRequest(client, request, func(current int, total int) {
+		updateProgressLog(current, total)
+		if onProgress != nil {
+			onProgress(current, total)
+		}
+	})
 }
 
 func newRequest(url string) (*http.Request, error) {
@@ -48,7 +64,7 @@ func newRequest(url string) (*http.Request, error) {
 }
 
 func doWithRequest(
-	client http.Client, request *http.Request, onProgress func(int64, int64),
+	client http.Client, request *http.Request, onProgress func(int, int),
 ) ([]byte, error) {
 	response, err := client.Do(request)
 	if err != nil {
@@ -66,10 +82,7 @@ func doWithRequest(
 		if err != nil {
 			return nil, err
 		}
-		if onProgress != nil {
-			length := int64(len(body))
-			onProgress(length, length)
-		}
+		onProgress(len(body), len(body))
 
 		return body, nil
 	} else {
@@ -84,10 +97,7 @@ func doWithRequest(
 				return nil, err
 			} else {
 				body = append(body, buffer[:readLength]...)
-				if onProgress != nil {
-					length := int64(len(body))
-					onProgress(length, response.ContentLength)
-				}
+				onProgress(len(body), int(response.ContentLength))
 			}
 		}
 	}
