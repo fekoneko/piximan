@@ -3,12 +3,12 @@ package help
 import "fmt"
 
 const CONFIG_HELP = //
-`Usage:       Run without arguments to enter interactive mode.
-             piximanctl config [--sessionid ...] [--password ...]
+`Run without arguments to enter interactive mode.
 
-Description: Change permanent configuration for piximan. The configured settings
-             will be used for all future commands by default.
+> piximanctl config [--sessionid ...] [--password ...]
 
+                            Authorization options
+                            ---------------------
 --sessionid  The session ID to use for pixiv.net API autorization.
  -s          The authorization is used only when it's absolutely required, other
              requests will be made anonymously.
@@ -23,8 +23,13 @@ Description: Change permanent configuration for piximan. The configured settings
  -p          session ID. If omited the password will be set to an empty string.
              Similarly to the session ID, avoid pasting the value directly.
 
-Examples:    piximanctl config --sessionid $(xclip -o)
-             piximanctl config --sessionid $PHPSESSID --password $PASSWORD
+                                  Examples
+                                  --------
+# Set session ID from X11 clipboard with no password
+> piximanctl config --sessionid $(xclip -o)
+
+# Set session ID from shell environment variable with password
+> piximanctl config --sessionid $PHPSESSID --password $PASSWORD
 `
 
 func RunConfig() {
