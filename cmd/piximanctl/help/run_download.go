@@ -99,5 +99,9 @@ func RunDownload() {
 // TODO: public user bookmarks download + remove unimplemented message in the help
 // TODO: authorized user bookmarks download (+private) + remove unimplemented message in the help
 // TODO: download bookmarks of type (novel, artwork) + example in the help
-// TODO: bookmarks --from, --to (offset and limit) + white about it in the help + example
-// TODO: bookmarks --newer, --older than date + white about it in the help + example
+// TODO: bookmarks --from, --to (offset and limit) + write about it in the help + example
+// TODO: bookmarks --newer, --older than date + write about it in the help + example
+// TODO: bookmarks --tag + write about it in the help + example
+// TODO: --lowmeta for bookmarks to severely reduce requests count + write in the help + example
+
+// TODO: just download user's works ('my' or by id) + help + example

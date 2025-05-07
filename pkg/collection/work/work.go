@@ -2,6 +2,8 @@ package work
 
 import "time"
 
+// TODO: make all fields optional here as well as in yaml dto
+
 type Work struct {
 	Id           uint64
 	Title        string
@@ -17,7 +19,7 @@ type Work struct {
 	NumBookmarks uint64
 	NumLikes     uint64
 	NumComments  uint64
-	UploadTime   time.Time
+	UploadTime   *time.Time
 	DownloadTime time.Time
 	SeriesId     *uint64
 	SeriesTitle  *string
