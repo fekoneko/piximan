@@ -25,11 +25,12 @@ func interactive() {
 	fmt.Println()
 	download(&options{
 		Ids:         ids,
+		QueuePath:   queuePath,
+		InferIdPath: inferIdPath,
 		Kind:        &kind,
 		Size:        size,
-		Path:        path,
-		InferIdPath: inferIdPath,
 		OnlyMeta:    &onlyMeta,
+		Path:        path,
 	})
 }
 
