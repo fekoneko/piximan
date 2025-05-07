@@ -82,8 +82,8 @@ const DOWNLOAD_HELP = //
 # Download public bookmarks of the user with ID 10000
 > piximanctl download --bookmarks 10000
 
-# Download novel with ID 10000 to the current directory
-> piximanctl download --id 10000 --type novel
+# Download novels with ID 10000 and 20000
+> piximanctl download --id 10000 --id 20000 --type novel --path "./{userid}/{id}"
 
 # Download works from list.yaml to the current directory with fallback path
 > piximanctl download --list "./list.yaml" --path "./{userid}/{id}"
