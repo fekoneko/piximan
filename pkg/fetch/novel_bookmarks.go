@@ -10,19 +10,18 @@ import (
 	"github.com/fekoneko/piximan/pkg/fetch/dto"
 )
 
-// TODO: make such a result struct for all such overloaded return values
-type ArtworkBookmarkResult struct {
+type NovelBookmarkResult struct {
 	Work           *work.Work
 	BookmarkedTime *time.Time
-	ThumbnailUrl   string
+	CoverUrl       string
 }
 
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
-func ArtworkBookmarksAuthorized(
+func NovelBookmarksAuthorized(
 	client http.Client, userId uint64, tag string, offset uint, limit uint, sessionId string,
-) ([]ArtworkBookmarkResult, error) {
+) ([]NovelBookmarkResult, error) { // TODO: label all "tuples"
 	url := fmt.Sprintf(
-		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=show",
+		"https://www.pixiv.net/ajax/user/%v/novels/bookmarks?tag=%v&offset=%v&limit=%v&rest=show",
 		userId, tag, offset, limit,
 	)
 	body, err := Do(client, url, nil)
@@ -30,18 +29,18 @@ func ArtworkBookmarksAuthorized(
 		return nil, err
 	}
 
-	var unmarshalled dto.Response[dto.ArtworkBookmarksBody]
+	var unmarshalled dto.Response[dto.NovelBookmarksBody]
 	if err := json.Unmarshal(body, &unmarshalled); err != nil {
 		return nil, err
 	}
 
-	results := make([]ArtworkBookmarkResult, len(unmarshalled.Body.Works))
+	results := make([]NovelBookmarkResult, len(unmarshalled.Body.Works))
 	for i, work := range unmarshalled.Body.Works {
-		work, bookmarkedTime, thumbnailUrl := work.FromDto(time.Now())
-		results[i] = ArtworkBookmarkResult{
+		work, bookmarkedTime, coverUrl := work.FromDto(time.Now())
+		results[i] = NovelBookmarkResult{
 			Work:           work,
 			BookmarkedTime: bookmarkedTime,
-			ThumbnailUrl:   thumbnailUrl,
+			CoverUrl:       coverUrl,
 		}
 	}
 

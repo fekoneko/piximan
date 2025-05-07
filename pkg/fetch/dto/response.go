@@ -4,6 +4,10 @@ type Response[T any] struct {
 	Body T `json:"body"`
 }
 
-type BookmarkArtworksBody struct {
+type ArtworkBookmarksBody struct {
 	Works []BookmarkArtwork `json:"works"`
+}
+
+type NovelBookmarksBody struct {
+	Works []BookmarkNovel `json:"works"`
 }
