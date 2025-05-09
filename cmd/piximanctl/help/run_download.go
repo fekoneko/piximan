@@ -107,3 +107,6 @@ func RunDownload() {
 // TODO: just download user's works ('my' or by id) + help + example
 
 // TODO: --log, -L option to log the output to a file
+// TODO: summary about downloaded / not downloaded works at the end of download
+// TODO: total download progress at the buttom
+// TODO: count errors / warnings

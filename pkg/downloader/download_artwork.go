@@ -291,7 +291,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			go func() {
 				bytes, err := fetch.Do(d.client, pageUrls[0]+extension, nil)
 				if err != nil {
-					logext.Warning("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
+					logext.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
 					errorChannel <- err
 				}
 
