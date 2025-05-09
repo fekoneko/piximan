@@ -84,38 +84,23 @@ func (dto *Work) FromDto(kind work.Kind, downloadTime time.Time) *work.Work {
 func formatDescription(description string) string {
 	tagStart := 0
 	textStart := 0
-	ignoreText := false
 	builder := strings.Builder{}
 
 	for i, b := range description {
 		switch b {
 		case '<':
 			tagStart = i + 1
-			if !ignoreText {
-				builder.WriteString(description[textStart:i])
-			}
+			builder.WriteString(description[textStart:i])
 		case '>':
 			textStart = i + 1
 			tag := strings.ToLower(description[tagStart:i])
 			if strings.HasPrefix(tag, "br ") || tag == "br/" || tag == "br" {
 				builder.WriteString("\n")
-			} else if strings.HasPrefix(tag, "a ") {
-				ignoreText = true
-				hrefStart := strings.Index(tag, "href=") + len("href=") + 1
-				if hrefStart != len("href=") && hrefStart < len(tag) {
-					hrefLength := strings.IndexAny(tag[hrefStart:], "\"'")
-					if hrefLength != -1 {
-						href := tag[hrefStart : hrefStart+hrefLength]
-						builder.WriteString(href)
-					}
-				}
-			} else if tag == "/a" || strings.HasPrefix(tag, "/a ") {
-				ignoreText = false
 			}
 		}
 	}
 
-	if textStart < len(description) && !ignoreText {
+	if textStart < len(description) {
 		builder.WriteString(description[textStart:])
 	}
 
