@@ -105,3 +105,5 @@ func RunDownload() {
 // TODO: --lowmeta for bookmarks to severely reduce requests count + write in the help + example
 
 // TODO: just download user's works ('my' or by id) + help + example
+
+// TODO: --log, -L option to log the output to a file
