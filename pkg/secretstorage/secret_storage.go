@@ -22,8 +22,8 @@ type SecretStorage struct {
 }
 
 func Open(password string) (*SecretStorage, error) {
-	salt := os.Getenv("SECRET_STORAGE_SALT")
-	key, err := pbkdf2.Key(sha256.New, password, []byte(salt), 4096, 32)
+	// TODO: maybe store make the salt not empty and store it as well
+	key, err := pbkdf2.Key(sha256.New, password, []byte{}, 4096, 32)
 	if err != nil {
 		return nil, err
 	}
