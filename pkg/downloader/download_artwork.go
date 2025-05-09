@@ -14,6 +14,9 @@ import (
 	"github.com/fekoneko/piximan/pkg/storage"
 )
 
+// TODO: when downloading bookmarks we can fetch metadata in parallel with images
+//       if we even need to fetch full metadata
+
 func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading metadata for artwork %v", id)
 
