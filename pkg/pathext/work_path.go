@@ -8,14 +8,18 @@ import (
 	"strings"
 
 	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/pkg/utils"
 )
 
-func FormatWorkPath(pattern string, work *work.Work) (string, error) {
+func FormatWorkPath(pattern string, w *work.Work) (string, error) {
 	replacer := strings.NewReplacer(
-		"{title}", work.Title,
-		"{id}", strconv.FormatUint(work.Id, 10),
-		"{user}", work.UserName,
-		"{userid}", strconv.FormatUint(work.UserId, 10),
+		"{title}", w.Title,
+		"{id}", strconv.FormatUint(w.Id, 10),
+		"{user}", w.UserName,
+		"{userid}", strconv.FormatUint(w.UserId, 10),
+		"{restrict}", utils.If(
+			w.Restriction == work.RestrictionNone, "all-ages", w.Restriction.String(),
+		),
 	)
 
 	path, err := filepath.Abs(pattern)
@@ -38,10 +42,10 @@ func FormatWorkPath(pattern string, work *work.Work) (string, error) {
 	return filepath.Join(sections...), nil
 }
 
-func FormatWorkPaths(patterns []string, work *work.Work) ([]string, error) {
+func FormatWorkPaths(patterns []string, w *work.Work) ([]string, error) {
 	paths := make([]string, len(patterns))
 	for i, pattern := range patterns {
-		path, err := FormatWorkPath(pattern, work)
+		path, err := FormatWorkPath(pattern, w)
 		if err != nil {
 			return nil, err
 		}

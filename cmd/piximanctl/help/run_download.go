@@ -58,10 +58,11 @@ const DOWNLOAD_HELP = //
 --path       Directory to save the files into. Defaults to the current directory
  -p          or the one found with -inferid flag.
              You can use these substitutions in the pathname:
-             - {title}      : the title of the work.
-             - {id}         : the ID of the work.
-             - {user}       : the username of the work author.
-             - {userid}     : the ID of the work author.
+             - {title}      : the title of the work
+             - {id}         : the ID of the work
+             - {user}       : the username of the work author
+             - {userid}     : the ID of the work author
+             - {restrict}   : age restriction of the work (all-ages, R-18, R-18G)
              Be aware that any Windows / NTFS reserved names will be automaticaly
              padded with underscores, reserved characters - replaced and any dots
              or spaces in front or end of the filenames will be trimmed.
