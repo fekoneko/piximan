@@ -111,3 +111,9 @@ func RunDownload() {
 // TODO: summary about downloaded / not downloaded works at the end of download
 // TODO: total download progress at the buttom
 // TODO: count errors / warnings
+
+// TODO: choose language to download work metadata in
+
+// TODO: piximanctl dedupe --newer --path './* ({userid})/* ({id})' + interactive mode
+//       utility for merging authors and / or works with duplicate IDs
+// TODO: replace unused patterns like {title} in --inferid with *, do the same with piximanctl dedupe
