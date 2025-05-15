@@ -15,7 +15,7 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 - Download by ID or from list
 - Infer work IDs from existing collection paths
 - Download different sizes (resolutions) of the illustrations / manga
-- Interractive mode for download and configuration with `piximanctl` tool
+- Interactive mode for download and configuration with `piximanctl` tool
 - Store work metadata with downloaded work in _YAML_ format
 - Use substitutions in download path: `{title}` / `{id}` / `{user}` / `{userid}` / `{restrict}`
 - Make requests concurrently when it's possible without bothering the Pixiv servers too much

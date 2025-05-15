@@ -1,4 +1,4 @@
-VERSION := $(shell git describe --always --long --dirty)
+VERSION := $(shell git describe --always --tags --dirty)
 VERSION_ARGS := -ldflags="-X main.version=${VERSION}"
 MAKEFLAGS += --no-print-directory
 
