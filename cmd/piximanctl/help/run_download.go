@@ -104,3 +104,5 @@ func RunDownload() {
 // TODO: piximanctl dedupe --newer --path './* ({userid})/* ({id})' + interactive mode
 //       utility for merging authors and / or works with duplicate IDs
 // TODO: replace unused patterns like {title} in --inferid with *, do the same with piximanctl dedupe
+
+// TODO: test if session ID is valid after configuring by sending a request
