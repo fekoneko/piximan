@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fekoneko/piximan/pkg/logext"
+	"github.com/fekoneko/piximan/internal/logext"
 )
 
 const BUFFER_SIZE = 4096

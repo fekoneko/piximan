@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/fekoneko/piximan/pkg/logext"
+	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/manifoldco/promptui"
 )
 

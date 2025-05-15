@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fekoneko/piximan/pkg/collection/work"
-	"github.com/fekoneko/piximan/pkg/pathext"
-	"github.com/fekoneko/piximan/pkg/storage/dto"
+	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/pathext"
+	"github.com/fekoneko/piximan/internal/storage/dto"
 	"gopkg.in/yaml.v2"
 )
 

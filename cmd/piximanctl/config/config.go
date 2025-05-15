@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/fekoneko/piximan/pkg/logext"
-	"github.com/fekoneko/piximan/pkg/secretstorage"
-	"github.com/fekoneko/piximan/pkg/termext"
+	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/secretstorage"
+	"github.com/fekoneko/piximan/internal/termext"
 )
 
 func config(options *options) {

@@ -3,15 +3,15 @@ package download
 import (
 	"fmt"
 
-	"github.com/fekoneko/piximan/pkg/downloader"
-	"github.com/fekoneko/piximan/pkg/downloader/image"
-	"github.com/fekoneko/piximan/pkg/downloader/queue"
-	"github.com/fekoneko/piximan/pkg/logext"
-	"github.com/fekoneko/piximan/pkg/pathext"
-	"github.com/fekoneko/piximan/pkg/secretstorage"
-	"github.com/fekoneko/piximan/pkg/storage"
-	"github.com/fekoneko/piximan/pkg/termext"
-	"github.com/fekoneko/piximan/pkg/utils"
+	"github.com/fekoneko/piximan/internal/downloader"
+	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/pathext"
+	"github.com/fekoneko/piximan/internal/secretstorage"
+	"github.com/fekoneko/piximan/internal/storage"
+	"github.com/fekoneko/piximan/internal/termext"
+	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/manifoldco/promptui"
 )
 

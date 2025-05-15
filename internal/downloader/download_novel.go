@@ -3,11 +3,11 @@ package downloader
 import (
 	"path"
 
-	"github.com/fekoneko/piximan/pkg/collection/work"
-	"github.com/fekoneko/piximan/pkg/fetch"
-	"github.com/fekoneko/piximan/pkg/logext"
-	"github.com/fekoneko/piximan/pkg/pathext"
-	"github.com/fekoneko/piximan/pkg/storage"
+	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/fetch"
+	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/pathext"
+	"github.com/fekoneko/piximan/internal/storage"
 )
 
 func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, error) {

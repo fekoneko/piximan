@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/fekoneko/piximan/pkg/encode"
-	"github.com/fekoneko/piximan/pkg/fetch/dto"
+	"github.com/fekoneko/piximan/internal/encode"
+	"github.com/fekoneko/piximan/internal/fetch/dto"
 )
 
 // Ugoira artwork is expected for this function

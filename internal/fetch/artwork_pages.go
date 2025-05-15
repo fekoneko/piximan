@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/fekoneko/piximan/pkg/downloader/image"
-	"github.com/fekoneko/piximan/pkg/fetch/dto"
+	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/fetch/dto"
 )
 
 // Illustration or manga artwork is expected for this function

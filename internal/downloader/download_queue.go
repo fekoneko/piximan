@@ -1,9 +1,9 @@
 package downloader
 
 import (
-	"github.com/fekoneko/piximan/pkg/collection/work"
-	"github.com/fekoneko/piximan/pkg/downloader/image"
-	"github.com/fekoneko/piximan/pkg/downloader/queue"
+	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/downloader/queue"
 )
 
 func (d *Downloader) Schedule(

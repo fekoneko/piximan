@@ -3,7 +3,7 @@ package logext
 import (
 	"os"
 
-	"github.com/fekoneko/piximan/pkg/termext"
+	"github.com/fekoneko/piximan/internal/termext"
 )
 
 func Info(message string, args ...any) {

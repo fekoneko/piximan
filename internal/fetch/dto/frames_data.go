@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/fekoneko/piximan/pkg/encode"
+import "github.com/fekoneko/piximan/internal/encode"
 
 type FramesData struct {
 	Src    string  `json:"src"`

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/fekoneko/piximan/pkg/collection/work"
-	"github.com/fekoneko/piximan/pkg/downloader/queue"
+	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/downloader/queue"
 )
 
 // TODO: download own bookmarks or by user id

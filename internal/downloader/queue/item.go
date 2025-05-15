@@ -1,6 +1,6 @@
 package queue
 
-import "github.com/fekoneko/piximan/pkg/downloader/image"
+import "github.com/fekoneko/piximan/internal/downloader/image"
 
 type Item struct {
 	Id       uint64

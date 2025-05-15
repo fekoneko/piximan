@@ -5,13 +5,13 @@ import (
 	"path"
 	"strings"
 
-	"github.com/fekoneko/piximan/pkg/collection/work"
-	"github.com/fekoneko/piximan/pkg/downloader/image"
-	"github.com/fekoneko/piximan/pkg/encode"
-	"github.com/fekoneko/piximan/pkg/fetch"
-	"github.com/fekoneko/piximan/pkg/logext"
-	"github.com/fekoneko/piximan/pkg/pathext"
-	"github.com/fekoneko/piximan/pkg/storage"
+	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/encode"
+	"github.com/fekoneko/piximan/internal/fetch"
+	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/pathext"
+	"github.com/fekoneko/piximan/internal/storage"
 )
 
 // TODO: when downloading bookmarks we can fetch metadata in parallel with images

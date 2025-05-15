@@ -3,9 +3,9 @@ package dto
 import (
 	"fmt"
 
-	"github.com/fekoneko/piximan/pkg/downloader/image"
-	"github.com/fekoneko/piximan/pkg/downloader/queue"
-	"github.com/fekoneko/piximan/pkg/utils"
+	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/utils"
 )
 
 type Queue []struct {

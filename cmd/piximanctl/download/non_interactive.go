@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fekoneko/piximan/pkg/downloader/queue"
+	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/jessevdk/go-flags"
 )
 

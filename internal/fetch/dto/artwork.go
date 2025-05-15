@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fekoneko/piximan/pkg/collection/work"
+	"github.com/fekoneko/piximan/internal/collection/work"
 )
 
 type Artwork struct {

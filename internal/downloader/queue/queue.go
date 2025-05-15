@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/fekoneko/piximan/pkg/downloader/image"
+	"github.com/fekoneko/piximan/internal/downloader/image"
 )
 
 type Queue []Item

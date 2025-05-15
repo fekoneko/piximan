@@ -3,9 +3,9 @@ package storage
 import (
 	"os"
 
-	"github.com/fekoneko/piximan/pkg/downloader/image"
-	"github.com/fekoneko/piximan/pkg/downloader/queue"
-	"github.com/fekoneko/piximan/pkg/storage/dto"
+	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/storage/dto"
 	"gopkg.in/yaml.v2"
 )
 
