@@ -8,7 +8,6 @@ import (
 
 var initialTermois *unix.Termios
 
-// Probably need to use unix.TCGETA for MacOS
 func DisableInputEcho() {
 	if initialTermois != nil {
 		return
@@ -19,7 +18,6 @@ func DisableInputEcho() {
 	unix.IoctlSetTermios(unix.Stdout, unix.TCSETS, &termois)
 }
 
-// Probably need to use unix.TCGETA for MacOS
 func RestoreInputEcho() {
 	if initialTermois != nil {
 		unix.IoctlSetTermios(unix.Stdout, unix.TCSETS, initialTermois)
