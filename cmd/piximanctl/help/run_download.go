@@ -5,22 +5,15 @@ import "fmt"
 const DOWNLOAD_HELP = //
 `Run without arguments to enter interactive mode.
 
-> piximanctl download [--id        ...] [--type ...] [--path     ...]
-                      [--bookmarks ...] [--size ...] [--password ...]
-                      [--list      ...] [--onlymeta]
-                      [--inferid   ...]
+> piximanctl download [--id      ...] [--type ...] [--path     ...]
+                      [--list    ...] [--size ...] [--password ...]
+                      [--inferid ...] [--onlymeta]
 
                               Download sources
                               ----------------
 --id         ID of the downloaded work. You can found it in the work URI:
  -i          https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
              Can be provided multiple times.
-
---bookmarks  Download bookmarks of the user. You can provide one of these values:
- -b          - <user ID>    : download public bookmarks of the specified user
-             - my           : download all bookmarks of the authorized user if
-                              session ID is available
-             ! unimplemented !
 
 --list       Path to a file with information about which works to download.
  -l          The file must contain a list in YAML format, for example:
@@ -77,12 +70,6 @@ const DOWNLOAD_HELP = //
 # Download artwork with ID 10000 to your possible collection directory
 > piximanctl download --id 10000 --path "$HOME/My Collection/{userid}/{id}"
 
-# Download own bookmarks in small size and pass password from X11 clipboard
-> piximanctl download --bookmarks my --size 1 --password $(xclip -o)
-
-# Download public bookmarks of the user with ID 10000
-> piximanctl download --bookmarks 10000
-
 # Download novels with ID 10000 and 20000
 > piximanctl download --id 10000 --id 20000 --type novel --path "./{userid}/{id}"
 
@@ -98,7 +85,7 @@ func RunDownload() {
 }
 
 // TODO: public user bookmarks download + remove unimplemented message in the help
-// TODO: authorized user bookmarks download (+private) + remove unimplemented message in the help
+// TODO: authorized user bookmarks download (+private) + write about it in the help + example
 // TODO: download bookmarks of type (novel, artwork) + example in the help
 // TODO: bookmarks --from, --to (offset and limit) + write about it in the help + example
 // TODO: bookmarks --newer, --older than date + write about it in the help + example
