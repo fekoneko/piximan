@@ -3,33 +3,31 @@
 Pixiv batch **downloader** and local collection **viewer**. Preserve your favorite art with ease!
 
 > [!NOTE]
-> The project is still in early development
+> The GUI for viewer is yet to be implemented. By now you can use CLI tool to download works.
 
-## Included tools
+## Downloader Features
 
-- `piximan` - collection viewer GUI - **not yet implemented**
-- `piximanctl` - CLI download tool for your automated scripts
-
-## Features
-
-### Downloader
-
-- Illustrations / manga / ugoira / novels are all supported for download
-- You can download different sizes (resolution) of the illustrations / manga
-- Useful metadata is saved with the downloaded work in _YAML_ format
-- Supported substitutions in destination path: `{title}` / `{id}` / `{user}` / `{userid}`
-- Supported inferring work IDs from existing collection paths
-- The utility tries to make as few authorized requests as possible
+- Download illustrations / manga / ugoira / novels
+- Download by ID or from list
+- Infer work IDs from existing collection paths
+- Download different sizes (resolutions) of the illustrations / manga
+- Store work metadata with downloaded work in _YAML_ format
+- Use substitutions in download path: `{title}` / `{id}` / `{user}` / `{userid}` / `{restrict}`
+- Make requests concurrently when it's possible without bothering the Pixiv servers too much
+- Authorize requests with your session ID, `piximanctl` will try to use it as few as possible
+- Encrypt your session ID with a master password
 
 ## Getting started with `piximanctl` CLI tool
 
-> [!NOTE]
-> This section is outdated and needs to be updated
+### Authorization
 
-Before using the tool you need to configure the _session ID_. This will authorize you on _pixiv.net_ and
-let `piximanctl` fetch work metadata.
+> If you only download works without restriction (without R-18, R-18G) you can skip this section.
 
-You can get session ID with your browser _cookies_ right now:
+For some requests Pixiv requires you to be authorized. For example, to fetch frames for R-18 ugoira
+you must have the R-18 option checked in your profile. To authorize these requests you need to
+configure the _session ID_.
+
+You can get session ID from your browser _cookies_ right now:
 
 - Go to [https://www.pixiv.net](https://wwww.pixiv.net)
 - On the website press `F12` to access the devtools panel
@@ -38,51 +36,82 @@ You can get session ID with your browser _cookies_ right now:
 - Find the row named `PHPSESSID` - this is your cookie
 - Copy the value of the cookie to the clipboard
 
-Almost there! Let's configure `piximanctl` to permanently use the copied session ID.
-To pass the cookie from the clipboard use one of the following commands:
-
-- On Linux (X11):
+Now open the terminal and run the command to enter interractive configuration mode:
 
 ```shell
-piximanctl config -sessionid $(xclip -o)
+piximanctl config
 ```
 
-- On Linux (Wayland):
+Paste the copied session ID and then specify the master password if you want.
+
+### Downloading a work by ID
+
+You're ready to go! Try out `piximanctl` by downloading an artwork from pixiv:
 
 ```shell
-piximanctl config -sessionid $(wl-paste)
+piximanctl download \
+  --id 584231 \
+  --path './artworks/{user} ({userid})/{title} ({id})'
 ```
 
-- On Windows:
-
-```powershell
-piximanctl config -sessionid $(Get-Clipboard)
-```
-
-- On MacOS:
+Downloading a novel is as simple:
 
 ```shell
-piximanctl config -sessionid $(pbpaste)
+piximanctl download \
+  --id 584231 \
+  --type novel \
+  --path './novels/{user} ({userid})/{title} ({id})'
 ```
 
-You can always paste the value directly to your terminal, but be sure that it is not logged to the
-terminal history (e.g. `~/.bash_history` very commonly on Linux).
+### Downloading from list
 
-You're ready to go! Try out `piximanctl` by downloading some artwork from pixiv:
+You can specify a queue for downloader using YAML format such as:
 
-```shell
-piximanctl download -id 584231
+> `./list.yaml`
+
+```yaml
+# This will download two artworks with ID 12345 and 23456
+- { id: 12345, type: artwork }
+- { id: 23456, type: artwork }
+
+# This will override provided downloader arguments
+- id: 34567
+  type: artwork
+  size: 1
+  onlymeta: false
+  paths: ['./special artwork']
+- id: 45678
+  type: novel
+  onlymeta: true
+  paths: ['./special novel']
 ```
 
-You can also specify the destination path with the flag `-path`.
-With flag `-type novel` you can also download nolels.
-
-There are some extra options that can be used.
-The manual is always available to you, just run one of these commands:
+Start downloading with the command:
 
 ```shell
-piximanctl help config
+piximanctl download \
+  --list './list.yaml' \
+  --path './artworks/{user} ({userid})/{title} ({id})'
+```
+
+### Inferring work IDs
+
+You can infer the IDs of works from the given path. For example, this is useful for updating
+the metadata in the existing collection when coupled with the `--onlymeta` flag:
+
+```shell
+piximanctl download \
+  --inferid './artworks/*/* ({id})' \
+  --onlymeta
+```
+
+### Help
+
+To see other options and examples use the `help` command in your terminal:
+
+```shell
 piximanctl help download
+piximanctl help config
 ```
 
 ## Related projects
