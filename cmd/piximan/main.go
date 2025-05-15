@@ -5,5 +5,5 @@ import "fmt"
 var version string
 
 func main() {
-	fmt.Printf("piximan v%v\n", version)
+	fmt.Printf("piximan %v\n", version)
 }

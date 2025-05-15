@@ -12,7 +12,7 @@ import (
 var version string
 
 func main() {
-	fmt.Printf("piximanctl v%v\n\n", version)
+	fmt.Printf("piximanctl %v\n\n", version)
 
 	var command string
 	if len(os.Args) > 1 {
