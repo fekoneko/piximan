@@ -5,6 +5,10 @@ Pixiv batch **downloader** and local collection **viewer**. Preserve your favori
 > [!NOTE]
 > The GUI for viewer is yet to be implemented. By now you can use CLI tool to download works.
 
+## Installation
+
+Go to [Releases](https://github.com/fekoneko/piximan/releases) page
+
 ## Downloader Features
 
 - Download illustrations / manga / ugoira / novels
