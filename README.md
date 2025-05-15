@@ -11,6 +11,7 @@ Pixiv batch **downloader** and local collection **viewer**. Preserve your favori
 - Download by ID or from list
 - Infer work IDs from existing collection paths
 - Download different sizes (resolutions) of the illustrations / manga
+- Interractive mode for download and configuration with `piximanctl` tool
 - Store work metadata with downloaded work in _YAML_ format
 - Use substitutions in download path: `{title}` / `{id}` / `{user}` / `{userid}` / `{restrict}`
 - Make requests concurrently when it's possible without bothering the Pixiv servers too much
@@ -43,6 +44,15 @@ piximanctl config
 ```
 
 Paste the copied session ID and then specify the master password if you want.
+
+### Downloading with interactive mode
+
+The easiest way to use the tool is with interactive mode. To enter it run the command,
+then answer the questions about what to download and where to save the files:
+
+```shell
+piximanctl download
+```
 
 ### Downloading a work by ID
 
@@ -112,6 +122,18 @@ To see other options and examples use the `help` command in your terminal:
 ```shell
 piximanctl help download
 piximanctl help config
+```
+
+## Development
+
+Use `make` to run and build the project:
+
+```shell
+make run:piximan                    # Run piximan GUI
+make run:piximanctl ARGS="download" # Run piximanctl CLI tool with the arguments
+make build:piximan                  # Build piximan GUI
+make build:piximanctl               # Build piximanctl CLI tool
+make build                          # Build both
 ```
 
 ## Related projects
