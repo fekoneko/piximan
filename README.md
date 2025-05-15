@@ -131,9 +131,10 @@ Use `make` to run and build the project:
 ```shell
 make run:piximan                    # Run piximan GUI
 make run:piximanctl ARGS="download" # Run piximanctl CLI tool with the arguments
-make build:piximan                  # Build piximan GUI
-make build:piximanctl               # Build piximanctl CLI tool
-make build                          # Build both
+make build                          # Build both for all platforms
+make build:$CMD_NAME                # Build $CMD_NAME for all platforms
+make build:$CMD_NAME:current        # Build $CMD_NAME for current platform
+make build:$CMD_NAME:$PLATFORM      # Build $CMD_NAME for $PLATFORM
 ```
 
 ## Related projects
