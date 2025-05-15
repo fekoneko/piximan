@@ -37,7 +37,7 @@ You can get session ID from your browser _cookies_ right now:
 - Go to [https://www.pixiv.net](https://wwww.pixiv.net)
 - On the website press `F12` to access the devtools panel
 - In the devtools panel switch to the _Application_ tab (for Chrome) / _Storage_ tab (for Firefox)
-- Expand the _Cookies_ section and select `https://wwww.pixiv.net` origin
+- Expand the _Cookies_ section and select `https://www.pixiv.net` origin
 - Find the row named `PHPSESSID` - this is your cookie
 - Copy the value of the cookie to the clipboard
 
