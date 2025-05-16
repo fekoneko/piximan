@@ -14,6 +14,9 @@ import (
 func (d *Downloader) ScheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tag *string, size image.Size, onlyMeta bool, lowMeta bool, paths []string,
 ) {
+	d.crawlQueueMutex.Lock()
+	defer d.crawlQueueMutex.Unlock()
+
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		if kind == queue.ItemKindArtwork {
 			return d.scheduleArtworkBookmarks(userId, tag, size, onlyMeta, lowMeta, paths)

@@ -13,6 +13,9 @@ import (
 func (d *Downloader) Schedule(
 	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
 ) {
+	d.downloadQueueMutex.Lock()
+	defer d.downloadQueueMutex.Unlock()
+
 	for _, id := range ids {
 		d.downloadQueue.Push(queue.Item{
 			Id:       id,
@@ -29,6 +32,9 @@ func (d *Downloader) ScheduleWithWork(
 	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
 	work *work.Work, imageUrl *string, lowMeta bool,
 ) {
+	d.downloadQueueMutex.Lock()
+	defer d.downloadQueueMutex.Unlock()
+
 	for _, id := range ids {
 		d.downloadQueue.Push(queue.Item{
 			Id:       id,
@@ -45,37 +51,29 @@ func (d *Downloader) ScheduleWithWork(
 
 // Merge queue to the downloader queue. Run() to start downloading.
 func (d *Downloader) ScheduleQueue(q *queue.Queue) {
+	d.downloadQueueMutex.Lock()
+	defer d.downloadQueueMutex.Unlock()
+
 	d.downloadQueue.Push(*q...)
 }
 
-// TODO: get one task from crawlQueue and run it, don't end running until both queues are empty
-//       d.crawlWaitGroup.Wait()
-//       d.crawlWaitGroup.Add(1)
-//       defer d.crawlWaitGroup.Done()
-
 // Run the downloader. Need to WaitNext() or WaitDone() to get the results.
 func (d *Downloader) Run() {
-	d.numPendingMutex.Lock()
-	defer d.numPendingMutex.Unlock()
+	d.downloadingMutex.Lock()
+	defer d.downloadingMutex.Unlock()
 
-	for d.numPending < PENDING_LIMIT {
-		item := d.downloadQueue.Pop()
-		if item == nil {
-			break
-		}
-		go d.downloadItem(item)
-		d.numPending++
+	if d.downloading {
+		return
 	}
+
+	go d.superviseDownload()
+	go d.superviseCrawl()
 }
 
 // Block until next work is downloaded. Returns nil if there are no more works to download.
 // Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (d *Downloader) WaitNext() *work.Work {
-	var w *work.Work
-	for w == nil && d.NumRemaining() > 0 {
-		w = <-d.channel
-	}
-	return w
+	return <-d.channel
 }
 
 // Block until all works are downloaded.
@@ -85,12 +83,101 @@ func (d *Downloader) WaitDone() {
 	}
 }
 
-// Number of pending and queued works.
-func (d *Downloader) NumRemaining() int {
-	d.numPendingMutex.Lock()
-	defer d.numPendingMutex.Unlock()
+// Meant to be run on a separate goroutine.
+// Spawns download goroutines from downloadQueue until it is empty and no crawling is happening.
+// Sets d.downloading to false when done.
+func (d *Downloader) superviseDownload() {
+	d.downloadingMutex.Lock()
+	d.downloading = true
+	d.downloadingMutex.Unlock()
 
-	return len(d.downloadQueue) + d.numPending
+	d.numDownloadingCond.L.Lock()
+	defer d.numDownloadingCond.L.Unlock()
+
+	for {
+		for d.numDownloading >= DOWNLOAD_PENDING_LIMIT {
+			d.numDownloadingCond.Wait()
+		}
+
+		d.downloadQueueMutex.Lock()
+		item := d.downloadQueue.Pop()
+		d.downloadQueueMutex.Unlock()
+		if item == nil && !d.waitCrawled() {
+			break
+		}
+		d.numDownloading++
+
+		go func() {
+			d.downloadItem(item)
+
+			d.numDownloadingCond.L.Lock()
+			d.numDownloading--
+			d.numDownloadingCond.Broadcast()
+			d.numDownloadingCond.L.Unlock()
+		}()
+	}
+
+	d.downloadingMutex.Lock()
+	d.downloading = false
+	d.downloadingMutex.Unlock()
+
+	d.channel <- nil
+}
+
+// Meant to be run on a separate goroutine.
+// Spawns crawl goroutines from crawlQueue until it is empty.
+// Sets d.crawling to false when done.
+func (d *Downloader) superviseCrawl() {
+	d.crawlingCond.L.Lock()
+	d.crawling = true
+	d.crawlingCond.L.Unlock()
+
+	d.numCrawlingCond.L.Lock()
+	defer d.numCrawlingCond.L.Unlock()
+
+	for {
+		for d.numCrawling >= CRAWL_PENDING_LIMIT {
+			d.numCrawlingCond.Wait()
+		}
+
+		d.crawlQueueMutex.Lock()
+		if len(d.crawlQueue) == 0 {
+			break
+		}
+		crawl := d.crawlQueue[0]
+		d.crawlQueue = d.crawlQueue[1:]
+		defer d.crawlQueueMutex.Unlock()
+
+		go func() {
+			crawl()
+
+			d.numCrawlingCond.L.Lock()
+			d.numCrawling--
+			d.numCrawlingCond.Broadcast()
+			d.numCrawlingCond.L.Unlock()
+		}()
+	}
+
+	d.crawlingCond.L.Lock()
+	d.crawling = false
+	d.crawlingCond.Broadcast()
+	d.crawlingCond.L.Unlock()
+}
+
+// Returns false if already crawled, otherwise waits for crawling to be finished and returns true.
+func (d *Downloader) waitCrawled() bool {
+	d.crawlingCond.L.Lock()
+	defer d.crawlingCond.L.Unlock()
+
+	if !d.crawling {
+		return false
+	}
+
+	for d.crawling {
+		d.crawlingCond.Wait()
+	}
+
+	return true
 }
 
 func (d *Downloader) downloadItem(item *queue.Item) {
@@ -113,13 +200,5 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 
 	if err == nil {
 		d.channel <- w
-	} else {
-		d.channel <- nil
 	}
-
-	d.numPendingMutex.Lock()
-	d.numPending--
-	d.numPendingMutex.Unlock()
-
-	d.Run()
 }
