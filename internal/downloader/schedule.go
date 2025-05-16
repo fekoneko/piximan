@@ -24,7 +24,7 @@ func (d *Downloader) Schedule(
 // Schedule download with additional work metadata if available. Run() to start downloading.
 func (d *Downloader) ScheduleWithWork(
 	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
-	work *work.Work, imageUrl *string,
+	work *work.Work, imageUrl *string, lowMeta bool,
 ) {
 	for _, id := range ids {
 		d.queue.Push(queue.Item{
@@ -35,6 +35,7 @@ func (d *Downloader) ScheduleWithWork(
 			Paths:    paths,
 			Work:     work,
 			ImageUrl: imageUrl,
+			LowMeta:  lowMeta,
 		})
 	}
 }
