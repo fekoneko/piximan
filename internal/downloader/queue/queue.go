@@ -75,7 +75,7 @@ func FromMap(
 
 	i := 0
 	for id, paths := range *m {
-		queue[i] = Item{id, kind, size, onlyMeta, paths}
+		queue[i] = Item{id, kind, size, onlyMeta, paths, nil, nil}
 		i++
 	}
 
@@ -89,7 +89,7 @@ func FromMapWithPaths(
 
 	i := 0
 	for id := range *m {
-		queue[i] = Item{id, kind, size, onlyMeta, paths}
+		queue[i] = Item{id, kind, size, onlyMeta, paths, nil, nil}
 		i++
 	}
 

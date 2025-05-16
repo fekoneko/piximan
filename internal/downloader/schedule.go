@@ -6,18 +6,45 @@ import (
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 )
 
+// Schedule download. Run() to start downloading.
 func (d *Downloader) Schedule(
 	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
 ) {
 	for _, id := range ids {
-		d.queue.Push(queue.Item{Id: id, Kind: kind, Size: size, OnlyMeta: onlyMeta, Paths: paths})
+		d.queue.Push(queue.Item{
+			Id:       id,
+			Kind:     kind,
+			Size:     size,
+			OnlyMeta: onlyMeta,
+			Paths:    paths,
+		})
 	}
 }
 
+// Schedule download with additional work metadata if available. Run() to start downloading.
+func (d *Downloader) ScheduleWithWork(
+	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
+	work *work.Work, imageUrl *string,
+) {
+	for _, id := range ids {
+		d.queue.Push(queue.Item{
+			Id:       id,
+			Kind:     kind,
+			Size:     size,
+			OnlyMeta: onlyMeta,
+			Paths:    paths,
+			Work:     work,
+			ImageUrl: imageUrl,
+		})
+	}
+}
+
+// Merge queue to the downloader queue. Run() to start downloading.
 func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	d.queue.Push(*q...)
 }
 
+// Run the downloader. Need to WaitNext() or WaitDone() to get the results.
 func (d *Downloader) Run() {
 	d.numPendingMutex.Lock()
 	defer d.numPendingMutex.Unlock()
@@ -32,6 +59,8 @@ func (d *Downloader) Run() {
 	}
 }
 
+// Block until next work is downloaded. Returns nil if there are no more works to download.
+// Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (d *Downloader) WaitNext() *work.Work {
 	var w *work.Work
 	for w == nil && d.NumRemaining() > 0 {
@@ -40,11 +69,14 @@ func (d *Downloader) WaitNext() *work.Work {
 	return w
 }
 
+// Block until all works are downloaded.
+// Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (d *Downloader) WaitDone() {
 	for d.WaitNext() != nil {
 	}
 }
 
+// Number of pending and queued works.
 func (d *Downloader) NumRemaining() int {
 	d.numPendingMutex.Lock()
 	defer d.numPendingMutex.Unlock()
@@ -56,6 +88,7 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	var w *work.Work
 	var err error
 
+	// TODO: take in concideration queue.Item.Work and queue.Item.ImageUrl
 	if item.Kind == queue.ItemKindNovel && item.OnlyMeta {
 		w, err = d.DownloadNovelMeta(item.Id, item.Paths)
 	} else if item.Kind == queue.ItemKindNovel {

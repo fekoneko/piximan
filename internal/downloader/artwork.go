@@ -17,6 +17,8 @@ import (
 // TODO: when downloading bookmarks we can fetch metadata in parallel with images
 //       if we even need to fetch full metadata
 
+// Download only artwork metadata and store it in paths.
+// For downloading multiple works consider using Schedule() or ScheduleWithWork().
 func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading metadata for artwork %v", id)
 
@@ -37,6 +39,8 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work,
 	return w, err
 }
 
+// Download artwork with all assets and metadata and store it in paths.
+// For downloading multiple works consider using Schedule() or ScheduleWithWork().
 func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
 	logext.Info("started downloading artwork %v", id)
 

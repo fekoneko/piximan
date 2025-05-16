@@ -8,6 +8,7 @@ import (
 
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fetch/dto"
+	"github.com/fekoneko/piximan/internal/utils"
 )
 
 type NovelBookmarkResult struct {
@@ -18,11 +19,11 @@ type NovelBookmarkResult struct {
 
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
 func NovelBookmarksAuthorized(
-	client http.Client, userId uint64, tag string, offset uint, limit uint, sessionId string,
+	client http.Client, userId uint64, tag *string, offset uint, limit uint, sessionId string,
 ) ([]NovelBookmarkResult, error) { // TODO: label all "tuples"
 	url := fmt.Sprintf(
 		"https://www.pixiv.net/ajax/user/%v/novels/bookmarks?tag=%v&offset=%v&limit=%v&rest=show",
-		userId, tag, offset, limit,
+		userId, utils.FromPtr(tag, ""), offset, limit,
 	)
 	body, err := Do(client, url, nil)
 	if err != nil {

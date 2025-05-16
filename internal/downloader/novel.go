@@ -10,6 +10,8 @@ import (
 	"github.com/fekoneko/piximan/internal/storage"
 )
 
+// Download only novel metadata and store it in paths.
+// For downloading multiple works consider using Schedule() or ScheduleWithWork().
 func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading metadata for novel %v", id)
 
@@ -30,6 +32,8 @@ func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, e
 	return w, err
 }
 
+// Download novel with all assets and metadata and store it in paths.
+// For downloading multiple works consider using Schedule() or ScheduleWithWork().
 func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading novel %v", id)
 
