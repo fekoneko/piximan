@@ -62,12 +62,10 @@ func (d *Downloader) Run() {
 	d.downloadingMutex.Lock()
 	defer d.downloadingMutex.Unlock()
 
-	if d.downloading {
-		return
+	if !d.downloading {
+		go d.superviseDownload()
+		go d.superviseCrawl()
 	}
-
-	go d.superviseDownload()
-	go d.superviseCrawl()
 }
 
 // Block until next work is downloaded. Returns nil if there are no more works to download.
@@ -83,9 +81,8 @@ func (d *Downloader) WaitDone() {
 	}
 }
 
-// Meant to be run on a separate goroutine.
-// Spawns download goroutines from downloadQueue until it is empty and no crawling is happening.
-// Sets d.downloading to false when done.
+// Meant to be run in a separate goroutine. Spawns download goroutines from downloadQueu
+// until it is empty and no crawling is happening. Sets d.downloading to false when done.
 func (d *Downloader) superviseDownload() {
 	d.downloadingMutex.Lock()
 	d.downloading = true
@@ -124,9 +121,8 @@ func (d *Downloader) superviseDownload() {
 	d.channel <- nil
 }
 
-// Meant to be run on a separate goroutine.
-// Spawns crawl goroutines from crawlQueue until it is empty.
-// Sets d.crawling to false when done.
+// Meant to be run in a separate goroutine. Spawns crawl goroutines from crawlQueue
+// until it is empty. Sets d.crawling to false when done.
 func (d *Downloader) superviseCrawl() {
 	d.crawlingCond.L.Lock()
 	d.crawling = true
@@ -149,7 +145,7 @@ func (d *Downloader) superviseCrawl() {
 		defer d.crawlQueueMutex.Unlock()
 
 		go func() {
-			crawl()
+			crawl() // TODO: count these errors as well as download errors
 
 			d.numCrawlingCond.L.Lock()
 			d.numCrawling--
