@@ -10,15 +10,25 @@ import (
 	"github.com/fekoneko/piximan/internal/logext"
 )
 
-// TODO: don't block and schedule fetching bookmarks after Run() as well
-//       separate queues for work downloads and bookmark fetches so that we can keep goroutines
-//       for each queue running at the same time to ensure that bookmark fetches don't block
-//       downloading of works (work downloading still may use free i.pximg.net slots)
-//       one concurrently running goroutine for bookmarks and 5 for works
+// Schedule artwork bookmarks for download. Run() to start downloading.
+func (d *Downloader) ScheduleBookmarks(
+	userId uint64, kind queue.ItemKind, tag *string, size image.Size, onlyMeta bool, lowMeta bool, paths []string,
+) {
+	d.crawlQueue = append(d.crawlQueue, func() error {
+		if kind == queue.ItemKindArtwork {
+			return d.scheduleArtworkBookmarks(userId, tag, size, onlyMeta, lowMeta, paths)
+		} else if kind == queue.ItemKindNovel {
+			return d.scheduleNovelBookmarks(userId, tag, onlyMeta, lowMeta, paths)
+		} else {
+			err := fmt.Errorf("invalid work type: %v", uint8(kind))
+			logext.Error("%v: %v", bookmarksLogPrefix("failed to fetch bookmarks", userId, tag, nil), err)
+			return err
+		}
+	})
+}
 
 // Fetch artwork bookmarks and then schedule them for download, blocks until done.
-// Use Run() to start downloading after this function is finished.
-func (d *Downloader) ScheduleArtworkBookmarks(
+func (d *Downloader) scheduleArtworkBookmarks(
 	userId uint64, tag *string, size image.Size, onlyMeta bool, lowMeta bool, paths []string,
 ) error {
 	if d.sessionId == nil {
@@ -47,8 +57,7 @@ func (d *Downloader) ScheduleArtworkBookmarks(
 }
 
 // Fetch novel bookmarks and then schedule them for download, blocks until done.
-// Use Run() to start downloading after this function is finished.
-func (d *Downloader) ScheduleNovelBookmarks(
+func (d *Downloader) scheduleNovelBookmarks(
 	userId uint64, tag *string, onlyMeta bool, lowMeta bool, paths []string,
 ) error {
 	if d.sessionId == nil {

@@ -108,7 +108,7 @@ func doWithRequest(
 const PXIMG_DELAY = time.Second * 1
 const DEFAULT_DELAY = time.Second * 2
 
-var pximgPending = 0
+var numPximgPending = 0
 var pximgCond = sync.NewCond(&sync.Mutex{})
 var defaultMutex = sync.Mutex{}
 var prevDefaultTime time.Time
@@ -121,10 +121,10 @@ func lock(request *http.Request) {
 	switch request.URL.Host {
 	case "i.pximg.net":
 		pximgCond.L.Lock()
-		for pximgPending >= PXIMG_PENDING_LIMIT {
+		for numPximgPending >= PXIMG_PENDING_LIMIT {
 			pximgCond.Wait()
 		}
-		pximgPending++
+		numPximgPending++
 		pximgCond.L.Unlock()
 
 	default:
@@ -138,7 +138,7 @@ func unlock(request *http.Request) {
 	switch request.URL.Host {
 	case "i.pximg.net":
 		pximgCond.L.Lock()
-		pximgPending--
+		numPximgPending--
 		pximgCond.Broadcast()
 		pximgCond.L.Unlock()
 

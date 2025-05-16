@@ -1,9 +1,12 @@
 package downloader
 
 import (
+	"fmt"
+
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/logext"
 )
 
 // Schedule download. Run() to start downloading.
@@ -11,7 +14,7 @@ func (d *Downloader) Schedule(
 	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
 ) {
 	for _, id := range ids {
-		d.queue.Push(queue.Item{
+		d.downloadQueue.Push(queue.Item{
 			Id:       id,
 			Kind:     kind,
 			Size:     size,
@@ -27,7 +30,7 @@ func (d *Downloader) ScheduleWithWork(
 	work *work.Work, imageUrl *string, lowMeta bool,
 ) {
 	for _, id := range ids {
-		d.queue.Push(queue.Item{
+		d.downloadQueue.Push(queue.Item{
 			Id:       id,
 			Kind:     kind,
 			Size:     size,
@@ -42,8 +45,13 @@ func (d *Downloader) ScheduleWithWork(
 
 // Merge queue to the downloader queue. Run() to start downloading.
 func (d *Downloader) ScheduleQueue(q *queue.Queue) {
-	d.queue.Push(*q...)
+	d.downloadQueue.Push(*q...)
 }
+
+// TODO: get one task from crawlQueue and run it, don't end running until both queues are empty
+//       d.crawlWaitGroup.Wait()
+//       d.crawlWaitGroup.Add(1)
+//       defer d.crawlWaitGroup.Done()
 
 // Run the downloader. Need to WaitNext() or WaitDone() to get the results.
 func (d *Downloader) Run() {
@@ -51,7 +59,7 @@ func (d *Downloader) Run() {
 	defer d.numPendingMutex.Unlock()
 
 	for d.numPending < PENDING_LIMIT {
-		item := d.queue.Pop()
+		item := d.downloadQueue.Pop()
 		if item == nil {
 			break
 		}
@@ -82,7 +90,7 @@ func (d *Downloader) NumRemaining() int {
 	d.numPendingMutex.Lock()
 	defer d.numPendingMutex.Unlock()
 
-	return len(d.queue) + d.numPending
+	return len(d.downloadQueue) + d.numPending
 }
 
 func (d *Downloader) downloadItem(item *queue.Item) {
@@ -98,6 +106,9 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 		w, err = d.DownloadArtworkMeta(item.Id, item.Paths)
 	} else if item.Kind == queue.ItemKindArtwork {
 		w, err = d.DownloadArtwork(item.Id, item.Size, item.Paths)
+	} else {
+		err = fmt.Errorf("invalid work type: %v", uint8(item.Kind))
+		logext.Error("failed to pick work %v for download: %v", item.Id, err)
 	}
 
 	if err == nil {
