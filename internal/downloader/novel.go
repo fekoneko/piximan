@@ -22,6 +22,9 @@ func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
 	if err != nil {
 		return nil, err
 	}
+	if !w.Full() {
+		logext.Warning("metadata for novel %v is incomplete", id)
+	}
 
 	assets := []storage.Asset{}
 	paths, err = pathext.FormatWorkPaths(paths, w)
@@ -67,6 +70,9 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 		logext.Error("failed to download novel %v: %v", id, err)
 		return nil, err
 	}
+	if !w.Full() {
+		logext.Warning("metadata for novel %v is incomplete", id)
+	}
 
 	cover, err := fetch.Do(d.client, *coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
@@ -92,5 +98,9 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 // Download novel with cover url known in advance and store it in paths. Blocks until done.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) (*work.Work, error) {
+	// TODO: check if metadata is complete
+	// if !w.Full() {
+	// 	logext.Warning("metadata for novel %v is incomplete", id)
+	// }
 	panic("unimplemented")
 }

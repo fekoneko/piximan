@@ -8,27 +8,27 @@ import (
 const VERSION = uint64(1)
 
 type Work struct {
-	Version     *uint64   `yaml:"_version"`
-	Id          *uint64   `yaml:"id"`
-	Title       *string   `yaml:"title"`
-	Kind        *string   `yaml:"kind"`
-	Description *string   `yaml:"description"`
-	UserId      *uint64   `yaml:"user_id"`
-	UserName    *string   `yaml:"user_name"`
-	Restriction *string   `yaml:"restriction"`
+	Version     *uint64   `yaml:"_version,omitempty"`
+	Id          *uint64   `yaml:"id,omitempty"`
+	Title       *string   `yaml:"title,omitempty"`
+	Kind        *string   `yaml:"kind,omitempty"`
+	Description *string   `yaml:"description,omitempty"`
+	UserId      *uint64   `yaml:"user_id,omitempty"`
+	UserName    *string   `yaml:"user_name,omitempty"`
+	Restriction *string   `yaml:"restriction,omitempty"`
 	Ai          *bool     `yaml:"ai,omitempty"`
-	Original    *bool     `yaml:"original"`
-	Pages       *uint64   `yaml:"pages"`
-	Views       *uint64   `yaml:"views"`
-	Bookmarks   *uint64   `yaml:"bookmarks"`
-	Likes       *uint64   `yaml:"likes"`
-	Comments    *uint64   `yaml:"comments"`
-	Uploaded    *string   `yaml:"uploaded"`
-	Downloaded  *string   `yaml:"downloaded"`
+	Original    *bool     `yaml:"original,omitempty"`
+	Pages       *uint64   `yaml:"pages,omitempty"`
+	Views       *uint64   `yaml:"views,omitempty"`
+	Bookmarks   *uint64   `yaml:"bookmarks,omitempty"`
+	Likes       *uint64   `yaml:"likes,omitempty"`
+	Comments    *uint64   `yaml:"comments,omitempty"`
+	Uploaded    *string   `yaml:"uploaded,omitempty"`
+	Downloaded  *string   `yaml:"downloaded,omitempty"`
 	SeriesId    *uint64   `yaml:"series_id,omitempty"`
 	SeriesTitle *string   `yaml:"series_title,omitempty"`
 	SeriesOrder *uint64   `yaml:"series_order,omitempty"`
-	Tags        *[]string `yaml:"tags"`
+	Tags        *[]string `yaml:"tags,omitempty"`
 }
 
 func ToDto(w *work.Work) *Work {

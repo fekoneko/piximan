@@ -2,8 +2,6 @@ package work
 
 import "time"
 
-// TODO: make all fields optional here as well as in yaml dto
-
 type Work struct {
 	Id           *uint64
 	Title        *string
@@ -25,4 +23,24 @@ type Work struct {
 	SeriesTitle  *string
 	SeriesOrder  *uint64
 	Tags         *[]string
+}
+
+// Check if all fields are filled. The function doesn't report if series data is missing
+func (w *Work) Full() bool {
+	return w.Id != nil && w.Title != nil &&
+		w.Kind != nil &&
+		w.Description != nil &&
+		w.UserId != nil &&
+		w.UserName != nil &&
+		w.Restriction != nil &&
+		w.AiKind != nil &&
+		w.IsOriginal != nil &&
+		w.NumPages != nil &&
+		w.NumViews != nil &&
+		w.NumBookmarks != nil &&
+		w.NumLikes != nil &&
+		w.NumComments != nil &&
+		w.UploadTime != nil &&
+		w.DownloadTime != nil &&
+		w.Tags != nil
 }

@@ -28,6 +28,9 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 	if err != nil {
 		return nil, err
 	}
+	if !w.Full() {
+		logext.Warning("metadata for artwork %v is incomplete", id)
+	}
 
 	assets := []storage.Asset{}
 	paths, err = pathext.FormatWorkPaths(paths, w)
@@ -65,6 +68,9 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 	if err != nil {
 		return nil, err
 	}
+	if !w.Full() {
+		logext.Warning("metadata for artwork %v is incomplete", id)
+	}
 
 	if w.Kind == nil {
 		err = fmt.Errorf("work kind is missing in %v", w)
@@ -85,6 +91,10 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 func (d *Downloader) ArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
+	// TODO: check if metadata is complete
+	// if !w.Full() {
+	// 	logext.Warning("metadata for artwork %v is incomplete", id)
+	// }
 	panic("unimplemented")
 }
 
