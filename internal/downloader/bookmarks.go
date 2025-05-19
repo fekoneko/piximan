@@ -10,8 +10,6 @@ import (
 	"github.com/fekoneko/piximan/internal/logext"
 )
 
-// TODO: Bookmarks()
-
 // Schedule artwork bookmarks for download. Run() to start downloading.
 func (d *Downloader) ScheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tag *string, size image.Size,
@@ -20,6 +18,8 @@ func (d *Downloader) ScheduleBookmarks(
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
 
+	// TODO: fetch other offsets as well, but in other task in crawlQueue not to block downloading
+	//       schedule other crawl fetches after first one is done and total count is known
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		if kind == queue.ItemKindArtwork {
 			return d.scheduleArtworkBookmarks(userId, tag, size, onlyMeta, lowMeta, paths)
@@ -43,7 +43,6 @@ func (d *Downloader) scheduleArtworkBookmarks(
 		return err
 	}
 
-	// TODO: fetch with other offsets as well
 	offset := uint(0)
 	results, err := fetch.ArtworkBookmarksAuthorized(d.client, userId, tag, offset, 100, *d.sessionId)
 	logext.MaybeSuccess(err, bookmarksLogPrefix("fetched artwork bookmarks", userId, tag, &offset))
@@ -72,7 +71,6 @@ func (d *Downloader) scheduleNovelBookmarks(
 		return err
 	}
 
-	// TODO: fetch with other offsets as well
 	offset := uint(0)
 	results, err := fetch.NovelBookmarksAuthorized(d.client, userId, tag, offset, 100, *d.sessionId)
 	logext.MaybeSuccess(err, bookmarksLogPrefix("fetched novel bookmarks", userId, tag, &offset))

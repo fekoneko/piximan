@@ -180,18 +180,36 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	var w *work.Work
 	var err error
 
-	// TODO: take in concideration queue.Item.Work and queue.Item.ImageUrl
-	if item.Kind == queue.ItemKindNovel && item.OnlyMeta {
-		w, err = d.NovelMeta(item.Id, item.Paths)
-	} else if item.Kind == queue.ItemKindNovel {
-		w, err = d.Novel(item.Id, item.Paths)
-	} else if item.Kind == queue.ItemKindArtwork && item.OnlyMeta {
-		w, err = d.ArtworkMeta(item.Id, item.Paths)
-	} else if item.Kind == queue.ItemKindArtwork {
-		w, err = d.Artwork(item.Id, item.Size, item.Paths)
-	} else {
+	isArtwork := item.Kind == queue.ItemKindArtwork
+	isNovel := item.Kind == queue.ItemKindNovel
+	withKnown := item.Work != nil && item.ImageUrl != nil
+	lowMeta, onlyMeta := item.LowMeta, item.OnlyMeta
+
+	if !isArtwork && !isNovel {
 		err = fmt.Errorf("invalid work type: %v", uint8(item.Kind))
 		logext.Error("failed to pick work %v for download: %v", item.Id, err)
+		return
+	}
+
+	switch {
+	case isNovel && !onlyMeta && !withKnown:
+		w, err = d.Novel(item.Id, item.Paths)
+	case isNovel && !onlyMeta && withKnown:
+		w, err = d.NovelWithKnown(item.Id, *item.ImageUrl, item.Paths)
+	case isNovel && onlyMeta && (!withKnown || !lowMeta):
+		w, err = d.NovelMeta(item.Id, item.Paths)
+	case isNovel && onlyMeta && withKnown && lowMeta:
+		w, err = d.LowNovelMetaWithKnown(item.Id, item.Work, item.Paths)
+	case isArtwork && !onlyMeta && !withKnown:
+		w, err = d.Artwork(item.Id, item.Size, item.Paths)
+	case isArtwork && !onlyMeta && withKnown && !lowMeta:
+		w, err = d.ArtworkWithKnown(item.Id, item.Size, item.Work, *item.ImageUrl, item.Paths)
+	case isArtwork && !onlyMeta && withKnown && lowMeta:
+		w, err = d.LowArtworkWithKnown(item.Id, item.Size, item.Work, *item.ImageUrl, item.Paths)
+	case isArtwork && onlyMeta && (!withKnown || !lowMeta):
+		w, err = d.ArtworkMeta(item.Id, item.Paths)
+	case isArtwork && onlyMeta && withKnown && lowMeta:
+		w, err = d.LowArtworkMetaWithKnown(item.Id, item.Work, item.Paths)
 	}
 
 	if err == nil {

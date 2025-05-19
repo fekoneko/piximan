@@ -41,7 +41,9 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 
 // Doesn't actually make additional requests, but stores incomplete metadata, received earlier.
 // For downloading multiple works consider using ScheduleWithKnown().
-func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []string) error {
+func (d *Downloader) LowArtworkMetaWithKnown(
+	id uint64, w *work.Work, paths []string,
+) (*work.Work, error) {
 	assets := []storage.Asset{}
 	paths, err := pathext.FormatWorkPaths(paths, w)
 	if err == nil {
@@ -49,7 +51,7 @@ func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []st
 	}
 	logext.MaybeSuccess(err, "stored incomplete metadata for artwork %v in %v", id, paths)
 	logext.MaybeError(err, "failed to store incomplete metadata for artwork %v", id)
-	return err
+	return w, err
 }
 
 // Download artwork with all assets and metadata and store it in paths. Blocks until done.
@@ -72,9 +74,11 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 	return w, err
 }
 
-// Download artwork with partial metadata known inadvance and store it in paths. Blocks until done.
+// Download artwork with partial metadata known in advance and store it in paths. Blocks until done.
 // For downloading multiple works consider using ScheduleWithKnown().
-func (d *Downloader) ArtworkWithKnown(id uint64, size image.Size, paths []string) (*work.Work, error) {
+func (d *Downloader) ArtworkWithKnown(
+	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
+) (*work.Work, error) {
 	panic("unimplemented")
 }
 
@@ -82,7 +86,7 @@ func (d *Downloader) ArtworkWithKnown(id uint64, size image.Size, paths []string
 // Doesn't fetch full metadata. Blocks until done.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowArtworkWithKnown(
-	id uint64, size image.Size, w *work.Work, paths []string,
+	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
 	panic("unimplemented")
 }
