@@ -20,6 +20,8 @@ func (d *Downloader) ScheduleBookmarks(
 
 	// TODO: fetch other offsets as well, but in other task in crawlQueue not to block downloading
 	//       schedule other crawl fetches after first one is done and total count is known
+	//       don't forget to log
+	offset := uint(0)
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		if kind == queue.ItemKindArtwork {
 			return d.scheduleArtworkBookmarks(userId, tag, size, onlyMeta, lowMeta, paths)
@@ -31,6 +33,7 @@ func (d *Downloader) ScheduleBookmarks(
 			return err
 		}
 	})
+	logext.Info(bookmarksLogPrefix("created bookmarks crawl task", userId, tag, &offset))
 }
 
 // Fetch artwork bookmarks and then schedule them for download, blocks until done.

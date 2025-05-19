@@ -48,15 +48,13 @@ func (q *Queue) Pop() *Item {
 
 func (q *Queue) String() string {
 	if len(*q) == 0 {
-		return "empty download queue\n"
+		return "empty download queue"
 	}
 
 	builder := strings.Builder{}
-	builder.WriteString("download queue:\n")
-
 	for i, item := range *q {
 		if i >= 10 {
-			line := fmt.Sprintf("... and %v more\n", len(*q)-i)
+			line := fmt.Sprintf("... and %v more", len(*q)-i)
 			builder.WriteString(line)
 			break
 		}

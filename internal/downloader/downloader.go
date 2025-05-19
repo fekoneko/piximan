@@ -2,6 +2,8 @@ package downloader
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
@@ -58,9 +60,46 @@ func New(sessionId *string) *Downloader {
 }
 
 func (d *Downloader) String() string {
-	d.downloadQueueMutex.Lock()
-	defer d.downloadQueueMutex.Unlock()
+	builder := strings.Builder{}
 
-	// TODO: format crawlQueue as well
-	return d.downloadQueue.String()
+	builder.WriteString("download queue:")
+	d.downloadQueueMutex.Lock()
+	if len(d.downloadQueue) == 0 {
+		builder.WriteString(" empty\n")
+	} else {
+		builder.WriteString("\n")
+		builder.WriteString(d.downloadQueue.String())
+		builder.WriteString("\n")
+	}
+	d.downloadQueueMutex.Unlock()
+
+	d.numDownloadingCond.L.Lock()
+	if d.numDownloading > 0 {
+		builder.WriteString("tasks in progress: ")
+		builder.WriteString(strconv.FormatInt(int64(d.numDownloading), 10))
+		builder.WriteString("\n")
+	}
+	d.numDownloadingCond.L.Unlock()
+
+	builder.WriteString("\n")
+
+	builder.WriteString("crawl queue:")
+	d.crawlQueueMutex.Lock()
+	if len(d.crawlQueue) == 0 {
+		builder.WriteString(" empty\n")
+	} else {
+		builder.WriteString(strconv.FormatInt(int64(len(d.crawlQueue)), 10))
+		builder.WriteString(" tasks\n")
+	}
+	d.crawlQueueMutex.Unlock()
+
+	d.numCrawlingCond.L.Lock()
+	if d.numCrawling > 0 {
+		builder.WriteString("tasks in progress: ")
+		builder.WriteString(strconv.FormatInt(int64(d.numCrawling), 10))
+		builder.WriteString("\n")
+	}
+	d.numCrawlingCond.L.Unlock()
+
+	return builder.String()
 }

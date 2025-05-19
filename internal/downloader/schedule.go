@@ -145,7 +145,9 @@ func (d *Downloader) superviseCrawl() {
 		defer d.crawlQueueMutex.Unlock()
 
 		go func() {
-			crawl() // TODO: count these errors as well as download errors
+			crawl()
+			// TODO: count crawl errors as well as download errors
+			// TODO: log new download queue (don't forget mutex)
 
 			d.numCrawlingCond.L.Lock()
 			d.numCrawling--

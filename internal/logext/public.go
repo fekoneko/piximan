@@ -6,6 +6,8 @@ import (
 	"github.com/fekoneko/piximan/internal/termext"
 )
 
+// TODO: multiline logs
+
 func Info(message string, args ...any) {
 	log(infoPrefix+message, args...)
 }
