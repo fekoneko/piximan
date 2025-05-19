@@ -11,8 +11,8 @@ import (
 )
 
 // Download only novel metadata and store it in paths. Blocks until done.
-// For downloading multiple works consider using Schedule() or ScheduleWithWork().
-func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, error) {
+// For downloading multiple works consider using Schedule().
+func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading metadata for novel %v", id)
 
 	w, _, _, err := fetch.NovelMeta(d.client, id)
@@ -32,9 +32,22 @@ func (d *Downloader) DownloadNovelMeta(id uint64, paths []string) (*work.Work, e
 	return w, err
 }
 
+// Doesn't actually make additional requests, but stores incomplete metadata, received earlier.
+// For downloading multiple works consider using ScheduleWithKnown().
+func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []string) (*work.Work, error) {
+	assets := []storage.Asset{}
+	paths, err := pathext.FormatWorkPaths(paths, w)
+	if err == nil {
+		err = storage.WriteWork(w, assets, paths)
+	}
+	logext.MaybeSuccess(err, "stored incomplete metadata for novel %v in %v", id, paths)
+	logext.MaybeError(err, "failed to store incomplete metadata for novel %v", id)
+	return w, err
+}
+
 // Download novel with all assets and metadata and store it in paths. Blocks until done.
-// For downloading multiple works consider using Schedule() or ScheduleWithWork().
-func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error) {
+// For downloading multiple works consider using Schedule().
+func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading novel %v", id)
 
 	w, content, coverUrl, err := fetch.NovelMeta(d.client, id)
@@ -63,4 +76,10 @@ func (d *Downloader) DownloadNovel(id uint64, paths []string) (*work.Work, error
 	logext.MaybeSuccess(err, "stored files for novel %v in %v", id, paths)
 	logext.MaybeError(err, "failed to store files for novel %v", id)
 	return w, err
+}
+
+// Download novel with cover url known in advance and store it in paths. Blocks until done.
+// For downloading multiple works consider using Schedule().
+func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) (*work.Work, error) {
+	panic("unimplemented")
 }

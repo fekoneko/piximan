@@ -18,8 +18,8 @@ import (
 //       if we even need to fetch full metadata
 
 // Download only artwork metadata and store it in paths. Blocks until done.
-// For downloading multiple works consider using Schedule() or ScheduleWithWork().
-func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work, error) {
+// For downloading multiple works consider using Schedule().
+func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading metadata for artwork %v", id)
 
 	w, _, _, err := fetch.ArtworkMeta(d.client, id)
@@ -39,9 +39,22 @@ func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work,
 	return w, err
 }
 
+// Doesn't actually make additional requests, but stores incomplete metadata, received earlier.
+// For downloading multiple works consider using ScheduleWithKnown().
+func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []string) error {
+	assets := []storage.Asset{}
+	paths, err := pathext.FormatWorkPaths(paths, w)
+	if err == nil {
+		err = storage.WriteWork(w, assets, paths)
+	}
+	logext.MaybeSuccess(err, "stored incomplete metadata for artwork %v in %v", id, paths)
+	logext.MaybeError(err, "failed to store incomplete metadata for artwork %v", id)
+	return err
+}
+
 // Download artwork with all assets and metadata and store it in paths. Blocks until done.
-// For downloading multiple works consider using Schedule() or ScheduleWithWork().
-func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
+// For downloading multiple works consider using Schedule().
+func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
 	logext.Info("started downloading artwork %v", id)
 
 	w, firstPageUrls, thumbnailUrls, err := fetch.ArtworkMeta(d.client, id)
@@ -56,11 +69,22 @@ func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string)
 	} else {
 		err = d.continueIllustOrManga(w, firstPageUrls, thumbnailUrls, id, size, paths)
 	}
-	if err != nil {
-		return nil, err
-	}
+	return w, err
+}
 
-	return w, nil
+// Download artwork with partial metadata known inadvance and store it in paths. Blocks until done.
+// For downloading multiple works consider using ScheduleWithKnown().
+func (d *Downloader) ArtworkWithKnown(id uint64, size image.Size, paths []string) (*work.Work, error) {
+	panic("unimplemented")
+}
+
+// Download artwork using already available incomplete metadata and store it in paths.
+// Doesn't fetch full metadata. Blocks until done.
+// For downloading multiple works consider using ScheduleWithKnown().
+func (d *Downloader) LowArtworkWithKnown(
+	id uint64, size image.Size, w *work.Work, paths []string,
+) (*work.Work, error) {
+	panic("unimplemented")
 }
 
 func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) error {

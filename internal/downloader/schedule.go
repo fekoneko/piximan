@@ -28,7 +28,7 @@ func (d *Downloader) Schedule(
 }
 
 // Schedule download with additional work metadata if available. Run() to start downloading.
-func (d *Downloader) ScheduleWithWork(
+func (d *Downloader) ScheduleWithKnown(
 	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
 	work *work.Work, imageUrl *string, lowMeta bool,
 ) {
@@ -182,13 +182,13 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 
 	// TODO: take in concideration queue.Item.Work and queue.Item.ImageUrl
 	if item.Kind == queue.ItemKindNovel && item.OnlyMeta {
-		w, err = d.DownloadNovelMeta(item.Id, item.Paths)
+		w, err = d.NovelMeta(item.Id, item.Paths)
 	} else if item.Kind == queue.ItemKindNovel {
-		w, err = d.DownloadNovel(item.Id, item.Paths)
+		w, err = d.Novel(item.Id, item.Paths)
 	} else if item.Kind == queue.ItemKindArtwork && item.OnlyMeta {
-		w, err = d.DownloadArtworkMeta(item.Id, item.Paths)
+		w, err = d.ArtworkMeta(item.Id, item.Paths)
 	} else if item.Kind == queue.ItemKindArtwork {
-		w, err = d.DownloadArtwork(item.Id, item.Size, item.Paths)
+		w, err = d.Artwork(item.Id, item.Size, item.Paths)
 	} else {
 		err = fmt.Errorf("invalid work type: %v", uint8(item.Kind))
 		logext.Error("failed to pick work %v for download: %v", item.Id, err)

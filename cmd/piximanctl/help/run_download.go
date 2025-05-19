@@ -91,6 +91,7 @@ func RunDownload() {
 // TODO: bookmarks --newer, --older than date + write about it in the help + example
 // TODO: bookmarks --tag + write about it in the help + example
 // TODO: --lowmeta for bookmarks to severely reduce requests count + write in the help + example
+// TODO: --lowmeta works only for bookmarks, but not for novels with --onlymeta
 
 // TODO: just download user's works ('my' or by id) + help + example
 

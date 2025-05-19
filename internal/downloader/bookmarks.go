@@ -10,9 +10,12 @@ import (
 	"github.com/fekoneko/piximan/internal/logext"
 )
 
+// TODO: Bookmarks()
+
 // Schedule artwork bookmarks for download. Run() to start downloading.
 func (d *Downloader) ScheduleBookmarks(
-	userId uint64, kind queue.ItemKind, tag *string, size image.Size, onlyMeta bool, lowMeta bool, paths []string,
+	userId uint64, kind queue.ItemKind, tag *string, size image.Size,
+	onlyMeta bool, lowMeta bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -50,7 +53,7 @@ func (d *Downloader) scheduleArtworkBookmarks(
 	}
 
 	for _, result := range results {
-		d.ScheduleWithWork(
+		d.ScheduleWithKnown(
 			[]uint64{result.Work.Id}, queue.ItemKindArtwork, size, onlyMeta, paths,
 			result.Work, &result.ThumbnailUrl, lowMeta,
 		)
@@ -79,7 +82,7 @@ func (d *Downloader) scheduleNovelBookmarks(
 	}
 
 	for _, result := range results {
-		d.ScheduleWithWork(
+		d.ScheduleWithKnown(
 			[]uint64{result.Work.Id}, queue.ItemKindNovel, image.SizeDefault, onlyMeta, paths,
 			result.Work, &result.CoverUrl, lowMeta,
 		)
