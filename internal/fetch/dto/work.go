@@ -30,16 +30,23 @@ type Work struct {
 		Title    *string `json:"title"`
 	} `json:"seriesNavData"`
 	Tags struct {
-		Tags [](struct {
-			Tag string `json:"tag"`
+		Tags *[](struct {
+			Tag *string `json:"tag"`
 		}) `json:"tags"`
 	} `json:"tags"`
 }
 
 func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
-	tags := make([]string, len(dto.Tags.Tags))
-	for i, tag := range dto.Tags.Tags {
-		tags[i] = tag.Tag
+	var tags *[]string
+	if dto.Tags.Tags != nil {
+		tags = utils.ToPtr(make([]string, len(*dto.Tags.Tags)))
+		for i, tag := range *dto.Tags.Tags {
+			if tag.Tag == nil {
+				tags = nil
+				break
+			}
+			(*tags)[i] = *tag.Tag
+		}
 	}
 
 	return &work.Work{
@@ -62,7 +69,7 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 		SeriesId:     dto.SeriesNavData.SeriesId,
 		SeriesTitle:  dto.SeriesNavData.Title,
 		SeriesOrder:  dto.SeriesNavData.Order,
-		Tags:         &tags,
+		Tags:         tags,
 	}
 }
 
