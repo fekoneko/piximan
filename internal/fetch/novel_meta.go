@@ -10,16 +10,16 @@ import (
 	"github.com/fekoneko/piximan/internal/fetch/dto"
 )
 
-func NovelMeta(client http.Client, id uint64) (*work.Work, *string, string, error) {
+func NovelMeta(client http.Client, id uint64) (*work.Work, *string, *string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/novel/%v", id)
 	body, err := Do(client, url, nil)
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil, nil, err
 	}
 
 	var unmarshalled dto.Response[dto.Novel]
 	if err := json.Unmarshal(body, &unmarshalled); err != nil {
-		return nil, nil, "", err
+		return nil, nil, nil, err
 	}
 
 	work, content, coverUrl := unmarshalled.Body.FromDto(time.Now())

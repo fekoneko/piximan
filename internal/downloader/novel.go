@@ -1,6 +1,7 @@
 package downloader
 
 import (
+	"fmt"
 	"path"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
@@ -56,8 +57,18 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 	if err != nil {
 		return nil, err
 	}
+	if content == nil {
+		err = fmt.Errorf("content is missing")
+		logext.Error("failed to download novel %v: %v", id, err)
+		return nil, err
+	}
+	if coverUrl == nil {
+		err = fmt.Errorf("cover url is missing")
+		logext.Error("failed to download novel %v: %v", id, err)
+		return nil, err
+	}
 
-	cover, err := fetch.Do(d.client, coverUrl, nil)
+	cover, err := fetch.Do(d.client, *coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
 	logext.MaybeError(err, "failed to fetch cover for novel %v", id)
 	if err != nil {
@@ -65,7 +76,7 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 	}
 
 	assets := []storage.Asset{
-		{Bytes: cover, Extension: path.Ext(coverUrl)},
+		{Bytes: cover, Extension: path.Ext(*coverUrl)},
 		{Bytes: []byte(*content), Extension: ".txt"},
 	}
 

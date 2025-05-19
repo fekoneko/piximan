@@ -15,7 +15,7 @@ import (
 type ArtworkBookmarkResult struct {
 	Work           *work.Work
 	BookmarkedTime *time.Time
-	ThumbnailUrl   string
+	ThumbnailUrl   *string
 }
 
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.

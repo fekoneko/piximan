@@ -61,5 +61,6 @@ func (d *Downloader) String() string {
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
 
+	// TODO: format crawlQueue as well
 	return d.downloadQueue.String()
 }

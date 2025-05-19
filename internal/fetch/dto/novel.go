@@ -4,16 +4,17 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/utils"
 )
 
 type Novel struct {
 	Work
-	Content            string        `json:"content"` // TODO: look at the format
-	CoverUrl           string        `json:"coverUrl"`
+	Content            *string       `json:"content"` // TODO: look at the format
+	CoverUrl           *string       `json:"coverUrl"`
 	TextEmbeddedImages []interface{} `json:"textEmbeddedImages"` // TODO: implement
 }
 
-func (dto *Novel) FromDto(downloadTime time.Time) (*work.Work, *string, string) {
-	work := dto.Work.FromDto(work.KindNovel, downloadTime)
-	return work, &dto.Content, dto.CoverUrl
+func (dto *Novel) FromDto(downloadTime time.Time) (*work.Work, *string, *string) {
+	work := dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
+	return work, dto.Content, dto.CoverUrl
 }

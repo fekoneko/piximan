@@ -9,6 +9,7 @@ import (
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/pathext"
 	"github.com/fekoneko/piximan/internal/storage/dto"
+	"github.com/fekoneko/piximan/internal/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -39,7 +40,7 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 			if asset.Page != 0 {
 				builder.WriteString(fmt.Sprintf("%03d. ", asset.Page))
 			}
-			builder.WriteString(work.Title)
+			builder.WriteString(utils.FromPtr(work.Title, "unknown"))
 			builder.WriteString(asset.Extension)
 			filename := pathext.ToValidFilename(builder.String())
 			path := filepath.Join(path, filename)

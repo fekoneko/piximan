@@ -66,10 +66,16 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 		return nil, err
 	}
 
-	if w.Kind == work.KindUgoira {
+	if w.Kind == nil {
+		err = fmt.Errorf("work kind is missing in %v", w)
+		logext.Error("failed to download artwork %v: %v", id, err)
+	} else if *w.Kind == work.KindUgoira {
 		err = d.continueUgoira(w, id, paths)
-	} else {
+	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
 		err = d.continueIllustOrManga(w, firstPageUrls, thumbnailUrls, id, size, paths)
+	} else {
+		err = fmt.Errorf("invalid work kind: %v", *w.Kind)
+		logext.Error("failed to download artwork %v: %v", id, err)
 	}
 	return w, err
 }
@@ -120,7 +126,7 @@ func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) err
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
 func (d *Downloader) tryFetchFrames(w *work.Work, id uint64) (string, []encode.Frame, error) {
-	if w.Restriction == work.RestrictionNone || d.sessionId == nil {
+	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || d.sessionId == nil {
 		url, frames, err := fetch.ArtworkFrames(d.client, id)
 		if err == nil {
 			logext.Success("fetched frames data for artwork %v", id)
@@ -166,7 +172,7 @@ func (d *Downloader) continueIllustOrManga(
 		}
 	}
 
-	pageUrls, err = d.tryFetchPages(w, id, size)
+	pageUrls, err = d.fetchPages(w, id, size)
 	if err != nil {
 		return err
 	}
@@ -187,12 +193,17 @@ func (d *Downloader) continueIllustOrManga(
 func inferPages(
 	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, size image.Size,
 ) ([]string, bool, error) {
+	if w.NumPages == nil {
+		err := fmt.Errorf("number of pages is missing in %v", w)
+		return nil, false, err
+	}
+
 	if firstPageUrls != nil {
 		firstPageUrl := (*firstPageUrls)[size]
-		if w.NumPages <= 1 {
+		if *w.NumPages <= 1 {
 			return []string{firstPageUrl}, true, nil
 		}
-		pageUrls, err := inferPagesFromFirstUrl(firstPageUrl, w.NumPages)
+		pageUrls, err := inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
 		if err == nil {
 			return pageUrls, true, nil
 		}
@@ -246,7 +257,7 @@ func inferPages(
 		)
 		withExtensions = false
 	}
-	pageUrls, _ := inferPagesFromFirstUrl(firstPageUrl, w.NumPages)
+	pageUrls, _ := inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
 	return pageUrls, withExtensions, nil
 }
 
@@ -268,8 +279,8 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 // First the function will try to make the request without authorization and then with one.
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
-func (d *Downloader) tryFetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
-	if w.Restriction == work.RestrictionNone || d.sessionId == nil {
+func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
+	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || d.sessionId == nil {
 		pageUrls, err := fetch.ArtworkPages(d.client, id, size)
 		if err == nil {
 			logext.Success("fetched page urls for artwork %v", id)

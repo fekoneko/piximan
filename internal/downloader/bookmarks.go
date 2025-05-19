@@ -52,9 +52,14 @@ func (d *Downloader) scheduleArtworkBookmarks(
 	}
 
 	for _, result := range results {
+		if result.Work.Id == nil {
+			err := fmt.Errorf("work id is missing in %v", result.Work)
+			logext.Error("%v: %v", bookmarksLogPrefix("failed to schedule artwork bookmark", userId, tag, &offset), err)
+			continue
+		}
 		d.ScheduleWithKnown(
-			[]uint64{result.Work.Id}, queue.ItemKindArtwork, size, onlyMeta, paths,
-			result.Work, &result.ThumbnailUrl, lowMeta,
+			[]uint64{*result.Work.Id}, queue.ItemKindArtwork, size, onlyMeta, paths,
+			result.Work, result.ThumbnailUrl, lowMeta,
 		)
 	}
 
@@ -80,9 +85,14 @@ func (d *Downloader) scheduleNovelBookmarks(
 	}
 
 	for _, result := range results {
+		if result.Work.Id == nil {
+			err := fmt.Errorf("work id is missing in %v", result.Work)
+			logext.Error("%v: %v", bookmarksLogPrefix("failed to schedule novel bookmark", userId, tag, &offset), err)
+			continue
+		}
 		d.ScheduleWithKnown(
-			[]uint64{result.Work.Id}, queue.ItemKindNovel, image.SizeDefault, onlyMeta, paths,
-			result.Work, &result.CoverUrl, lowMeta,
+			[]uint64{*result.Work.Id}, queue.ItemKindNovel, image.SizeDefault, onlyMeta, paths,
+			result.Work, result.CoverUrl, lowMeta,
 		)
 	}
 

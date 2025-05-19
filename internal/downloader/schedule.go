@@ -182,7 +182,8 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 
 	isArtwork := item.Kind == queue.ItemKindArtwork
 	isNovel := item.Kind == queue.ItemKindNovel
-	withKnown := item.Work != nil && item.ImageUrl != nil
+	withWork := item.Work != nil
+	withImage := item.ImageUrl != nil
 	lowMeta, onlyMeta := item.LowMeta, item.OnlyMeta
 
 	if !isArtwork && !isNovel {
@@ -192,24 +193,27 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	}
 
 	switch {
-	case isNovel && !onlyMeta && !withKnown:
+	case isNovel && !onlyMeta && !withImage:
 		w, err = d.Novel(item.Id, item.Paths)
-	case isNovel && !onlyMeta && withKnown:
+	case isNovel && !onlyMeta && withImage:
 		w, err = d.NovelWithKnown(item.Id, *item.ImageUrl, item.Paths)
-	case isNovel && onlyMeta && (!withKnown || !lowMeta):
+	case isNovel && onlyMeta && !(withWork && lowMeta):
 		w, err = d.NovelMeta(item.Id, item.Paths)
-	case isNovel && onlyMeta && withKnown && lowMeta:
+	case isNovel && onlyMeta && withWork && lowMeta:
 		w, err = d.LowNovelMetaWithKnown(item.Id, item.Work, item.Paths)
-	case isArtwork && !onlyMeta && !withKnown:
+	case isArtwork && !onlyMeta && !(withWork && withImage):
 		w, err = d.Artwork(item.Id, item.Size, item.Paths)
-	case isArtwork && !onlyMeta && withKnown && !lowMeta:
+	case isArtwork && !onlyMeta && withWork && withImage && !lowMeta:
 		w, err = d.ArtworkWithKnown(item.Id, item.Size, item.Work, *item.ImageUrl, item.Paths)
-	case isArtwork && !onlyMeta && withKnown && lowMeta:
+	case isArtwork && !onlyMeta && withWork && withImage && lowMeta:
 		w, err = d.LowArtworkWithKnown(item.Id, item.Size, item.Work, *item.ImageUrl, item.Paths)
-	case isArtwork && onlyMeta && (!withKnown || !lowMeta):
+	case isArtwork && onlyMeta && (!withWork || !lowMeta):
 		w, err = d.ArtworkMeta(item.Id, item.Paths)
-	case isArtwork && onlyMeta && withKnown && lowMeta:
+	case isArtwork && onlyMeta && withWork && lowMeta:
 		w, err = d.LowArtworkMetaWithKnown(item.Id, item.Work, item.Paths)
+	default:
+		err = fmt.Errorf("impossible combination of work type, known metadata, lowmeta and onlymeta")
+		logext.Error("failed to pick work %v for download: %v", item.Id, err)
 	}
 
 	if err == nil {

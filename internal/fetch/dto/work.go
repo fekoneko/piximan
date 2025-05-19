@@ -2,28 +2,28 @@ package dto
 
 import (
 	"html"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/utils"
 )
 
 type Work struct {
-	Id            string `json:"id"`
-	Title         string `json:"title"`
-	Description   string `json:"description"`
-	UserId        string `json:"userId"`
-	UserName      string `json:"userName"`
-	XRestrict     uint8  `json:"xRestrict"`
-	AiType        uint8  `json:"aiType"`
-	IsOriginal    bool   `json:"isOriginal"`
-	PageCount     uint64 `json:"pageCount"`
-	ViewCount     uint64 `json:"viewCount"`
-	BookmarkCount uint64 `json:"bookmarkCount"`
-	LikeCount     uint64 `json:"likeCount"`
-	CommentCount  uint64 `json:"commentCount"`
-	UploadDate    string `json:"uploadDate"`
+	Id            *string `json:"id"`
+	Title         *string `json:"title"`
+	Description   *string `json:"description"`
+	UserId        *string `json:"userId"`
+	UserName      *string `json:"userName"`
+	XRestrict     *uint8  `json:"xRestrict"`
+	AiType        *uint8  `json:"aiType"`
+	IsOriginal    *bool   `json:"isOriginal"`
+	PageCount     *uint64 `json:"pageCount"`
+	ViewCount     *uint64 `json:"viewCount"`
+	BookmarkCount *uint64 `json:"bookmarkCount"`
+	LikeCount     *uint64 `json:"likeCount"`
+	CommentCount  *uint64 `json:"commentCount"`
+	UploadDate    *string `json:"uploadDate"`
 	SeriesNavData struct {
 		SeriesId *uint64 `json:"seriesId"`
 		Order    *uint64 `json:"order"`
@@ -36,43 +36,33 @@ type Work struct {
 	} `json:"tags"`
 }
 
-func (dto *Work) FromDto(kind work.Kind, downloadTime time.Time) *work.Work {
-	id, _ := strconv.ParseUint(dto.Id, 10, 64)
-	userId, _ := strconv.ParseUint(dto.UserId, 10, 64)
-
-	uploadTime, err := time.Parse(time.RFC3339, dto.UploadDate)
-	localUploadTime := uploadTime.Local()
-	localUploadTimePtr := &localUploadTime
-	if err != nil {
-		localUploadTimePtr = nil
-	}
-
+func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 	tags := make([]string, len(dto.Tags.Tags))
 	for i, tag := range dto.Tags.Tags {
 		tags[i] = tag.Tag
 	}
 
 	return &work.Work{
-		Id:           id,
+		Id:           utils.ParseUint64Ptr(dto.Id),
 		Title:        dto.Title,
 		Kind:         kind,
 		Description:  formatDescription(dto.Description),
-		UserId:       userId,
+		UserId:       utils.ParseUint64Ptr(dto.UserId),
 		UserName:     dto.UserName,
-		Restriction:  work.RestrictionFromUint(dto.XRestrict),
-		AiKind:       work.AiKindFromUint(dto.AiType),
+		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
+		AiKind:       utils.MapPtr(dto.XRestrict, work.AiKindFromUint),
 		IsOriginal:   dto.IsOriginal,
 		NumPages:     dto.PageCount,
 		NumViews:     dto.ViewCount,
 		NumBookmarks: dto.BookmarkCount,
 		NumLikes:     dto.LikeCount,
 		NumComments:  dto.CommentCount,
-		UploadTime:   localUploadTimePtr,
-		DownloadTime: downloadTime.Local(),
+		UploadTime:   utils.ParseLocalTimePtr(dto.UploadDate),
+		DownloadTime: utils.ToPtr(downloadTime.Local()),
 		SeriesId:     dto.SeriesNavData.SeriesId,
 		SeriesTitle:  dto.SeriesNavData.Title,
 		SeriesOrder:  dto.SeriesNavData.Order,
-		Tags:         tags,
+		Tags:         &tags,
 	}
 }
 
@@ -81,28 +71,33 @@ func (dto *Work) FromDto(kind work.Kind, downloadTime time.Time) *work.Work {
 // - replaces <a> tags with their href attribute values
 // - removes all other HTML tags
 // - unescapes HTML entities
-func formatDescription(description string) string {
+func formatDescription(description *string) *string {
+	if description == nil {
+		return nil
+	}
+
 	tagStart := 0
 	textStart := 0
 	builder := strings.Builder{}
 
-	for i, b := range description {
+	for i, b := range *description {
 		switch b {
 		case '<':
 			tagStart = i + 1
-			builder.WriteString(description[textStart:i])
+			builder.WriteString((*description)[textStart:i])
 		case '>':
 			textStart = i + 1
-			tag := strings.ToLower(description[tagStart:i])
+			tag := strings.ToLower((*description)[tagStart:i])
 			if strings.HasPrefix(tag, "br ") || tag == "br/" || tag == "br" {
 				builder.WriteString("\n")
 			}
 		}
 	}
 
-	if textStart < len(description) {
-		builder.WriteString(description[textStart:])
+	if textStart < len(*description) {
+		builder.WriteString((*description)[textStart:])
 	}
 
-	return html.UnescapeString(builder.String())
+	result := html.UnescapeString(builder.String())
+	return &result
 }
