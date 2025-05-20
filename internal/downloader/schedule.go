@@ -88,10 +88,8 @@ func (d *Downloader) superviseDownload() {
 	d.downloading = true
 	d.downloadingMutex.Unlock()
 
-	d.numDownloadingCond.L.Lock()
-	defer d.numDownloadingCond.L.Unlock()
-
 	for {
+		d.numDownloadingCond.L.Lock()
 		for d.numDownloading >= DOWNLOAD_PENDING_LIMIT {
 			d.numDownloadingCond.Wait()
 		}
@@ -99,10 +97,19 @@ func (d *Downloader) superviseDownload() {
 		d.downloadQueueMutex.Lock()
 		item := d.downloadQueue.Pop()
 		d.downloadQueueMutex.Unlock()
-		if item == nil && !d.waitCrawled() {
-			break
+
+		if item == nil {
+			d.numDownloadingCond.L.Unlock()
+
+			if d.waitCrawled() {
+				continue
+			} else {
+				break
+			}
 		}
+
 		d.numDownloading++
+		d.numDownloadingCond.L.Unlock()
 
 		go func() {
 			d.downloadItem(item)
@@ -142,7 +149,8 @@ func (d *Downloader) superviseCrawl() {
 		}
 		crawl := d.crawlQueue[0]
 		d.crawlQueue = d.crawlQueue[1:]
-		defer d.crawlQueueMutex.Unlock()
+		d.crawlQueueMutex.Unlock()
+		d.numCrawling++
 
 		go func() {
 			crawl()
