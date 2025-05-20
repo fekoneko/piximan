@@ -36,7 +36,7 @@ func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *storage.Asset, 
 }
 
 // fetch novel cover asset
-func (d *Downloader) coverAsset(id uint64, coverUrl string) (*storage.Asset, error) {
+func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*storage.Asset, error) {
 	cover, err := fetch.Do(d.client(), coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
 	logext.MaybeError(err, "failed to fetch cover for novel %v", id)
@@ -61,12 +61,12 @@ func (d *Downloader) novelMetaChannel(
 }
 
 // coverAsset() but returs results through channels
-func (d *Downloader) coverAssetChannel(
+func (d *Downloader) novelCoverAssetChannel(
 	id uint64, coverUrl string,
 	coverChannel chan *storage.Asset,
 	errorChannel chan error,
 ) {
-	if coverAsset, err := d.coverAsset(id, coverUrl); err == nil {
+	if coverAsset, err := d.novelCoverAsset(id, coverUrl); err == nil {
 		coverChannel <- coverAsset
 	} else {
 		errorChannel <- err

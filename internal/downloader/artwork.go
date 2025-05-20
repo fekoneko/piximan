@@ -61,7 +61,8 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 		writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
-		assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrls, size)
+		thumbnailUrl := urlFromMap(id, thumbnailUrls)
+		assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrl, size)
 		writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else {
@@ -77,11 +78,40 @@ func (d *Downloader) ArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
 	logext.Info("started downloading artwork %v", id)
-	// TODO: check if metadata is complete
-	// if !w.Full() {
-	// 	logext.Warning("metadata for artwork %v is incomplete", id)
-	// }
-	panic("unimplemented")
+
+	workChannel := make(chan *work.Work)
+	assetsChannel := make(chan []storage.Asset)
+	errorChannel := make(chan error)
+
+	go d.artworkMetaChannel(id, workChannel, errorChannel)
+
+	if w.Kind == nil {
+		err := fmt.Errorf("work kind is missing in %v", w)
+		logext.Error("failed to download artwork %v: %v", id, err)
+		return w, err
+	} else if *w.Kind == work.KindUgoira {
+		go d.ugoiraAssetsChannel(id, w, assetsChannel, errorChannel)
+	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
+		go d.illustMangaAssetsChannel(id, w, nil, &thumbnailUrl, size, assetsChannel, errorChannel)
+	} else {
+		err := fmt.Errorf("invalid work kind: %v", *w.Kind)
+		logext.Error("failed to download artwork %v: %v", id, err)
+		return w, err
+	}
+
+	var fullWork *work.Work
+	var assets []storage.Asset
+
+	for range 2 {
+		select {
+		case fullWork = <-workChannel:
+		case assets = <-assetsChannel:
+		case err := <-errorChannel:
+			return nil, err
+		}
+	}
+
+	return fullWork, writeWork(id, queue.ItemKindArtwork, fullWork, assets, false, paths)
 }
 
 // Download artwork using already available incomplete metadata and store it in paths.

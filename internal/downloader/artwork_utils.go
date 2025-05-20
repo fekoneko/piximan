@@ -19,3 +19,15 @@ func (d *Downloader) artworkMeta(id uint64) (*work.Work, *[4]string, map[uint64]
 	}
 	return w, firstPageUrls, thumbnailUrls, nil
 }
+
+func (d *Downloader) artworkMetaChannel(
+	id uint64,
+	workChannel chan *work.Work,
+	errorChannel chan error,
+) {
+	if w, _, _, err := d.artworkMeta(id); err == nil {
+		workChannel <- w
+	} else {
+		errorChannel <- err
+	}
+}

@@ -12,15 +12,23 @@ import (
 	"github.com/fekoneko/piximan/internal/storage"
 )
 
+func urlFromMap(id uint64, urls map[uint64]string) *string {
+	var urlPtr *string
+	if url, ok := urls[id]; ok {
+		urlPtr = &url
+	}
+	return urlPtr
+}
+
 // Fetch all image assets for illust or manga artwork
 func (d *Downloader) illustMangaAssets(
 	id uint64,
 	w *work.Work,
 	firstPageUrls *[4]string,
-	thumbnailUrls map[uint64]string,
+	thumbnailUrl *string,
 	size image.Size,
 ) ([]storage.Asset, error) {
-	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrls, size)
+	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrl, size)
 	if err != nil {
 		logext.Warning("failed to infer page urls for artwork %v: %v", id, err)
 	} else {
@@ -49,7 +57,7 @@ func (d *Downloader) illustMangaAssets(
 // ! The extension for restricted images in original size cannot be derived, thus we'll have to
 // ! try each one later.
 func inferPages(
-	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, size image.Size,
+	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrl *string, size image.Size,
 ) ([]string, bool, error) {
 	if w.NumPages == nil {
 		err := fmt.Errorf("number of pages is missing in %v", w)
@@ -67,17 +75,16 @@ func inferPages(
 		}
 	}
 
-	thumbnailUrl, ok := thumbnailUrls[id]
-	if !ok {
-		return nil, false, fmt.Errorf("cannot find urls to infer from")
+	if thumbnailUrl == nil {
+		return nil, false, fmt.Errorf("no thumbnail url to infer from")
 	}
 
 	const PREFIX_MASTER = "https://i.pximg.net/c/250x250_80_a2/img-master/img/"
 	const PREFIX_CUSTOM = "https://i.pximg.net/c/250x250_80_a2/custom-thumb/img/"
 	var prefixLength int
-	if strings.HasPrefix(thumbnailUrl, PREFIX_MASTER) {
+	if strings.HasPrefix(*thumbnailUrl, PREFIX_MASTER) {
 		prefixLength = len(PREFIX_MASTER)
-	} else if strings.HasPrefix(thumbnailUrl, PREFIX_CUSTOM) {
+	} else if strings.HasPrefix(*thumbnailUrl, PREFIX_CUSTOM) {
 		prefixLength = len(PREFIX_CUSTOM)
 	} else {
 		return nil, false, fmt.Errorf("thumbnail url has incorrect prefix")
@@ -85,10 +92,10 @@ func inferPages(
 
 	urlDateStart := prefixLength
 	urlDateEnd := prefixLength + len("0000/00/00/00/00/00")
-	if len(thumbnailUrl) < urlDateEnd {
+	if len(*thumbnailUrl) < urlDateEnd {
 		return nil, false, fmt.Errorf("thumbnail url is too short")
 	}
-	urlDate := thumbnailUrl[urlDateStart:urlDateEnd]
+	urlDate := (*thumbnailUrl)[urlDateStart:urlDateEnd]
 
 	var firstPageUrl string
 	withExtensions := true
@@ -251,4 +258,20 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 	}
 
 	return assets, nil
+}
+
+func (d *Downloader) illustMangaAssetsChannel(
+	id uint64,
+	w *work.Work,
+	firstPageUrls *[4]string,
+	thumbnailUrl *string,
+	size image.Size,
+	assetsChannel chan []storage.Asset,
+	errorChannel chan error,
+) {
+	if assets, err := d.illustMangaAssets(id, w, nil, thumbnailUrl, size); err == nil {
+		assetsChannel <- assets
+	} else {
+		errorChannel <- err
+	}
 }

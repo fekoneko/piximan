@@ -78,3 +78,15 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []encode.Fram
 	logext.Error("failed to fetch frames data for artwork %v: %v", id, err)
 	return "", nil, err
 }
+
+func (d *Downloader) ugoiraAssetsChannel(
+	id uint64, w *work.Work,
+	assetsChannel chan []storage.Asset,
+	errorChannel chan error,
+) {
+	if assets, err := d.ugoiraAssets(id, w); err == nil {
+		assetsChannel <- assets
+	} else {
+		errorChannel <- err
+	}
+}

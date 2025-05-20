@@ -43,7 +43,7 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 	if err != nil {
 		return nil, err
 	}
-	coverAsset, err := d.coverAsset(id, *coverUrl)
+	coverAsset, err := d.novelCoverAsset(id, *coverUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) 
 	errorChannel := make(chan error)
 
 	go d.novelMetaChannel(id, workChannel, contentChannel, errorChannel)
-	go d.coverAssetChannel(id, coverUrl, coverChannel, errorChannel)
+	go d.novelCoverAssetChannel(id, coverUrl, coverChannel, errorChannel)
 
 	var w *work.Work
 	var contentAsset *storage.Asset
