@@ -84,9 +84,8 @@ func RunDownload() {
 	fmt.Print(DOWNLOAD_HELP)
 }
 
-// TODO: public user bookmarks download + remove unimplemented message in the help
+// TODO: write about --bookmarks in the help + example for different types
 // TODO: authorized user bookmarks download (+private) + write about it in the help + example
-// TODO: download bookmarks of type (novel, artwork) + example in the help
 // TODO: bookmarks --from, --to (offset and limit) + write about it in the help + example
 // TODO: bookmarks --newer, --older than date + write about it in the help + example
 // TODO: bookmarks --tag + write about it in the help + example
