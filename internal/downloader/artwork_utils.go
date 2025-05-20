@@ -8,7 +8,7 @@ import (
 
 // fetch artwork metadata, map with urls to the first page and thumbnail urls
 func (d *Downloader) artworkMeta(id uint64) (*work.Work, *[4]string, map[uint64]string, error) {
-	w, firstPageUrls, thumbnailUrls, err := fetch.ArtworkMeta(*d.client(), id)
+	w, firstPageUrls, thumbnailUrls, err := fetch.ArtworkMeta(d.client(), id)
 	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {

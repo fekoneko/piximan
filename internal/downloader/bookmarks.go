@@ -47,7 +47,7 @@ func (d *Downloader) scheduleArtworkBookmarks(
 	}
 
 	offset := uint(0)
-	results, err := fetch.ArtworkBookmarksAuthorized(*d.client(), userId, tag, offset, 100, *d.sessionId())
+	results, err := fetch.ArtworkBookmarksAuthorized(d.client(), userId, tag, offset, 100, *d.sessionId())
 	logext.MaybeSuccess(err, bookmarksLogPrefix("fetched artwork bookmarks", userId, tag, &offset))
 	logext.MaybeError(err, bookmarksLogPrefix("failed to fetch artwork bookmarks", userId, tag, &offset))
 	if err != nil {
@@ -80,7 +80,7 @@ func (d *Downloader) scheduleNovelBookmarks(
 	}
 
 	offset := uint(0)
-	results, err := fetch.NovelBookmarksAuthorized(*d.client(), userId, tag, offset, 100, *d.sessionId())
+	results, err := fetch.NovelBookmarksAuthorized(d.client(), userId, tag, offset, 100, *d.sessionId())
 	logext.MaybeSuccess(err, bookmarksLogPrefix("fetched novel bookmarks", userId, tag, &offset))
 	logext.MaybeError(err, bookmarksLogPrefix("failed to fetch novel bookmarks", userId, tag, &offset))
 	if err != nil {

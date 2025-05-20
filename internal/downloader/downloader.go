@@ -44,21 +44,10 @@ type Downloader struct {
 func New(sessionId *string) *Downloader {
 	return &Downloader{
 		_sessionId:         sessionId,
-		sessionIdMutex:     sync.Mutex{},
-		_client:            http.Client{},
-		clientMutex:        sync.Mutex{},
 		channel:            make(chan *work.Work, CHANNEL_SIZE),
-		downloadQueue:      queue.Queue{},
-		downloadQueueMutex: sync.Mutex{},
-		numDownloading:     0,
 		numDownloadingCond: *sync.NewCond(&sync.Mutex{}),
 		crawlQueue:         make([]func() error, 0),
-		crawlQueueMutex:    sync.Mutex{},
-		numCrawling:        0,
 		numCrawlingCond:    *sync.NewCond(&sync.Mutex{}),
-		downloading:        false,
-		downloadingMutex:   sync.Mutex{},
-		crawling:           false,
 		crawlingCond:       *sync.NewCond(&sync.Mutex{}),
 	}
 }

@@ -19,7 +19,7 @@ import (
 func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading metadata for artwork %v", id)
 
-	w, _, _, err := fetch.ArtworkMeta(*d.client(), id)
+	w, _, _, err := fetch.ArtworkMeta(d.client(), id)
 	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/fekoneko/piximan/internal/fetch/dto"
 )
 
-func NovelMeta(client http.Client, id uint64) (*work.Work, *string, *string, error) {
+func NovelMeta(client *http.Client, id uint64) (*work.Work, *string, *string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/novel/%v", id)
 	body, err := Do(client, url, nil)
 	if err != nil {

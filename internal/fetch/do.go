@@ -13,7 +13,7 @@ import (
 const BUFFER_SIZE = 4096
 const PXIMG_PENDING_LIMIT = 5
 
-func Do(client http.Client, url string, onProgress func(int, int)) ([]byte, error) {
+func Do(client *http.Client, url string, onProgress func(int, int)) ([]byte, error) {
 	request, err := newRequest(url)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func Do(client http.Client, url string, onProgress func(int, int)) ([]byte, erro
 }
 
 func DoAuthorized(
-	client http.Client, url string, sessionId string, onProgress func(int, int),
+	client *http.Client, url string, sessionId string, onProgress func(int, int),
 ) ([]byte, error) {
 	request, err := newRequest(url)
 	if err != nil {
@@ -66,7 +66,7 @@ func newRequest(url string) (*http.Request, error) {
 }
 
 func doWithRequest(
-	client http.Client, request *http.Request, onProgress func(int, int),
+	client *http.Client, request *http.Request, onProgress func(int, int),
 ) ([]byte, error) {
 	response, err := client.Do(request)
 	if err != nil {

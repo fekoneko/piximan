@@ -17,7 +17,7 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]storage.Asset, err
 		return nil, err
 	}
 
-	archive, err := fetch.Do(*d.client(), url, nil)
+	archive, err := fetch.Do(d.client(), url, nil)
 	logext.MaybeSuccess(err, "fetched frames for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch frames for artwork %v", id)
 	if err != nil {
@@ -41,7 +41,7 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]storage.Asset, err
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
 func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []encode.Frame, error) {
 	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || d.sessionId() == nil {
-		url, frames, err := fetch.ArtworkFrames(*d.client(), id)
+		url, frames, err := fetch.ArtworkFrames(d.client(), id)
 		if err == nil && url == nil {
 			err = fmt.Errorf("frames archive url is missing")
 		} else if err == nil && frames == nil {
@@ -59,7 +59,7 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []encode.Fram
 	}
 
 	if d.sessionId() != nil {
-		url, frames, err := fetch.ArtworkFramesAuthorized(*d.client(), id, *d.sessionId())
+		url, frames, err := fetch.ArtworkFramesAuthorized(d.client(), id, *d.sessionId())
 		if err == nil && url == nil {
 			err = fmt.Errorf("frames archive url is missing")
 		} else if err == nil && frames == nil {

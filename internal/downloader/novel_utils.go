@@ -12,7 +12,7 @@ import (
 
 // fetch novel metadata, cover url and content asset
 func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *storage.Asset, error) {
-	w, content, coverUrl, err := fetch.NovelMeta(*d.client(), id)
+	w, content, coverUrl, err := fetch.NovelMeta(d.client(), id)
 	logext.MaybeSuccess(err, "fetched metadata for novel %v", id)
 	logext.MaybeError(err, "failed to fetch metadata for novel %v", id)
 	if err != nil {
@@ -37,7 +37,7 @@ func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *storage.Asset, 
 
 // fetch novel cover asset
 func (d *Downloader) coverAsset(id uint64, coverUrl string) (*storage.Asset, error) {
-	cover, err := fetch.Do(*d.client(), coverUrl, nil)
+	cover, err := fetch.Do(d.client(), coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
 	logext.MaybeError(err, "failed to fetch cover for novel %v", id)
 
