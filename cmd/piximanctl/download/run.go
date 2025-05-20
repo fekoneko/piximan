@@ -4,6 +4,7 @@ import "os"
 
 type options struct {
 	Ids         *[]uint64 `short:"i" long:"id"`
+	Bookmarks   *string   `short:"b" long:"bookmarks"`
 	QueuePath   *string   `short:"l" long:"list"`
 	InferIdPath *string   `short:"I" long:"inferid"`
 	Kind        *string   `short:"t" long:"type"`

@@ -71,3 +71,16 @@ func FormatUTCTimePtr(t *time.Time) *string {
 	formatted := t.UTC().Format(time.RFC3339)
 	return &formatted
 }
+
+func ExactlyOneDefined(values ...any) bool {
+	defined := false
+	for _, value := range values {
+		if value != nil {
+			if defined {
+				return false
+			}
+			defined = true
+		}
+	}
+	return defined
+}

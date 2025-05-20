@@ -2,6 +2,7 @@ package download
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/image"
@@ -29,6 +30,17 @@ func download(options *options) {
 	if options.Ids != nil {
 		paths := []string{path}
 		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
+
+	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
+		panic("not implemented") // TODO: fetch user id and use it
+
+	} else if options.Bookmarks != nil {
+		userId, err := strconv.ParseUint(*options.Bookmarks, 10, 64)
+		logext.MaybeFatal(err, "cannot parse user id %v", *options.Bookmarks)
+
+		paths := []string{path}
+		d.ScheduleBookmarks(userId, kind, nil, nil, nil, size, onlyMeta, false, paths)
+
 	} else if options.InferIdPath != nil {
 		result, err := pathext.InferIdsFromWorkPath(*options.InferIdPath)
 		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
@@ -41,6 +53,7 @@ func download(options *options) {
 			q := queue.FromMapWithPaths(result, kind, size, onlyMeta, paths)
 			d.ScheduleQueue(q)
 		}
+
 	} else if options.QueuePath != nil {
 		paths := []string{path}
 		q, warnings, err := storage.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
@@ -49,6 +62,7 @@ func download(options *options) {
 
 		d.ScheduleQueue(q)
 	}
+
 	fmt.Println(d)
 
 	logext.EnableRequestSlots()

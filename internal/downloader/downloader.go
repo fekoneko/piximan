@@ -33,7 +33,7 @@ type Downloader struct {
 	downloading        bool
 	downloadingMutex   sync.Mutex
 
-	crawlQueue      []func() error // TODO: make custom struct with Pust and Pop?
+	crawlQueue      []func() error // TODO: make custom struct with Push and Pop?
 	crawlQueueMutex sync.Mutex
 	numCrawling     int
 	numCrawlingCond sync.Cond

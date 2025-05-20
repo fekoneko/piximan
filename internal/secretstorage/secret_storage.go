@@ -22,7 +22,7 @@ type SecretStorage struct {
 }
 
 func Open(password string) (*SecretStorage, error) {
-	// TODO: maybe store make the salt not empty and store it as well
+	// TODO: maybe make the salt not empty and store it as well
 	key, err := pbkdf2.Key(sha256.New, password, []byte{}, 4096, 32)
 	if err != nil {
 		return nil, err

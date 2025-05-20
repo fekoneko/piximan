@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/jessevdk/go-flags"
 )
 
@@ -14,20 +15,15 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 
-	if options.Ids == nil && options.InferIdPath == nil && options.QueuePath == nil {
-		fmt.Println("one of these flags is not provided: `-i, --id', `-I, --inferid' or `-l, --list'")
+	if !utils.ExactlyOneDefined(
+		options.Ids, options.Bookmarks, options.InferIdPath, options.QueuePath,
+	) {
+		fmt.Println("provide one download source: `-i, --id', `-b, --bookmarks' `-I, --inferid' or `-l, --list'")
 		os.Exit(2)
 	}
-	if options.Ids != nil && options.InferIdPath != nil {
-		fmt.Println("providing these flags together is not supported: `-i, --id' and `-I, --inferid'")
-		os.Exit(2)
-	}
-	if options.QueuePath != nil && options.Ids != nil {
-		fmt.Println("providing these flags together is not supported: `-l, --list' and `-i, --id'")
-		os.Exit(2)
-	}
-	if options.QueuePath != nil && options.InferIdPath != nil {
-		fmt.Println("providing these flags together is not supported: `-l, --list' and `-I, --inferid'")
+	withBookmarksUserId := utils.ParseUint64Ptr(options.Bookmarks) == nil
+	if options.Bookmarks != nil && *options.Bookmarks != "my" && withBookmarksUserId {
+		fmt.Println("invalid argument for flag `-b, --bookmarks'")
 		os.Exit(2)
 	}
 	if options.Kind != nil && options.Size != nil && *options.Kind == queue.ItemKindNovelString {

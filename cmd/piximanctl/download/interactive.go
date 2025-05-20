@@ -13,7 +13,7 @@ import (
 )
 
 func interactive() {
-	ids, inferIdPath, queuePath := selectMode()
+	ids, bookmarks, inferIdPath, queuePath := selectSource()
 	withQueue := queuePath != nil
 	withInferId := inferIdPath != nil
 
@@ -25,6 +25,7 @@ func interactive() {
 	fmt.Println()
 	download(&options{
 		Ids:         ids,
+		Bookmarks:   bookmarks,
 		QueuePath:   queuePath,
 		InferIdPath: inferIdPath,
 		Kind:        &kind,
@@ -34,32 +35,40 @@ func interactive() {
 	})
 }
 
-func selectMode() (*[]uint64, *string, *string) {
-	_, mode, err := modeSelect.Run()
+func selectSource() (*[]uint64, *string, *string, *string) {
+	_, mode, err := sourceSelect.Run()
 	logext.MaybeFatal(err, "failed to read mode")
 
 	switch mode {
-	case idModeOption:
+	case idOption:
 		idsString, err := idPrompt.Run()
 		logext.MaybeFatal(err, "failed to read IDs")
 		ids, err := parseIdsString(idsString)
 		logext.MaybeFatal(err, "failed to parse IDs")
-		return &ids, nil, nil
+		return &ids, nil, nil, nil
 
-	case inferIdModeOption:
+	case myBookmarksOption:
+		return nil, utils.ToPtr("my"), nil, nil
+
+	case userBookmarksOption:
+		userId, err := userIdPrompt.Run()
+		logext.MaybeFatal(err, "failed to read user ID")
+		return nil, utils.ToPtr(userId), nil, nil
+
+	case inferIdOption:
 		inferIdPath, err := inferIdPathPrompt.Run()
 		logext.MaybeFatal(err, "failed to read pattern")
-		return nil, &inferIdPath, nil
+		return nil, nil, &inferIdPath, nil
 
-	case queueModeOption:
+	case queueOption:
 		queuePath, err := queuePathPrompt.Run()
 		logext.MaybeFatal(err, "failed to read list path")
-		return nil, nil, &queuePath
+		return nil, nil, nil, &queuePath
 
 	default:
 		logext.Fatal("incorrect download mode: %v", mode)
+		panic("unreachable")
 	}
-	panic("unreachable")
 }
 
 func selectKind(withQueue bool) string {
@@ -73,8 +82,8 @@ func selectKind(withQueue bool) string {
 		return queue.ItemKindNovelString
 	default:
 		logext.Fatal("invalid worktype: %s", kind)
+		panic("unreachable")
 	}
-	panic("unreachable")
 }
 
 func selectOnlyMeta(withQueue bool) bool {
@@ -88,8 +97,8 @@ func selectOnlyMeta(withQueue bool) bool {
 		return true
 	default:
 		logext.Fatal("incorrect downloaded files choice: %v", downloadFiles)
+		panic("unreachable")
 	}
-	panic("unreachable")
 }
 
 func selectSize(withQueue bool, onlyMeta bool) *uint {
@@ -115,8 +124,8 @@ func selectSize(withQueue bool, onlyMeta bool) *uint {
 		return &result
 	default:
 		logext.Fatal("incorrect size: %v", size)
+		panic("unreachable")
 	}
-	panic("unreachable")
 }
 
 func promptPath(withInferId bool, withQueue bool) *string {
@@ -156,14 +165,16 @@ func parseIdsString(idsString string) ([]uint64, error) {
 	return ids, nil
 }
 
-var modeSelectLabel = "Download mode"
-var idModeOption = "Download by ID"
-var inferIdModeOption = "Infer IDs from path"
-var queueModeOption = "Download from list"
+var sourceSelectLabel = "Download mode"
+var idOption = "Download by ID"
+var myBookmarksOption = "Download my bookmarks"
+var userBookmarksOption = "Download bookmarks of user"
+var inferIdOption = "Infer IDs from path"
+var queueOption = "Download from list"
 
-var modeSelect = promptui.Select{
-	Label: modeSelectLabel,
-	Items: []string{idModeOption, inferIdModeOption, queueModeOption},
+var sourceSelect = promptui.Select{
+	Label: sourceSelectLabel,
+	Items: []string{idOption, myBookmarksOption, userBookmarksOption, inferIdOption, queueOption},
 }
 
 var idPromptLabel = "Work IDs"
@@ -173,6 +184,18 @@ var idPrompt = promptui.Prompt{
 	Validate: func(input string) error {
 		if _, err := parseIdsString(input); err != nil {
 			return fmt.Errorf("IDs must be a comma-separated list of numbers")
+		}
+		return nil
+	},
+}
+
+var userIdPromptLabel = "User ID"
+
+var userIdPrompt = promptui.Prompt{
+	Label: userIdPromptLabel,
+	Validate: func(input string) error {
+		if _, err := strconv.ParseUint(input, 10, 64); err != nil {
+			return fmt.Errorf("user ID must be a number")
 		}
 		return nil
 	},
