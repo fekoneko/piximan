@@ -43,7 +43,7 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 	if err != nil {
 		return nil, err
 	}
-	coverAsset, err := d.coverAsset(id, coverUrl)
+	coverAsset, err := d.coverAsset(id, *coverUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +56,28 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) (*work.Work, error) {
 	logext.Info("started downloading novel %v", id)
 
-	// TODO: check if metadata is complete
-	// if !w.Full() {
-	// 	logext.Warning("metadata for novel %v is incomplete", id)
-	// }
-	panic("unimplemented")
+	workChannel := make(chan *work.Work, 1)
+	contentChannel := make(chan *storage.Asset, 1)
+	coverChannel := make(chan *storage.Asset, 1)
+	errorChannel := make(chan error)
+
+	go d.novelMetaChannel(id, workChannel, contentChannel, errorChannel)
+	go d.coverAssetChannel(id, coverUrl, coverChannel, errorChannel)
+
+	var w *work.Work
+	var contentAsset *storage.Asset
+	var coverAsset *storage.Asset
+
+	for range 3 {
+		select {
+		case w = <-workChannel:
+		case contentAsset = <-contentChannel:
+		case coverAsset = <-coverChannel:
+		case err := <-errorChannel:
+			return nil, err
+		}
+	}
+
+	assets := []storage.Asset{*contentAsset, *coverAsset}
+	return w, writeWork(id, queue.ItemKindNovel, w, assets, false, paths)
 }

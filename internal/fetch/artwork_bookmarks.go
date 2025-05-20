@@ -11,7 +11,6 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-// TODO: make such a result struct for all such overloaded return values
 type ArtworkBookmarkResult struct {
 	Work           *work.Work
 	BookmarkedTime *time.Time

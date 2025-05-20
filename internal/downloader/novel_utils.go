@@ -36,11 +36,39 @@ func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *storage.Asset, 
 }
 
 // fetch novel cover asset
-func (d *Downloader) coverAsset(id uint64, coverUrl *string) (*storage.Asset, error) {
-	cover, err := fetch.Do(d.client, *coverUrl, nil)
+func (d *Downloader) coverAsset(id uint64, coverUrl string) (*storage.Asset, error) {
+	cover, err := fetch.Do(d.client, coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
 	logext.MaybeError(err, "failed to fetch cover for novel %v", id)
 
-	asset := storage.Asset{Bytes: cover, Extension: path.Ext(*coverUrl)}
+	asset := storage.Asset{Bytes: cover, Extension: path.Ext(coverUrl)}
 	return &asset, nil
+}
+
+// novelMeta() but returs results through channels
+func (d *Downloader) novelMetaChannel(
+	id uint64,
+	workChannel chan *work.Work,
+	contentChannel chan *storage.Asset,
+	errorChannel chan error,
+) {
+	if w, _, contentAsset, err := d.novelMeta(id); err == nil {
+		workChannel <- w
+		contentChannel <- contentAsset
+	} else {
+		errorChannel <- err
+	}
+}
+
+// coverAsset() but returs results through channels
+func (d *Downloader) coverAssetChannel(
+	id uint64, coverUrl string,
+	coverChannel chan *storage.Asset,
+	errorChannel chan error,
+) {
+	if coverAsset, err := d.coverAsset(id, coverUrl); err == nil {
+		coverChannel <- coverAsset
+	} else {
+		errorChannel <- err
+	}
 }
