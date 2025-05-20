@@ -11,9 +11,6 @@ import (
 	"github.com/fekoneko/piximan/internal/storage"
 )
 
-// TODO: when downloading bookmarks we can fetch metadata in parallel with images
-//       if we even need to fetch full metadata
-
 // Download only artwork metadata and store it in paths. Blocks until done.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) {

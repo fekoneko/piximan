@@ -6,21 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fetch/dto"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-type ArtworkBookmarkResult struct {
-	Work           *work.Work
-	BookmarkedTime *time.Time
-	ThumbnailUrl   *string
-}
-
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
 func ArtworkBookmarksAuthorized(
 	client *http.Client, userId uint64, tag *string, offset uint, limit uint, sessionId string,
-) ([]ArtworkBookmarkResult, error) {
+) ([]BookmarkResult, error) {
 	url := fmt.Sprintf(
 		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=show",
 		userId, utils.FromPtr(tag, ""), offset, limit,
@@ -35,13 +28,13 @@ func ArtworkBookmarksAuthorized(
 		return nil, err
 	}
 
-	results := make([]ArtworkBookmarkResult, len(unmarshalled.Body.Works))
+	results := make([]BookmarkResult, len(unmarshalled.Body.Works))
 	for i, work := range unmarshalled.Body.Works {
 		work, bookmarkedTime, thumbnailUrl := work.FromDto(time.Now())
-		results[i] = ArtworkBookmarkResult{
+		results[i] = BookmarkResult{
 			Work:           work,
 			BookmarkedTime: bookmarkedTime,
-			ThumbnailUrl:   thumbnailUrl,
+			ImageUrl:       thumbnailUrl,
 		}
 	}
 

@@ -23,34 +23,41 @@ func (d *Downloader) ScheduleBookmarks(
 	//       don't forget to log
 	offset := uint(0)
 	d.crawlQueue = append(d.crawlQueue, func() error {
-		if kind == queue.ItemKindArtwork {
-			return d.scheduleArtworkBookmarks(userId, tag, size, onlyMeta, lowMeta, paths)
-		} else if kind == queue.ItemKindNovel {
-			return d.scheduleNovelBookmarks(userId, tag, onlyMeta, lowMeta, paths)
-		} else {
-			err := fmt.Errorf("invalid work type: %v", uint8(kind))
-			logext.Error("%v: %v", bookmarksLogPrefix("failed to fetch bookmarks", userId, tag, nil), err)
-			return err
-		}
+		return d.scheduleBookmarks(userId, kind, tag, offset, size, onlyMeta, lowMeta, paths)
 	})
 	logext.Info(bookmarksLogPrefix("created bookmarks crawl task", userId, tag, &offset))
 }
 
-// Fetch artwork bookmarks and then schedule them for download, blocks until done.
-func (d *Downloader) scheduleArtworkBookmarks(
-	userId uint64, tag *string, size image.Size, onlyMeta bool, lowMeta bool, paths []string,
+// fetch bookmarks and then schedule them for download
+func (d *Downloader) scheduleBookmarks(
+	userId uint64, kind queue.ItemKind, tag *string, offset uint,
+	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
 ) error {
-	sessionId, withSessionId := d.sessionId()
-	if !withSessionId {
-		err := fmt.Errorf("authorization is required")
-		logext.Error("%v: %v", bookmarksLogPrefix("failed to fetch artwork bookmarks", userId, tag, nil), err)
+	var successMessage = fmt.Sprintf("failed to fetch %v bookmarks", kind)
+	var errorMessage = fmt.Sprintf("failed to fetch %v bookmarks", kind)
+
+	if kind != queue.ItemKindArtwork && kind != queue.ItemKindNovel {
+		err := fmt.Errorf("invalid work type: %v", uint8(kind))
+		logext.Error("%v: %v", bookmarksLogPrefix(errorMessage, userId, tag, nil), err)
 		return err
 	}
 
-	offset := uint(0)
-	results, err := fetch.ArtworkBookmarksAuthorized(d.client(), userId, tag, offset, 100, *sessionId)
-	logext.MaybeSuccess(err, bookmarksLogPrefix("fetched artwork bookmarks", userId, tag, &offset))
-	logext.MaybeError(err, bookmarksLogPrefix("failed to fetch artwork bookmarks", userId, tag, &offset))
+	sessionId, withSessionId := d.sessionId()
+	if !withSessionId {
+		err := fmt.Errorf("authorization is required")
+		logext.Error("%v: %v", bookmarksLogPrefix(errorMessage, userId, tag, nil), err)
+		return err
+	}
+
+	var results []fetch.BookmarkResult
+	var err error
+	if kind == queue.ItemKindArtwork {
+		results, err = fetch.ArtworkBookmarksAuthorized(d.client(), userId, tag, offset, 100, *sessionId)
+	} else {
+		results, err = fetch.NovelBookmarksAuthorized(d.client(), userId, tag, offset, 100, *sessionId)
+	}
+	logext.MaybeSuccess(err, bookmarksLogPrefix(successMessage, userId, tag, &offset))
+	logext.MaybeError(err, bookmarksLogPrefix(errorMessage, userId, tag, &offset))
 	if err != nil {
 		return err
 	}
@@ -58,46 +65,12 @@ func (d *Downloader) scheduleArtworkBookmarks(
 	for _, result := range results {
 		if result.Work.Id == nil {
 			err := fmt.Errorf("work id is missing in %v", result.Work)
-			logext.Error("%v: %v", bookmarksLogPrefix("failed to schedule artwork bookmark", userId, tag, &offset), err)
+			logext.Error("%v %v: %v", bookmarksLogPrefix("failed to schedule", userId, tag, &offset), kind, err)
 			continue
 		}
 		d.ScheduleWithKnown(
-			[]uint64{*result.Work.Id}, queue.ItemKindArtwork, size, onlyMeta, paths,
-			result.Work, result.ThumbnailUrl, lowMeta,
-		)
-	}
-
-	return nil
-}
-
-// Fetch novel bookmarks and then schedule them for download, blocks until done.
-func (d *Downloader) scheduleNovelBookmarks(
-	userId uint64, tag *string, onlyMeta bool, lowMeta bool, paths []string,
-) error {
-	sessionId, withSessionId := d.sessionId()
-	if !withSessionId {
-		err := fmt.Errorf("authorization is required")
-		logext.Error("%v: %v", bookmarksLogPrefix("failed to fetch novel bookmarks", userId, tag, nil), err)
-		return err
-	}
-
-	offset := uint(0)
-	results, err := fetch.NovelBookmarksAuthorized(d.client(), userId, tag, offset, 100, *sessionId)
-	logext.MaybeSuccess(err, bookmarksLogPrefix("fetched novel bookmarks", userId, tag, &offset))
-	logext.MaybeError(err, bookmarksLogPrefix("failed to fetch novel bookmarks", userId, tag, &offset))
-	if err != nil {
-		return err
-	}
-
-	for _, result := range results {
-		if result.Work.Id == nil {
-			err := fmt.Errorf("work id is missing in %v", result.Work)
-			logext.Error("%v: %v", bookmarksLogPrefix("failed to schedule novel bookmark", userId, tag, &offset), err)
-			continue
-		}
-		d.ScheduleWithKnown(
-			[]uint64{*result.Work.Id}, queue.ItemKindNovel, image.SizeDefault, onlyMeta, paths,
-			result.Work, result.CoverUrl, lowMeta,
+			[]uint64{*result.Work.Id}, kind, size, onlyMeta, paths,
+			result.Work, result.ImageUrl, lowMeta,
 		)
 	}
 
