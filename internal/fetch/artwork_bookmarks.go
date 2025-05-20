@@ -12,20 +12,20 @@ import (
 
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
 func ArtworkBookmarksAuthorized(
-	client *http.Client, userId uint64, tag *string, offset uint, limit uint, sessionId string,
-) ([]BookmarkResult, error) {
+	client *http.Client, userId uint64, tag *string, offset uint64, limit uint64, sessionId string,
+) ([]BookmarkResult, uint64, error) {
 	url := fmt.Sprintf(
 		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=show",
 		userId, utils.FromPtr(tag, ""), offset, limit,
 	)
 	body, err := Do(client, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var unmarshalled dto.Response[dto.ArtworkBookmarksBody]
 	if err := json.Unmarshal(body, &unmarshalled); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	results := make([]BookmarkResult, len(unmarshalled.Body.Works))
@@ -38,5 +38,5 @@ func ArtworkBookmarksAuthorized(
 		}
 	}
 
-	return results, nil
+	return results, unmarshalled.Body.Total, nil
 }

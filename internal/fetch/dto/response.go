@@ -6,8 +6,10 @@ type Response[T any] struct {
 
 type ArtworkBookmarksBody struct {
 	Works []BookmarkArtwork `json:"works"`
+	Total uint64            `json:"total"`
 }
 
 type NovelBookmarksBody struct {
 	Works []BookmarkNovel `json:"works"`
+	Total uint64          `json:"total"`
 }
