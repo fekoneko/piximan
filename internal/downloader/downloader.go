@@ -37,8 +37,6 @@ type Downloader struct {
 	crawlQueueMutex sync.Mutex
 	numCrawling     int
 	numCrawlingCond sync.Cond
-	crawling        bool
-	crawlingCond    sync.Cond
 }
 
 func New(sessionId *string) *Downloader {
@@ -48,7 +46,6 @@ func New(sessionId *string) *Downloader {
 		numDownloadingCond: *sync.NewCond(&sync.Mutex{}),
 		crawlQueue:         make([]func() error, 0),
 		numCrawlingCond:    *sync.NewCond(&sync.Mutex{}),
-		crawlingCond:       *sync.NewCond(&sync.Mutex{}),
 	}
 }
 
@@ -62,7 +59,6 @@ func (d *Downloader) String() string {
 	} else {
 		builder.WriteString("\n")
 		builder.WriteString(d.downloadQueue.String())
-		builder.WriteString("\n")
 	}
 	d.downloadQueueMutex.Unlock()
 

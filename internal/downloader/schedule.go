@@ -63,8 +63,8 @@ func (d *Downloader) Run() {
 	defer d.downloadingMutex.Unlock()
 
 	if !d.downloading {
+		d.spawnCrawlTasks()
 		go d.superviseDownload()
-		go d.superviseCrawl()
 	}
 }
 
@@ -80,6 +80,8 @@ func (d *Downloader) WaitDone() {
 	for d.WaitNext() != nil {
 	}
 }
+
+// TODO: make supervisers prettier
 
 // Meant to be run in a separate goroutine. Spawns download goroutines from downloadQueu
 // until it is empty and no crawling is happening. Sets d.downloading to false when done.
@@ -101,7 +103,7 @@ func (d *Downloader) superviseDownload() {
 		if item == nil {
 			d.numDownloadingCond.L.Unlock()
 
-			if d.waitCrawled() {
+			if d.waitNextCrawled() {
 				continue
 			} else {
 				break
@@ -121,6 +123,12 @@ func (d *Downloader) superviseDownload() {
 		}()
 	}
 
+	d.numDownloadingCond.L.Lock()
+	for d.numDownloading > 0 {
+		d.numDownloadingCond.Wait()
+	}
+	d.numDownloadingCond.L.Unlock()
+
 	d.downloadingMutex.Lock()
 	d.downloading = false
 	d.downloadingMutex.Unlock()
@@ -130,11 +138,7 @@ func (d *Downloader) superviseDownload() {
 
 // Meant to be run in a separate goroutine. Spawns crawl goroutines from crawlQueue
 // until it is empty. Sets d.crawling to false when done.
-func (d *Downloader) superviseCrawl() {
-	d.crawlingCond.L.Lock()
-	d.crawling = true
-	d.crawlingCond.L.Unlock()
-
+func (d *Downloader) spawnCrawlTasks() {
 	d.numCrawlingCond.L.Lock()
 	defer d.numCrawlingCond.L.Unlock()
 
@@ -163,25 +167,17 @@ func (d *Downloader) superviseCrawl() {
 			d.numCrawlingCond.L.Unlock()
 		}()
 	}
-
-	d.crawlingCond.L.Lock()
-	d.crawling = false
-	d.crawlingCond.Broadcast()
-	d.crawlingCond.L.Unlock()
 }
 
-// Returns false if already crawled, otherwise waits for crawling to be finished and returns true.
-func (d *Downloader) waitCrawled() bool {
-	d.crawlingCond.L.Lock()
-	defer d.crawlingCond.L.Unlock()
+// Returns false if already crawled, otherwise waits for next crawl task to finish and returns true.
+func (d *Downloader) waitNextCrawled() bool {
+	d.numCrawlingCond.L.Lock()
+	defer d.numCrawlingCond.L.Unlock()
 
-	if !d.crawling {
+	if d.numCrawling <= 0 {
 		return false
 	}
-
-	for d.crawling {
-		d.crawlingCond.Wait()
-	}
+	d.numCrawlingCond.Wait()
 
 	return true
 }
