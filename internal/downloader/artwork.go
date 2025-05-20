@@ -121,5 +121,22 @@ func (d *Downloader) LowArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
 	logext.Info("started downloading artwork %v", id)
-	panic("unimplemented")
+
+	if w.Kind == nil {
+		err := fmt.Errorf("work kind is missing in %v", w)
+		logext.Error("failed to download artwork %v: %v", id, err)
+		return w, err
+	} else if *w.Kind == work.KindUgoira {
+		assets, err := d.ugoiraAssets(id, w)
+		writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
+		return w, err
+	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
+		assets, err := d.illustMangaAssets(id, w, nil, &thumbnailUrl, size)
+		writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
+		return w, err
+	} else {
+		err := fmt.Errorf("invalid work kind: %v", *w.Kind)
+		logext.Error("failed to download artwork %v: %v", id, err)
+		return w, err
+	}
 }
