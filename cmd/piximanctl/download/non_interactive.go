@@ -18,7 +18,7 @@ func nonInteractive() {
 	if !utils.ExactlyOneDefined(
 		options.Ids, options.Bookmarks, options.InferIdPath, options.QueuePath,
 	) {
-		fmt.Println("provide one download source: `-i, --id', `-b, --bookmarks' `-I, --inferid' or `-l, --list'")
+		fmt.Println("provide exactly one download source: `-i, --id', `-b, --bookmarks' `-I, --inferid' or `-l, --list'")
 		os.Exit(2)
 	}
 	withBookmarksUserId := utils.ParseUint64Ptr(options.Bookmarks) == nil

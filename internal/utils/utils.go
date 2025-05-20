@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -75,7 +76,7 @@ func FormatUTCTimePtr(t *time.Time) *string {
 func ExactlyOneDefined(values ...any) bool {
 	defined := false
 	for _, value := range values {
-		if value != nil {
+		if reflect.ValueOf(value).Pointer() != 0 {
 			if defined {
 				return false
 			}

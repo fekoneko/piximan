@@ -76,10 +76,10 @@ func (d *Downloader) String() string {
 
 	builder.WriteString("\n")
 
-	builder.WriteString("crawl queue:")
+	builder.WriteString("crawl queue: ")
 	d.crawlQueueMutex.Lock()
 	if len(d.crawlQueue) == 0 {
-		builder.WriteString(" empty\n")
+		builder.WriteString("empty\n")
 	} else {
 		builder.WriteString(strconv.FormatInt(int64(len(d.crawlQueue)), 10))
 		builder.WriteString(" tasks\n")

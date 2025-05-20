@@ -40,6 +40,7 @@ func download(options *options) {
 
 		paths := []string{path}
 		d.ScheduleBookmarks(userId, kind, nil, nil, nil, size, onlyMeta, false, paths)
+		fmt.Println()
 
 	} else if options.InferIdPath != nil {
 		result, err := pathext.InferIdsFromWorkPath(*options.InferIdPath)
