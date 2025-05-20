@@ -138,12 +138,12 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
 func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
-	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || d.sessionId == nil {
-		pageUrls, err := fetch.ArtworkPages(d.client, id, size)
+	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || d.sessionId() == nil {
+		pageUrls, err := fetch.ArtworkPages(*d.client(), id, size)
 		if err == nil {
 			logext.Success("fetched page urls for artwork %v", id)
 			return pageUrls, nil
-		} else if d.sessionId == nil {
+		} else if d.sessionId() == nil {
 			logext.Error("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
 			return nil, err
 		} else {
@@ -151,8 +151,8 @@ func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]str
 		}
 	}
 
-	if d.sessionId != nil {
-		pageUrls, err := fetch.ArtworkPagesAuthorized(d.client, id, size, *d.sessionId)
+	if d.sessionId() != nil {
+		pageUrls, err := fetch.ArtworkPagesAuthorized(*d.client(), id, size, *d.sessionId())
 		logext.MaybeSuccess(err, "fetched page urls for artwork %v", id)
 		logext.MaybeError(err, "failed to fetch page urls for artwork %v", id)
 		if err != nil {
@@ -190,7 +190,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 	if !withExtensions {
 		for _, extension := range extensions {
 			go func() {
-				bytes, err := fetch.Do(d.client, pageUrls[0]+extension, nil)
+				bytes, err := fetch.Do(*d.client(), pageUrls[0]+extension, nil)
 				if err != nil {
 					logext.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
 					errorChannel <- err
@@ -223,7 +223,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			continue
 		}
 		go func() {
-			bytes, err := fetch.Do(d.client, url+guessedExtension, nil)
+			bytes, err := fetch.Do(*d.client(), url+guessedExtension, nil)
 			if err != nil {
 				logErrorOrWarning("failed to fetch page %v for artwork %v: %v", i+1, id, err)
 				errorChannel <- err

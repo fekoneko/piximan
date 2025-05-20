@@ -1,6 +1,8 @@
 package downloader
 
 import (
+	"net/http"
+
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/logext"
@@ -21,4 +23,16 @@ func writeWork(
 	logext.MaybeSuccess(err, "stored %v for %v %v in %v", what, kind, id, paths)
 	logext.MaybeError(err, "failed to store %v for %v %v", what, kind, id)
 	return err
+}
+
+func (d *Downloader) client() *http.Client {
+	d.clientMutex.Lock()
+	defer d.clientMutex.Unlock()
+	return &d._client
+}
+
+func (d *Downloader) sessionId() *string {
+	d.sessionIdMutex.Lock()
+	defer d.sessionIdMutex.Unlock()
+	return d._sessionId
 }

@@ -20,9 +20,11 @@ const CRAWL_PENDING_LIMIT = 1
 // Use Schedule<...>() methods to fill the queues and then Run() to start downloading.
 // Use Wait<...>() to block on the results.
 type Downloader struct {
-	sessionId *string
-	client    http.Client
-	channel   chan *work.Work
+	_sessionId     *string
+	sessionIdMutex sync.Mutex
+	_client        http.Client
+	clientMutex    sync.Mutex
+	channel        chan *work.Work
 
 	downloadQueue      queue.Queue
 	downloadQueueMutex sync.Mutex
@@ -41,8 +43,10 @@ type Downloader struct {
 
 func New(sessionId *string) *Downloader {
 	return &Downloader{
-		sessionId:          sessionId,
-		client:             http.Client{},
+		_sessionId:         sessionId,
+		sessionIdMutex:     sync.Mutex{},
+		_client:            http.Client{},
+		clientMutex:        sync.Mutex{},
 		channel:            make(chan *work.Work, CHANNEL_SIZE),
 		downloadQueue:      queue.Queue{},
 		downloadQueueMutex: sync.Mutex{},
