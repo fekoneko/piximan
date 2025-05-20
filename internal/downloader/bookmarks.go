@@ -30,12 +30,19 @@ func (d *Downloader) ScheduleBookmarks(
 		defer d.crawlQueueMutex.Unlock()
 
 		toOffset := min(utils.FromPtr(to, total), total)
-		for offset := fromOffset; offset < toOffset; offset += 100 {
+		numTasks := 0
+		for offset := fromOffset + 100; offset < toOffset; offset += 100 {
 			d.crawlQueue = append(d.crawlQueue, func() error {
 				_, err := d.scheduleBookmarksPage(userId, kind, tag, offset, size, onlyMeta, lowMeta, paths)
 				return err
 			})
-			logext.Info(bookmarksLogMessage("created bookmarks crawl task", userId, tag, &offset))
+			numTasks++
+		}
+		if numTasks > 0 {
+			logext.Info(
+				bookmarksLogMessage("created %v bookmarks crawl %v", userId, tag, nil),
+				numTasks, utils.If(numTasks == 1, "task", "tasks"),
+			)
 		}
 		return nil
 	})
@@ -47,8 +54,8 @@ func (d *Downloader) scheduleBookmarksPage(
 	userId uint64, kind queue.ItemKind, tag *string, offset uint64,
 	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
 ) (uint64, error) {
-	var successPrefix = fmt.Sprintf("failed to fetch %v bookmarks", kind)
-	var errorPrefix = fmt.Sprintf("failed to fetch %v bookmarks", kind)
+	var successPrefix = fmt.Sprintf("fetched %v bookmarks page", kind)
+	var errorPrefix = fmt.Sprintf("failed to fetch %v bookmarks page", kind)
 
 	if kind != queue.ItemKindArtwork && kind != queue.ItemKindNovel {
 		err := fmt.Errorf("invalid work type: %v", uint8(kind))

@@ -18,7 +18,7 @@ func ArtworkBookmarksAuthorized(
 		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=show",
 		userId, utils.FromPtr(tag, ""), offset, limit,
 	)
-	body, err := Do(client, url, nil)
+	body, err := DoAuthorized(client, url, sessionId, nil)
 	if err != nil {
 		return nil, 0, err
 	}
