@@ -10,7 +10,8 @@ import (
 	"github.com/fekoneko/piximan/internal/storage"
 )
 
-func (d *Downloader) ugoiraAssets(w *work.Work, id uint64) ([]storage.Asset, error) {
+// Fetch and encode gif asset for ugoira
+func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]storage.Asset, error) {
 	url, frames, err := d.fetchFrames(w, id)
 	if err != nil {
 		return nil, err

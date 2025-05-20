@@ -47,14 +47,9 @@ func (d *Downloader) LowArtworkMetaWithKnown(
 func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
 	logext.Info("started downloading artwork %v", id)
 
-	w, firstPageUrls, thumbnailUrls, err := fetch.ArtworkMeta(d.client, id)
-	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
-	logext.MaybeError(err, "failed to fetch metadata for artwork %v", id)
+	w, firstPageUrls, thumbnailUrls, err := d.artworkMeta(id)
 	if err != nil {
 		return nil, err
-	}
-	if !w.Full() {
-		logext.Warning("metadata for artwork %v is incomplete", id)
 	}
 
 	if w.Kind == nil {
@@ -62,11 +57,11 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 		logext.Error("failed to download artwork %v: %v", id, err)
 		return w, err
 	} else if *w.Kind == work.KindUgoira {
-		assets, err := d.ugoiraAssets(w, id)
+		assets, err := d.ugoiraAssets(id, w)
 		writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
-		assets, err := d.illustMangaAssets(w, firstPageUrls, thumbnailUrls, id, size)
+		assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrls, size)
 		writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else {

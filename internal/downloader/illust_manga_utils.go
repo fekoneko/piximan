@@ -12,11 +12,12 @@ import (
 	"github.com/fekoneko/piximan/internal/storage"
 )
 
+// Fetch all image assets for illust or manga artwork
 func (d *Downloader) illustMangaAssets(
+	id uint64,
 	w *work.Work,
 	firstPageUrls *[4]string,
 	thumbnailUrls map[uint64]string,
-	id uint64,
 	size image.Size,
 ) ([]storage.Asset, error) {
 	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrls, size)
