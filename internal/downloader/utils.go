@@ -11,16 +11,18 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
+// thread safe method to get http client
 func (d *Downloader) client() *http.Client {
 	d.clientMutex.Lock()
 	defer d.clientMutex.Unlock()
 	return &d._client
 }
 
-func (d *Downloader) sessionId() *string {
+// thread safe method to get session id, second return value is weather session id is known
+func (d *Downloader) sessionId() (*string, bool) {
 	d.sessionIdMutex.Lock()
 	defer d.sessionIdMutex.Unlock()
-	return d._sessionId
+	return d._sessionId, d._sessionId != nil
 }
 
 func writeWork(

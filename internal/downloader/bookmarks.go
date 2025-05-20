@@ -40,14 +40,15 @@ func (d *Downloader) ScheduleBookmarks(
 func (d *Downloader) scheduleArtworkBookmarks(
 	userId uint64, tag *string, size image.Size, onlyMeta bool, lowMeta bool, paths []string,
 ) error {
-	if d.sessionId() == nil {
+	sessionId, withSessionId := d.sessionId()
+	if !withSessionId {
 		err := fmt.Errorf("authorization is required")
 		logext.Error("%v: %v", bookmarksLogPrefix("failed to fetch artwork bookmarks", userId, tag, nil), err)
 		return err
 	}
 
 	offset := uint(0)
-	results, err := fetch.ArtworkBookmarksAuthorized(d.client(), userId, tag, offset, 100, *d.sessionId())
+	results, err := fetch.ArtworkBookmarksAuthorized(d.client(), userId, tag, offset, 100, *sessionId)
 	logext.MaybeSuccess(err, bookmarksLogPrefix("fetched artwork bookmarks", userId, tag, &offset))
 	logext.MaybeError(err, bookmarksLogPrefix("failed to fetch artwork bookmarks", userId, tag, &offset))
 	if err != nil {
@@ -73,14 +74,15 @@ func (d *Downloader) scheduleArtworkBookmarks(
 func (d *Downloader) scheduleNovelBookmarks(
 	userId uint64, tag *string, onlyMeta bool, lowMeta bool, paths []string,
 ) error {
-	if d.sessionId() == nil {
+	sessionId, withSessionId := d.sessionId()
+	if !withSessionId {
 		err := fmt.Errorf("authorization is required")
 		logext.Error("%v: %v", bookmarksLogPrefix("failed to fetch novel bookmarks", userId, tag, nil), err)
 		return err
 	}
 
 	offset := uint(0)
-	results, err := fetch.NovelBookmarksAuthorized(d.client(), userId, tag, offset, 100, *d.sessionId())
+	results, err := fetch.NovelBookmarksAuthorized(d.client(), userId, tag, offset, 100, *sessionId)
 	logext.MaybeSuccess(err, bookmarksLogPrefix("fetched novel bookmarks", userId, tag, &offset))
 	logext.MaybeError(err, bookmarksLogPrefix("failed to fetch novel bookmarks", userId, tag, &offset))
 	if err != nil {
