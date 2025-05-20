@@ -136,8 +136,7 @@ func (d *Downloader) superviseDownload() {
 	d.channel <- nil
 }
 
-// Meant to be run in a separate goroutine. Spawns crawl goroutines from crawlQueue
-// until it is empty. Sets d.crawling to false when done.
+// Spawns crawl goroutines from crawlQueue until it is empty
 func (d *Downloader) spawnCrawlTasks() {
 	d.numCrawlingCond.L.Lock()
 	defer d.numCrawlingCond.L.Unlock()
