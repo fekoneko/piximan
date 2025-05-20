@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/internal/fetch/dto"
+	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -28,14 +29,19 @@ func NovelBookmarksAuthorized(
 		return nil, 0, err
 	}
 
-	results := make([]BookmarkResult, len(unmarshalled.Body.Works))
-	for i, work := range unmarshalled.Body.Works {
-		work, bookmarkedTime, coverUrl := work.FromDto(time.Now())
-		results[i] = BookmarkResult{
+	results := make([]BookmarkResult, 0, len(unmarshalled.Body.Works))
+	for _, work := range unmarshalled.Body.Works {
+		work, unlisted, bookmarkedTime, coverUrl := work.FromDto(time.Now())
+		if unlisted {
+			logext.Warning("bookmarked novel %v is unlisted", utils.FromPtr(work.Id, 0))
+			continue
+		}
+
+		results = append(results, BookmarkResult{
 			Work:           work,
 			BookmarkedTime: bookmarkedTime,
 			ImageUrl:       coverUrl,
-		}
+		})
 	}
 
 	return results, unmarshalled.Body.Total, nil

@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
@@ -8,10 +10,10 @@ import (
 )
 
 type BookmarkWork struct {
-	Id          *string   `json:"id"`
+	Id          any       `json:"id"`
 	Title       *string   `json:"title"`
 	Description *string   `json:"description"`
-	UserId      *string   `json:"userId"`
+	UserId      any       `json:"userId"`
 	UserName    *string   `json:"userName"`
 	XRestrict   *uint8    `json:"xRestrict"`
 	AiType      *uint8    `json:"aiType"`
@@ -20,15 +22,38 @@ type BookmarkWork struct {
 	Tags        *[]string `json:"tags"`
 }
 
-func (dto *BookmarkWork) FromDto(kind *work.Kind, downloadTime time.Time) (*work.Work, *time.Time) {
+func (dto *BookmarkWork) FromDto(
+	kind *work.Kind, downloadTime time.Time,
+) (*work.Work, bool, *time.Time) {
+	var id *uint64
+	idTypeKind := reflect.TypeOf(dto.Id).Kind()
+	if idTypeKind == reflect.String {
+		if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.Id).String(), 10, 64); err == nil {
+			id = &parsed
+		}
+	} else if idTypeKind == reflect.Float64 {
+		parsed := reflect.ValueOf(dto.Id).Float()
+		id := utils.ToPtr(uint64(parsed))
+		work := work.Work{Id: id}
+		return &work, true, nil
+	}
+
+	var userId *uint64
+	userIdTypeKind := reflect.TypeOf(dto.UserId).Kind()
+	if userIdTypeKind == reflect.String {
+		if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.UserId).String(), 10, 64); err == nil {
+			userId = &parsed
+		}
+	}
+
 	bookmarkedTime := utils.ParseLocalTimePtr(dto.CreateDate)
 
 	work := &work.Work{
-		Id:           utils.ParseUint64Ptr(dto.Id),
+		Id:           id,
 		Title:        dto.Title,
 		Kind:         kind,
 		Description:  formatDescription(dto.Description),
-		UserId:       utils.ParseUint64Ptr(dto.UserId),
+		UserId:       userId,
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
 		AiKind:       utils.MapPtr(dto.XRestrict, work.AiKindFromUint),
@@ -37,5 +62,5 @@ func (dto *BookmarkWork) FromDto(kind *work.Kind, downloadTime time.Time) (*work
 		Tags:         dto.Tags,
 	}
 
-	return work, bookmarkedTime
+	return work, false, bookmarkedTime
 }
