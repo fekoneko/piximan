@@ -2,14 +2,11 @@ package download
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/utils"
-	"github.com/manifoldco/promptui"
 )
 
 func interactive() {
@@ -19,6 +16,7 @@ func interactive() {
 	withBookmarks := bookmarks != nil
 
 	kind := selectKind(withQueue)
+	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withQueue)
 	lowMeta := selectLowMeta(withBookmarks)
 	size := selectSize(withQueue, onlyMeta)
@@ -34,6 +32,8 @@ func interactive() {
 		Size:        size,
 		OnlyMeta:    &onlyMeta,
 		LowMeta:     lowMeta,
+		FromOffset:  fromOffset,
+		ToOffset:    toOffset,
 		Path:        path,
 	})
 }
@@ -46,7 +46,7 @@ func selectSource() (*[]uint64, *string, *string, *string) {
 	case idOption:
 		idsString, err := idPrompt.Run()
 		logext.MaybeFatal(err, "failed to read IDs")
-		ids, err := parseIdsString(idsString)
+		ids, err := parseIds(idsString)
 		logext.MaybeFatal(err, "failed to parse IDs")
 		return &ids, nil, nil, nil
 
@@ -87,6 +87,19 @@ func selectKind(withQueue bool) string {
 		logext.Fatal("invalid worktype: %s", kind)
 		panic("unreachable")
 	}
+}
+
+func promptRange(withBookmarks bool) (*uint64, *uint64) {
+	if !withBookmarks {
+		return nil, nil
+	}
+
+	rangeString, err := rangePrompt.Run()
+	logext.MaybeFatal(err, "failed to read range")
+	fromOffset, toOffset, err := parseRange(rangeString)
+	logext.MaybeFatal(err, "failed to parse range")
+
+	return fromOffset, toOffset
 }
 
 func selectOnlyMeta(withQueue bool) bool {
@@ -162,147 +175,4 @@ func promptPath(withInferId bool, withQueue bool) *string {
 	path, err := pathPrompt(withQueue).Run()
 	logext.MaybeFatal(err, "failed to read path")
 	return &path
-}
-
-func parseIdsString(idsString string) ([]uint64, error) {
-	idSubstrs := strings.Split(idsString, ",")
-	ids := []uint64{}
-
-	for _, idSubstr := range idSubstrs {
-		trimmed := strings.TrimSpace(idSubstr)
-		if trimmed == "" {
-			continue
-		}
-		id, err := strconv.ParseUint(trimmed, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, id)
-	}
-
-	if len(ids) == 0 {
-		return nil, fmt.Errorf("no IDs provided")
-	}
-
-	return ids, nil
-}
-
-var sourceSelectLabel = "Download mode"
-var idOption = "Download by ID"
-var myBookmarksOption = "Download my bookmarks"
-var userBookmarksOption = "Download bookmarks of user"
-var inferIdOption = "Infer IDs from path"
-var queueOption = "Download from list"
-
-var sourceSelect = promptui.Select{
-	Label: sourceSelectLabel,
-	Items: []string{idOption, myBookmarksOption, userBookmarksOption, inferIdOption, queueOption},
-}
-
-var idPromptLabel = "Work IDs"
-
-var idPrompt = promptui.Prompt{
-	Label: idPromptLabel,
-	Validate: func(input string) error {
-		if _, err := parseIdsString(input); err != nil {
-			return fmt.Errorf("IDs must be a comma-separated list of numbers")
-		}
-		return nil
-	},
-}
-
-var userIdPromptLabel = "User ID"
-
-var userIdPrompt = promptui.Prompt{
-	Label: userIdPromptLabel,
-	Validate: func(input string) error {
-		if _, err := strconv.ParseUint(input, 10, 64); err != nil {
-			return fmt.Errorf("user ID must be a number")
-		}
-		return nil
-	},
-}
-
-var inferIdPathPromptLabel = "Path pattern"
-
-var inferIdPathPrompt = promptui.Prompt{
-	Label: inferIdPathPromptLabel,
-	Validate: func(input string) error {
-		if !strings.Contains(input, "{id}") {
-			return fmt.Errorf("pattern must contain {id}")
-		}
-		return nil
-	},
-}
-
-var queuePathPromptLabel = "Path to YAML list"
-
-var queuePathPrompt = promptui.Prompt{
-	Label: queuePathPromptLabel,
-}
-
-var kindSelectLabel = "Type of work to download"
-var kindSelectWithQueueLabel = "Default type of work to download"
-var artworkOption = "Artwork"
-var novelOption = "Novel"
-
-func kindSelect(withQueue bool) *promptui.Select {
-	return &promptui.Select{
-		Label: utils.If(withQueue, kindSelectWithQueueLabel, kindSelectLabel),
-		Items: []string{artworkOption, novelOption},
-	}
-}
-
-var onlyMetaSelectLabel = "Only download metadata"
-var onlyMetaSelectWithQueueLabel = "Only download metadata by default"
-var downloadAllOption = "Download metadata and images"
-var downloadMetaOption = "Only download metadata"
-
-func onlyMetaSelect(withQueue bool) *promptui.Select {
-	return &promptui.Select{
-		Label: utils.If(withQueue, onlyMetaSelectWithQueueLabel, onlyMetaSelectLabel),
-		Items: []string{downloadAllOption, downloadMetaOption},
-	}
-}
-
-var lowMetaSelectLabel = "Don't get full metadata (less requests)"
-var lowMetaOption = "Save partial metadata"
-var fullMetaOption = "Get full metadata"
-
-var lowMetaSelect = promptui.Select{
-	Label: lowMetaSelectLabel,
-	Items: []string{lowMetaOption, fullMetaOption},
-}
-
-var sizeSelectLabel = "Size of downloaded images"
-var sizeSelectWithQueueLabel = "Default size of downloaded images"
-var thumbnailSizeOption = "Thumbnail"
-var smallSizeOption = "Small"
-var mediumSizeOption = "Medium"
-var originalSizeOption = "Original"
-
-func sizeSelect(withQueue bool) *promptui.Select {
-	return &promptui.Select{
-		Label:     utils.If(withQueue, sizeSelectWithQueueLabel, sizeSelectLabel),
-		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
-		CursorPos: 3,
-	}
-}
-
-var pathSelectLabel = "Where to save downloaded works?"
-var inferredPathOption = "Save to inferred path"
-var customPathOption = "Specify different path"
-
-var pathSelect = promptui.Select{
-	Label: pathSelectLabel,
-	Items: []string{inferredPathOption, customPathOption},
-}
-
-var pathPromptLabel = "Save to directory"
-var pathPromptWithQueueLabel = "Default saving path"
-
-func pathPrompt(withQueue bool) *promptui.Prompt {
-	return &promptui.Prompt{
-		Label: utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
-	}
 }

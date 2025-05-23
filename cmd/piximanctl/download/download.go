@@ -40,7 +40,10 @@ func download(options *options) {
 		logext.MaybeFatal(err, "cannot parse user id %v", *options.Bookmarks)
 
 		paths := []string{path}
-		d.ScheduleBookmarks(userId, kind, nil, nil, nil, size, onlyMeta, lowMeta, paths)
+		d.ScheduleBookmarks(
+			userId, kind, nil, options.FromOffset, options.ToOffset,
+			size, onlyMeta, lowMeta, paths,
+		)
 		fmt.Println()
 
 	} else if options.InferIdPath != nil {
