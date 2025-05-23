@@ -41,7 +41,7 @@ func download(options *options) {
 
 		paths := []string{path}
 		d.ScheduleBookmarks(
-			userId, kind, nil, options.FromOffset, options.ToOffset,
+			userId, kind, options.Tag, options.FromOffset, options.ToOffset,
 			size, onlyMeta, lowMeta, paths,
 		)
 		fmt.Println()

@@ -16,6 +16,7 @@ func interactive() {
 	withBookmarks := bookmarks != nil
 
 	kind := selectKind(withQueue)
+	tag := promptTag(withBookmarks)
 	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withQueue)
 	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
@@ -32,6 +33,7 @@ func interactive() {
 		Size:        size,
 		OnlyMeta:    &onlyMeta,
 		LowMeta:     lowMeta,
+		Tag:         tag,
 		FromOffset:  fromOffset,
 		ToOffset:    toOffset,
 		Path:        path,
@@ -87,6 +89,19 @@ func selectKind(withQueue bool) string {
 		logext.Fatal("invalid worktype: %s", kind)
 		panic("unreachable")
 	}
+}
+
+func promptTag(withBookmarks bool) *string {
+	if !withBookmarks {
+		return nil
+	}
+
+	tag, err := tagPrompt.Run()
+	logext.MaybeFatal(err, "failed to read tag")
+	if tag == "" {
+		return nil
+	}
+	return &tag
 }
 
 func promptRange(withBookmarks bool) (*uint64, *uint64) {

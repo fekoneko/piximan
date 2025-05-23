@@ -75,6 +75,12 @@ func kindSelect(withQueue bool) *promptui.Select {
 	}
 }
 
+var tagPromptLabel = "User-assigned tag (leave empty for any)"
+
+var tagPrompt = promptui.Prompt{
+	Label: tagPromptLabel,
+}
+
 var rangePromptLabel = "Download range (from:to, from:, :to)"
 
 var rangePrompt = promptui.Prompt{

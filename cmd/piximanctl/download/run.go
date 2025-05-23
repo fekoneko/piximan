@@ -11,6 +11,7 @@ type options struct {
 	Size        *uint     `short:"s" long:"size"`
 	OnlyMeta    *bool     `short:"m" long:"onlymeta"`
 	LowMeta     *bool     `short:"M" long:"lowmeta"`
+	Tag         *string   `short:"G" long:"tag"`
 	FromOffset  *uint64   `short:"F" long:"from"`
 	ToOffset    *uint64   `short:"T" long:"to"`
 	Path        *string   `short:"p" long:"path"`

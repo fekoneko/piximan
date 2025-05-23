@@ -38,8 +38,12 @@ func nonInteractive() {
 		fmt.Println("invalid argument for flag `-s, --size'")
 		os.Exit(2)
 	}
+	if options.Tag != nil && options.Bookmarks == nil {
+		fmt.Println("`-G, --tag' flag can only be used with `-b, --bookmarks' source")
+		os.Exit(2)
+	}
 	if options.FromOffset != nil && options.Bookmarks == nil {
-		fmt.Println("`-T, --from' flag can only be used with `-b, --bookmarks' source")
+		fmt.Println("`-F, --from' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
 	if options.ToOffset != nil && options.Bookmarks == nil {
@@ -48,7 +52,7 @@ func nonInteractive() {
 	}
 	if options.FromOffset != nil && options.ToOffset != nil &&
 		*options.FromOffset >= *options.ToOffset {
-		fmt.Println("argument `-T, --from' must be less than `-T, --to'")
+		fmt.Println("argument `-F, --from' must be less than `-T, --to'")
 		os.Exit(2)
 	}
 	if options.LowMeta != nil && options.Bookmarks == nil {
