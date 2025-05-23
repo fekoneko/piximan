@@ -146,7 +146,9 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
 func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
 	sessionId, withSessionId := d.sessionId()
-	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || !withSessionId {
+	withUnauthorized := w.Restriction == nil ||
+		*w.Restriction == work.RestrictionNone || !withSessionId
+	if withUnauthorized {
 		pageUrls, err := fetch.ArtworkPages(d.client(), id, size)
 		if err == nil {
 			logext.Success("fetched page urls for artwork %v", id)
@@ -160,6 +162,9 @@ func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]str
 	}
 
 	if withSessionId {
+		if withUnauthorized {
+			logext.Info("retrying fetching pages with authorization for artwork %v", id)
+		}
 		pageUrls, err := fetch.ArtworkPagesAuthorized(d.client(), id, size, *sessionId)
 		logext.MaybeSuccess(err, "fetched page urls for artwork %v", id)
 		logext.MaybeError(err, "failed to fetch page urls for artwork %v", id)
@@ -269,7 +274,7 @@ func (d *Downloader) illustMangaAssetsChannel(
 	assetsChannel chan []storage.Asset,
 	errorChannel chan error,
 ) {
-	if assets, err := d.illustMangaAssets(id, w, nil, thumbnailUrl, size); err == nil {
+	if assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrl, size); err == nil {
 		assetsChannel <- assets
 	} else {
 		errorChannel <- err

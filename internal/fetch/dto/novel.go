@@ -9,9 +9,9 @@ import (
 
 type Novel struct {
 	Work
-	Content            *string       `json:"content"` // TODO: look at the format
-	CoverUrl           *string       `json:"coverUrl"`
-	TextEmbeddedImages []interface{} `json:"textEmbeddedImages"` // TODO: implement
+	Content            *string     `json:"content"` // TODO: look at the format
+	CoverUrl           *string     `json:"coverUrl"`
+	TextEmbeddedImages interface{} `json:"textEmbeddedImages"` // TODO: implement
 }
 
 func (dto *Novel) FromDto(downloadTime time.Time) (*work.Work, *string, *string) {

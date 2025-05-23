@@ -3,7 +3,6 @@ package downloader
 import (
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
-	"github.com/fekoneko/piximan/internal/fetch"
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/storage"
 )
@@ -13,14 +12,9 @@ import (
 func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading metadata for novel %v", id)
 
-	w, _, _, err := fetch.NovelMeta(d.client(), id)
-	logext.MaybeSuccess(err, "fetched metadata for novel %v", id)
-	logext.MaybeError(err, "failed to fetch metadata for novel %v", id)
+	w, err := d.novelOnlyMeta(id)
 	if err != nil {
 		return nil, err
-	}
-	if !w.Full() {
-		logext.Warning("metadata for novel %v is incomplete", id)
 	}
 
 	assets := []storage.Asset{}

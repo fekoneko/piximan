@@ -6,7 +6,7 @@ import (
 	"github.com/fekoneko/piximan/internal/logext"
 )
 
-// fetch artwork metadata, map with urls to the first page and thumbnail urls
+// Fetch artwork metadata, map with urls to the first page and thumbnail urls
 func (d *Downloader) artworkMeta(id uint64) (*work.Work, *[4]string, map[uint64]string, error) {
 	w, firstPageUrls, thumbnailUrls, err := fetch.ArtworkMeta(d.client(), id)
 	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
