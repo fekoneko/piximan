@@ -65,7 +65,7 @@ func (d *Downloader) Run() {
 
 	if !downloading {
 		go d.superviseDownload()
-		d.spawnCrawlTasks()
+		go d.superviseCrawl()
 	}
 }
 
@@ -137,8 +137,9 @@ func (d *Downloader) superviseDownload() {
 	d.channel <- nil
 }
 
+// Meant to be run in a separate goroutine.
 // Spawns crawl goroutines from crawlQueue until it is empty
-func (d *Downloader) spawnCrawlTasks() {
+func (d *Downloader) superviseCrawl() {
 	d.numCrawlingCond.L.Lock()
 	defer d.numCrawlingCond.L.Unlock()
 
