@@ -60,11 +60,12 @@ func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 // Run the downloader. Need to WaitNext() or WaitDone() to get the results.
 func (d *Downloader) Run() {
 	d.downloadingMutex.Lock()
-	defer d.downloadingMutex.Unlock()
+	downloading := d.downloading
+	d.downloadingMutex.Unlock()
 
-	if !d.downloading {
-		d.spawnCrawlTasks()
+	if !downloading {
 		go d.superviseDownload()
+		d.spawnCrawlTasks()
 	}
 }
 
