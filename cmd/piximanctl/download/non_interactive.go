@@ -47,7 +47,7 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 	if options.FromOffset != nil && options.ToOffset != nil &&
-		*options.FromOffset > *options.ToOffset {
+		*options.FromOffset >= *options.ToOffset {
 		fmt.Println("argument `-T, --from' must be less than `-T, --to'")
 		os.Exit(2)
 	}

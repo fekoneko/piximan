@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/fekoneko/piximan/internal/downloader/image"
@@ -19,10 +20,13 @@ func (d *Downloader) ScheduleBookmarks(
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
 
-	// TODO: calculate limit from `to` and `total`, not always 100
 	fromOffset := utils.FromPtr(from, 0)
+
 	d.crawlQueue = append(d.crawlQueue, func() error {
-		total, err := d.scheduleBookmarksPage(userId, kind, tag, fromOffset, size, onlyMeta, lowMeta, paths)
+		limit := min(100, utils.FromPtr(to, math.MaxUint64)-fromOffset)
+		total, err := d.scheduleBookmarksPage(
+			userId, kind, tag, fromOffset, limit, size, onlyMeta, lowMeta, paths,
+		)
 		if err != nil {
 			return err
 		}
@@ -31,20 +35,28 @@ func (d *Downloader) ScheduleBookmarks(
 		defer d.crawlQueueMutex.Unlock()
 
 		toOffset := min(utils.FromPtr(to, total), total)
+		offset := fromOffset + 100
 		numTasks := 0
-		for offset := fromOffset + 100; offset < toOffset; offset += 100 {
+
+		for offset < toOffset {
+			limit := min(100, toOffset-offset)
 			d.crawlQueue = append(d.crawlQueue, func() error {
-				_, err := d.scheduleBookmarksPage(userId, kind, tag, offset, size, onlyMeta, lowMeta, paths)
+				_, err := d.scheduleBookmarksPage(
+					userId, kind, tag, offset, limit, size, onlyMeta, lowMeta, paths,
+				)
 				return err
 			})
+			offset += limit
 			numTasks++
 		}
+
 		if numTasks > 0 {
 			logext.Info(
 				bookmarksLogMessage("created %v bookmarks crawl %v", userId, tag, nil),
 				numTasks, utils.If(numTasks == 1, "task", "tasks"),
 			)
 		}
+
 		return nil
 	})
 	logext.Info(bookmarksLogMessage("created bookmarks crawl task", userId, tag, &fromOffset))
@@ -52,7 +64,7 @@ func (d *Downloader) ScheduleBookmarks(
 
 // fetch bookmarks and then schedule the works for download, returns total count of bookmarks
 func (d *Downloader) scheduleBookmarksPage(
-	userId uint64, kind queue.ItemKind, tag *string, offset uint64,
+	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64,
 	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
 ) (uint64, error) {
 	var successPrefix = fmt.Sprintf("fetched %v bookmarks page", kind)
@@ -75,9 +87,13 @@ func (d *Downloader) scheduleBookmarksPage(
 	var total uint64
 	var err error
 	if kind == queue.ItemKindArtwork {
-		results, total, err = fetch.ArtworkBookmarksAuthorized(d.client(), userId, tag, offset, 100, *sessionId)
+		results, total, err = fetch.ArtworkBookmarksAuthorized(
+			d.client(), userId, tag, offset, limit, *sessionId,
+		)
 	} else {
-		results, total, err = fetch.NovelBookmarksAuthorized(d.client(), userId, tag, offset, 100, *sessionId)
+		results, total, err = fetch.NovelBookmarksAuthorized(
+			d.client(), userId, tag, offset, limit, *sessionId,
+		)
 	}
 	logext.MaybeSuccess(err, bookmarksLogMessage(successPrefix, userId, tag, &offset))
 	logext.MaybeError(err, bookmarksLogMessage(errorPrefix, userId, tag, &offset))

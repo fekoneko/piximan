@@ -61,7 +61,7 @@ func parseRange(rangeString string) (*uint64, *uint64, error) {
 		toOffset = &parsed
 	}
 
-	if fromOffset != nil && toOffset != nil && *fromOffset > *toOffset {
+	if fromOffset != nil && toOffset != nil && *fromOffset >= *toOffset {
 		return nil, nil, fmt.Errorf("'from' value must be less than 'to' value")
 	}
 
