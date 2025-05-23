@@ -39,11 +39,11 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 	if options.FromOffset != nil && options.Bookmarks == nil {
-		fmt.Println("flag `-T, --from' flag can only be used with `-b, --bookmarks' source")
+		fmt.Println("`-T, --from' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
 	if options.ToOffset != nil && options.Bookmarks == nil {
-		fmt.Println("flag `-T, --to' flag can only be used with `-b, --bookmarks' source")
+		fmt.Println("`-T, --to' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
 	if options.FromOffset != nil && options.ToOffset != nil &&
@@ -52,7 +52,12 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 	if options.LowMeta != nil && options.Bookmarks == nil {
-		fmt.Println("flag `-M, --lowmeta' flag can only be used with `-b, --bookmarks' source")
+		fmt.Println("`-M, --lowmeta' flag can only be used with `-b, --bookmarks' source")
+		os.Exit(2)
+	}
+	if options.LowMeta != nil && options.Kind != nil && *options.Kind == queue.ItemKindNovelString &&
+		(options.OnlyMeta == nil || !*options.OnlyMeta) {
+		fmt.Println("`-M, --lowmeta' can be removed for novels without `-m, --onlymeta'")
 		os.Exit(2)
 	}
 

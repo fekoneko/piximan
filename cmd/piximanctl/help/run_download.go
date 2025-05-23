@@ -90,7 +90,7 @@ func RunDownload() {
 // TODO: bookmarks --newer, --older than date + write about it in the help + example
 // TODO: bookmarks --tag + write about it in the help + example
 // TODO: --lowmeta for bookmarks to severely reduce requests count + write in the help + example
-// TODO: --lowmeta works only for bookmarks, but not for novels with --onlymeta
+// TODO: --lowmeta works only for bookmarks, but not for novels without --onlymeta
 
 // TODO: just download user's works ('my' or by id) + help + example
 
@@ -103,6 +103,7 @@ func RunDownload() {
 
 // TODO: piximanctl dedupe --newer --path './* ({userid})/* ({id})' + interactive mode
 //       utility for merging authors and / or works with duplicate IDs
+// TODO: --dedupe option for piximanctl download as well
 // TODO: replace unused patterns like {title} in --inferid with *, do the same with piximanctl dedupe
 
 // TODO: test if session ID is valid after configuring by sending a request

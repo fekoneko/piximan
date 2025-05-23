@@ -18,7 +18,7 @@ func interactive() {
 	kind := selectKind(withQueue)
 	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withQueue)
-	lowMeta := selectLowMeta(withBookmarks)
+	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
 	size := selectSize(withQueue, onlyMeta)
 	path := promptPath(withInferId, withQueue)
 
@@ -117,8 +117,8 @@ func selectOnlyMeta(withQueue bool) bool {
 	}
 }
 
-func selectLowMeta(withBookmarks bool) *bool {
-	if !withBookmarks {
+func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
+	if !withBookmarks || (kind == queue.ItemKindNovelString && !onlyMeta) {
 		return nil
 	}
 
