@@ -16,9 +16,11 @@ func interactive() {
 	ids, bookmarks, inferIdPath, queuePath := selectSource()
 	withQueue := queuePath != nil
 	withInferId := inferIdPath != nil
+	withBookmarks := bookmarks != nil
 
 	kind := selectKind(withQueue)
 	onlyMeta := selectOnlyMeta(withQueue)
+	lowMeta := selectLowMeta(withBookmarks)
 	size := selectSize(withQueue, onlyMeta)
 	path := promptPath(withInferId, withQueue)
 
@@ -31,6 +33,7 @@ func interactive() {
 		Kind:        &kind,
 		Size:        size,
 		OnlyMeta:    &onlyMeta,
+		LowMeta:     lowMeta,
 		Path:        path,
 	})
 }
@@ -87,16 +90,35 @@ func selectKind(withQueue bool) string {
 }
 
 func selectOnlyMeta(withQueue bool) bool {
-	_, downloadFiles, err := onlyMetaSelect(withQueue).Run()
+	_, option, err := onlyMetaSelect(withQueue).Run()
 	logext.MaybeFatal(err, "failed to read downloaded files choice")
 
-	switch downloadFiles {
+	switch option {
 	case downloadAllOption:
 		return false
 	case downloadMetaOption:
 		return true
 	default:
-		logext.Fatal("incorrect downloaded files choice: %v", downloadFiles)
+		logext.Fatal("incorrect downloaded files choice: %v", option)
+		panic("unreachable")
+	}
+}
+
+func selectLowMeta(withBookmarks bool) *bool {
+	if !withBookmarks {
+		return nil
+	}
+
+	_, option, err := lowMetaSelect.Run()
+	logext.MaybeFatal(err, "failed to read low metadata choice")
+
+	switch option {
+	case lowMetaOption:
+		return utils.ToPtr(true)
+	case fullMetaOption:
+		return utils.ToPtr(false)
+	default:
+		logext.Fatal("incorrect low metadata choice: %v", option)
 		panic("unreachable")
 	}
 }
@@ -241,6 +263,15 @@ func onlyMetaSelect(withQueue bool) *promptui.Select {
 		Label: utils.If(withQueue, onlyMetaSelectWithQueueLabel, onlyMetaSelectLabel),
 		Items: []string{downloadAllOption, downloadMetaOption},
 	}
+}
+
+var lowMetaSelectLabel = "Don't get full metadata (less requests)"
+var lowMetaOption = "Save partial metadata"
+var fullMetaOption = "Get full metadata"
+
+var lowMetaSelect = promptui.Select{
+	Label: lowMetaSelectLabel,
+	Items: []string{lowMetaOption, fullMetaOption},
 }
 
 var sizeSelectLabel = "Size of downloaded images"

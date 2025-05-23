@@ -20,6 +20,7 @@ func download(options *options) {
 	size := utils.FromPtrTransform(options.Size, image.SizeFromUint, image.SizeDefault)
 	kind := utils.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
+	lowMeta := utils.FromPtr(options.LowMeta, false)
 	path := utils.FromPtr(options.Path, "")
 
 	d := chooseDownloader(options.Password)
@@ -39,7 +40,7 @@ func download(options *options) {
 		logext.MaybeFatal(err, "cannot parse user id %v", *options.Bookmarks)
 
 		paths := []string{path}
-		d.ScheduleBookmarks(userId, kind, nil, nil, nil, size, onlyMeta, false, paths)
+		d.ScheduleBookmarks(userId, kind, nil, nil, nil, size, onlyMeta, lowMeta, paths)
 		fmt.Println()
 
 	} else if options.InferIdPath != nil {

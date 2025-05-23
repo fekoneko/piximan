@@ -19,6 +19,7 @@ func (d *Downloader) ScheduleBookmarks(
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
 
+	// TODO: calculate limit from `to` and `total`, not always 100
 	fromOffset := utils.FromPtr(from, 0)
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		total, err := d.scheduleBookmarksPage(userId, kind, tag, fromOffset, size, onlyMeta, lowMeta, paths)
