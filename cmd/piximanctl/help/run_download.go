@@ -84,22 +84,19 @@ func RunDownload() {
 	fmt.Print(DOWNLOAD_HELP)
 }
 
-// TODO: write about --bookmarks in the help + example for different types
 // TODO: authorized user bookmarks download (+private) + write about it in the help + example
-// TODO: bookmarks --from, --to (offset and limit) + write about it in the help + example
-// TODO: bookmarks --newer, --older than date + write about it in the help + example
-// TODO: bookmarks --tag + write about it in the help + example
-// TODO: --lowmeta for bookmarks to severely reduce requests count + write in the help + example
-// TODO: --lowmeta works only for bookmarks, but not for novels without --onlymeta
+// TODO: bookmarks --newer, --older than date
+// TODO: help and examples for bookmarks download
+// TODO: {tag} pattern for user-assigned tags when downloading bookmarks
 
-// TODO: just download user's works ('my' or by id) + help + example
+// TODO: just download user's works ('my' or by id)
 
-// TODO: --log, -L option to log the output to a file
+// TODO: --log, -L option to log the output to a file (-L should be for language actually)
 // TODO: summary about downloaded / not downloaded works at the end of download
 // TODO: total download progress at the buttom
 // TODO: count errors / warnings
 
-// TODO: choose language to download work metadata in
+// TODO: choose language to download work metadata in (flag and config)
 
 // TODO: piximanctl dedupe --newer --path './* ({userid})/* ({id})' + interactive mode
 //       utility for merging authors and / or works with duplicate IDs
