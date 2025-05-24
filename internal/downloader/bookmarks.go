@@ -69,6 +69,7 @@ func (d *Downloader) scheduleBookmarksPage(
 ) (uint64, error) {
 	var successPrefix = fmt.Sprintf("fetched %v bookmarks page", kind)
 	var errorPrefix = fmt.Sprintf("failed to fetch %v bookmarks page", kind)
+	var noResultsPrefix = fmt.Sprintf("no %v bookmarks found", kind)
 
 	if kind != queue.ItemKindArtwork && kind != queue.ItemKindNovel {
 		err := fmt.Errorf("invalid work type: %v", uint8(kind))
@@ -99,6 +100,9 @@ func (d *Downloader) scheduleBookmarksPage(
 	logext.MaybeError(err, bookmarksLogMessage(errorPrefix, userId, tag, &offset))
 	if err != nil {
 		return 0, err
+	}
+	if len(results) == 0 {
+		logext.Warning(bookmarksLogMessage(noResultsPrefix, userId, tag, &offset))
 	}
 
 	for _, result := range results {

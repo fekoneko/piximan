@@ -49,6 +49,10 @@ func download(options *options) {
 	} else if options.InferIdPath != nil {
 		result, err := pathext.InferIdsFromWorkPath(*options.InferIdPath)
 		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
+		if len(*result) == 0 {
+			logext.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
+			return
+		}
 
 		if options.Path == nil {
 			q := queue.FromMap(result, kind, size, onlyMeta)
@@ -62,8 +66,12 @@ func download(options *options) {
 	} else if options.QueuePath != nil {
 		paths := []string{path}
 		q, warnings, err := storage.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
-		logext.MaybeWarnings(warnings, "while reading queue from %v", *options.QueuePath)
-		logext.MaybeFatal(err, "cannot read queue from %v", *options.QueuePath)
+		logext.MaybeWarnings(warnings, "while reading the list from %v", *options.QueuePath)
+		logext.MaybeFatal(err, "cannot read the list from %v", *options.QueuePath)
+		if len(*q) == 0 {
+			logext.Warning("no works found in the list %v", *options.QueuePath)
+			return
+		}
 
 		d.ScheduleQueue(q)
 	}
