@@ -116,7 +116,7 @@ func RunDownload() {
 	fmt.Print(DOWNLOAD_HELP)
 }
 
-// TODO: update README.md
+// TODO: update README.md and CHANGELOG.md
 
 // TODO: authorized user bookmarks download (+private)
 // TODO: bookmarks --newer, --older than date
