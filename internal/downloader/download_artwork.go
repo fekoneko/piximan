@@ -271,6 +271,7 @@ var extensions = []string{".jpg", ".png", ".gif"}
 // If the url was inferred and the extension is not known, the function will try to fetch first
 // page with different extensions until it finds the correct one. The list of guessed extensions
 // is small and contains only the extensions that Pixiv accepts to be uploaded.
+// Work cannot have different extensions for different pages as Pixiv does not allow it.
 func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bool, noLogErrors bool) ([]storage.Asset, error) {
 	logErrorOrWarning := logext.Error
 	if noLogErrors {
@@ -288,27 +289,17 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 	guessedExtension := ""
 	if !withExtensions {
 		for _, extension := range extensions {
-			go func() {
-				bytes, err := fetch.Do(d.client, pageUrls[0]+extension, nil)
-				if err != nil {
-					logext.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
-					errorChannel <- err
-				}
-
-				logext.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
-				assets := storage.Asset{Bytes: bytes, Extension: extension, Page: 1}
-				assetChannel <- assets
-			}()
-
-			select {
-			case <-errorChannel:
-			case asset := <-assetChannel:
-				assetChannel <- asset
-				guessedExtension = extension
+			bytes, err := fetch.Do(d.client, pageUrls[0]+extension, nil)
+			if err != nil {
+				logext.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
+				continue
 			}
-			if guessedExtension != "" {
-				break
-			}
+
+			logext.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
+			assets := storage.Asset{Bytes: bytes, Extension: extension, Page: 1}
+			assetChannel <- assets
+			guessedExtension = extension
+			break
 		}
 		if guessedExtension == "" {
 			err := fmt.Errorf("all tried extensions were incorrect")
