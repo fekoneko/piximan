@@ -5,15 +5,22 @@ import "fmt"
 const DOWNLOAD_HELP = //
 `Run without arguments to enter interactive mode.
 
-> piximanctl download [--id      ...] [--type ...] [--path     ...]
-                      [--list    ...] [--size ...] [--password ...]
-                      [--inferid ...] [--onlymeta]
+> piximanctl download [--id        ...] [--type ...] [--tag  ...] [--path     ...]
+                      [--bookmarks ...] [--size ...] [--from ...] [--password ...]
+                      [--list      ...] [--onlymeta] [--to   ...]
+                      [--inferid   ...]              [--lowmeta ]
 
                               Download sources
                               ----------------
 --id         ID of the downloaded work. You can found it in the work URI:
  -i          https://www.pixiv.net/artworks/12345 <- 12345 is the ID here.
              Can be provided multiple times.
+
+--bookmarks  Download your bookmarks or the bookmarks of the given user.
+ -b          Authorization is required for this source. See 'piximanctl help config'
+             Available options are:
+             - my         - download bookmarks of the authorized user
+             - <user ID>  - numeric ID of the user to download bookmarks from
 
 --list       Path to a file with information about which works to download.
  -l          The file must contain a list in YAML format, for example:
@@ -46,6 +53,25 @@ const DOWNLOAD_HELP = //
 --onlymeta   Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.
 
+                         Bookmarks-specific options
+                         --------------------------
+--tag        User-assigned tag to filter the bookmarks by. You can see those on the
+ -G          bookmarks page. You can only specify one tag or omit to download all.
+
+--from       Crawl bookmarks starting with N'th latest bookmark. Zero-based.
+ -F          Omit this option to crawl from the latest bookmark.
+
+--to         Crawl bookmarks up to N'th latest bookmark. Zero-based, non-inclusive.
+ -T          Omit this option to crawl up to the oldest bookmark.
+
+--lowmeta    Specify to skip fetching the full metadata for each work. This will
+ -M          significantly reduce the number of pixiv.net API calls.
+             These options will be missing in the metadata.yaml files:
+             - original, views , bookmarks, likes, comments, uploaded,
+             - series_id, series_title, series_order
+             When downloading novels without --lowmeta flag, the full metadata will be
+             downloaded without any request overhead, so --lowmeta should be omitted.
+
                               Other parameters
                               ----------------
 --path       Directory to save the files into. Defaults to the current directory
@@ -73,6 +99,12 @@ const DOWNLOAD_HELP = //
 # Download novels with ID 10000 and 20000
 > piximanctl download --id 10000 --id 20000 --type novel --path "./{userid}/{id}"
 
+# Download 101th to 200th of your latest artwork bookmarks with partial metadata
+> piximanctl download --bookmarks my --from 100 --to 200 --lowmeta --path "./{id}"
+
+# Download all novel bookmarks from user 10000 with tag 'お気に入り'
+> piximanctl download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
+
 # Download works from list.yaml to the current directory with fallback path
 > piximanctl download --list "./list.yaml" --path "./{userid}/{id}"
 
@@ -84,14 +116,17 @@ func RunDownload() {
 	fmt.Print(DOWNLOAD_HELP)
 }
 
-// TODO: authorized user bookmarks download (+private) + write about it in the help + example
+// TODO: update README.md
+
+// TODO: authorized user bookmarks download (+private)
 // TODO: bookmarks --newer, --older than date
-// TODO: help and examples for bookmarks download
 // TODO: {tag} pattern for user-assigned tags when downloading bookmarks
+// TODO: {visibility} pattern for public / private bookmarks
+// TODO: --private --public flags for for --bookmarks my (put example in the help)
 
-// TODO: just download user's works ('my' or by id)
+// TODO: download user's works ('my' or by id)
 
-// TODO: --log, -L option to log the output to a file (-L should be for language actually)
+// TODO: --log, -L option to log the output to a file (-L should be reserved for language actually)
 // TODO: summary about downloaded / not downloaded works at the end of download
 // TODO: total download progress at the buttom
 // TODO: count errors / warnings
