@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  push:
+    branches: ['main']
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Get Merged Pull Request Info
+        uses: actions-ecosystem/action-get-merged-pull-request@v1.0.1
+        id: merged-pr-info
+        with:
+          github_token: ${{ github.token }}
+
+      - name: Get Previous Tag
+        id: previous-tag
+        run: |
+          tag="$(git describe --tags --abbrev=0)"
+          printf '%s' "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create Tag
+        id: create-tag
+        run: |
+          bump="$(printf '%s' "${{ steps.merged-pr-info.outputs.title }}" | cut -d " " -f 1)"
+          major="$(printf '%s' "${{ steps.previous-tag.outputs.tag }}" | cut -d "." -f 1 | cut -c2-)"
+          minor="$(printf '%s' "${{ steps.previous-tag.outputs.tag }}" | cut -d "." -f 2)"
+          patch="$(printf '%s' "${{ steps.previous-tag.outputs.tag }}" | cut -d "." -f 3)"
+          if [ "$bump" = "[major]" ]; then
+            major=$((major + 1))
+          elif [ "$bump" = "[minor]" ]; then
+            minor=$((minor + 1))
+          elif [ "$bump" = "[patch]" ]; then
+            patch=$((patch + 1))
+          fi
+          version="v$major.$minor.$patch"
+          printf '%s' $'version<<EOF\n'"$version"$'\nEOF' >> "$GITHUB_OUTPUT"
+
+          git config --local user.name "GitHub Action"
+          git config --local user.email "action@github.com"
+          git tag -a "$version" -m "Release $version"
+
+      - name: Set Up Go
+        uses: actions/setup-go@v4
+
+      - name: Build
+        run: make build
+
+      - name: Package
+        run: |
+          for f in ./bin/*; do \
+            zip -rj "./bin/piximan_${{ steps.create-tag.outputs.version  }}_$(basename $f).zip" "$f"; \
+          done
+
+      - name: Generate Changelog
+        id: generate-changelog
+        run: |
+          log="$(git log "${{ steps.previous-tag.outputs.tag }}..HEAD" --oneline  --no-merges | \
+            sed 's/#EOF#/EOF/')"
+          feats="$(printf '%s' "$log" | sed -ne 's/.* feat://p')"
+          fixes="$(printf '%s' "$log" | sed -ne 's/.* fix://p')"
+          changelog=''
+
+          prev_ifs=$IFS
+          IFS=$'\n'
+
+          if [ -n "$feats" ]; then
+            changelog=$'## New Features\n'
+            for feat in $feats; do
+              changelog="$changelog"$'\n'"- $feat"
+            done
+          fi
+
+          if [ -n "$fixes" ]; then
+            changelog="$changelog"$'\n\n'"## Bug Fixes"$'\n'
+            for fix in $fixes; do
+              changelog="$changelog"$'\n'"- $fix"
+            done
+          fi
+
+          IFS=$prev_ifs
+
+          printf '%s' $'changelog<<#EOF#\n'"$changelog"$'\n#EOF#' >> "$GITHUB_OUTPUT"
+
+      - name: Push Tag
+        run: git push origin "${{ steps.create-tag.outputs.version }}"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: '${{ steps.create-tag.outputs.version  }}'
+          body: '${{ steps.generate-changelog.outputs.changelog }}'
+          tag_name: '${{ steps.create-tag.outputs.version  }}'
+          make_latest: true
+          files: './bin/*.zip'
