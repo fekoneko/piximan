@@ -12,17 +12,18 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 ## Downloader Features
 
 - Download illustrations / manga / ugoira / novels
+- Download user bookmarks by ID
 - Download by ID or from list
 - Infer work IDs from existing collection paths
 - Download different sizes (resolutions) of the illustrations / manga
-- Interactive mode for download and configuration with `piximanctl` tool
+- Interactive mode for download and configuration with `piximan` CLI
 - Store work metadata with downloaded work in _YAML_ format
 - Use substitutions in download path: `{title}` / `{id}` / `{user}` / `{userid}` / `{restrict}`
 - Make requests concurrently when it's possible without bothering the Pixiv servers too much
-- Authorize requests with your session ID, `piximanctl` will try to use it as few as possible
+- Authorize requests with your session ID, `piximan` will try to use it as few as possible
 - Encrypt your session ID with a master password
 
-## Getting started with `piximanctl` CLI tool
+## Getting started with `piximan` CLI
 
 ### Authorization
 
@@ -44,7 +45,7 @@ You can get session ID from your browser _cookies_ right now:
 Now open the terminal and run the command to enter interractive configuration mode:
 
 ```shell
-piximanctl config
+piximan config
 ```
 
 Paste the copied session ID and then specify the master password if you want.
@@ -55,15 +56,15 @@ The easiest way to use the tool is with interactive mode. To enter it run the co
 then answer the questions about what to download and where to save the files:
 
 ```shell
-piximanctl download
+piximan download
 ```
 
 ### Downloading a work by ID
 
-You're ready to go! Try out `piximanctl` by downloading an artwork from pixiv:
+You're ready to go! Try out `piximan` by downloading an artwork from pixiv:
 
 ```shell
-piximanctl download \
+piximan download \
   --id 584231 \
   --path './artworks/{user} ({userid})/{title} ({id})'
 ```
@@ -71,7 +72,7 @@ piximanctl download \
 Downloading a novel is as simple:
 
 ```shell
-piximanctl download \
+piximan download \
   --id 584231 \
   --type novel \
   --path './novels/{user} ({userid})/{title} ({id})'
@@ -83,7 +84,7 @@ You can download public bookmarks of a user knowing their ID.
 For example, let's download artwork bookmarks of user 12345:
 
 ```shell
-piximanctl download \
+piximan download \
   --bookmarks 12345 \
   --path './bookmarks/{user} ({userid})/{title} ({id})'
 ```
@@ -93,7 +94,7 @@ download only a subset of bookmarks. This example will download novel bookmarks
 from user 12345 with tag 'お気に入り' from 101th to 200th latest bookmarks:
 
 ```shell
-piximanctl download \
+piximan download \
   --bookmarks 12345 \
   --type novel \
   --tag 'お気に入り' \
@@ -128,7 +129,7 @@ You can specify a queue for downloader using YAML format such as:
 Start downloading with the command:
 
 ```shell
-piximanctl download \
+piximan download \
   --list './list.yaml' \
   --path './artworks/{user} ({userid})/{title} ({id})'
 ```
@@ -139,7 +140,7 @@ You can infer the IDs of works from the given path. For example, this is useful 
 the metadata in the existing collection when coupled with the `--onlymeta` flag:
 
 ```shell
-piximanctl download \
+piximan download \
   --inferid './artworks/*/* ({id})' \
   --onlymeta
 ```
@@ -149,8 +150,8 @@ piximanctl download \
 To see other options and examples use the `help` command in your terminal:
 
 ```shell
-piximanctl help download
-piximanctl help config
+piximan help download
+piximan help config
 ```
 
 ## Development
@@ -158,12 +159,12 @@ piximanctl help config
 Use `make` to run and build the project:
 
 ```shell
-make run:piximan                    # Run piximan GUI
-make run:piximanctl ARGS="download" # Run piximanctl CLI tool with the arguments
-make build                          # Build both for all platforms
-make build:$CMD_NAME                # Build $CMD_NAME for all platforms
-make build:$CMD_NAME:current        # Build $CMD_NAME for current platform
-make build:$CMD_NAME:$PLATFORM      # Build $CMD_NAME for $PLATFORM
+make run                 # Run piximan GUI
+make run ARGS="download" # Run piximan CLI tool with the arguments
+make build               # Build both for all platforms
+make build               # Build for all platforms
+make build:current       # Build for current platform
+make build:$PLATFORM     # Build for $PLATFORM
 ```
 
 ## Related projects

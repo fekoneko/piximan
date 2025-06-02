@@ -5,7 +5,7 @@ import "fmt"
 const DOWNLOAD_HELP = //
 `Run without arguments to enter interactive mode.
 
-> piximanctl download [--id        ...] [--type ...] [--tag  ...] [--path     ...]
+> piximan download [--id        ...] [--type ...] [--tag  ...] [--path     ...]
                       [--bookmarks ...] [--size ...] [--from ...] [--password ...]
                       [--list      ...] [--onlymeta] [--to   ...]
                       [--inferid   ...]              [--lowmeta ]
@@ -17,7 +17,7 @@ const DOWNLOAD_HELP = //
              Can be provided multiple times.
 
 --bookmarks  Download your bookmarks or the bookmarks of the given user.
- -b          Authorization is required for this source. See 'piximanctl help config'
+ -b          Authorization is required for this source. See 'piximan help config'
              Available options are:
              - my         - download bookmarks of the authorized user
              - <user ID>  - numeric ID of the user to download bookmarks from
@@ -94,22 +94,22 @@ const DOWNLOAD_HELP = //
                                   Examples
                                   --------
 # Download artwork with ID 10000 to your possible collection directory
-> piximanctl download --id 10000 --path "$HOME/My Collection/{userid}/{id}"
+> piximan download --id 10000 --path "$HOME/My Collection/{userid}/{id}"
 
 # Download novels with ID 10000 and 20000
-> piximanctl download --id 10000 --id 20000 --type novel --path "./{userid}/{id}"
+> piximan download --id 10000 --id 20000 --type novel --path "./{userid}/{id}"
 
 # Download 101th to 200th of your latest artwork bookmarks with partial metadata
-> piximanctl download --bookmarks my --from 100 --to 200 --lowmeta --path "./{id}"
+> piximan download --bookmarks my --from 100 --to 200 --lowmeta --path "./{id}"
 
 # Download all novel bookmarks from user 10000 with tag 'お気に入り'
-> piximanctl download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
+> piximan download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
 
 # Download works from list.yaml to the current directory with fallback path
-> piximanctl download --list "./list.yaml" --path "./{userid}/{id}"
+> piximan download --list "./list.yaml" --path "./{userid}/{id}"
 
 # Update metadata in the collection saved earlier
-> piximanctl download --inferid "$HOME/My Collection/*/{id}" --onlymeta
+> piximan download --inferid "$HOME/My Collection/*/{id}" --onlymeta
 `
 
 func RunDownload() {
@@ -133,9 +133,10 @@ func RunDownload() {
 
 // TODO: choose language to download work metadata in (flag and config)
 
-// TODO: piximanctl dedupe --newer --path './* ({userid})/* ({id})' + interactive mode
+// TODO: piximan dedupe --newer --path './* ({userid})/* ({id})' + interactive mode
 //       utility for merging authors and / or works with duplicate IDs
-// TODO: --dedupe option for piximanctl download as well
-// TODO: replace unused patterns like {title} in --inferid with *, do the same with piximanctl dedupe
+// TODO: --dedupe option for piximan download as well
+// TODO: replace unused patterns like {title} in --inferid with *, do the same with piximan dedupe
 
 // TODO: test if session ID is valid after configuring by sending a request
+// TODO: check if session ID is set in interractive download mode and prompt user if they want to set it
