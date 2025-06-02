@@ -7,142 +7,46 @@ import (
 
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
-	"github.com/fekoneko/piximan/internal/encode"
 	"github.com/fekoneko/piximan/internal/fetch"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/pathext"
 	"github.com/fekoneko/piximan/internal/storage"
 )
 
-// TODO: when downloading bookmarks we can fetch metadata in parallel with images
-//       if we even need to fetch full metadata
-
-func (d *Downloader) DownloadArtworkMeta(id uint64, paths []string) (*work.Work, error) {
-	logext.Info("started downloading metadata for artwork %v", id)
-
-	w, _, _, err := fetch.ArtworkMeta(d.client, id)
-	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
-	logext.MaybeError(err, "failed to fetch metadata for artwork %v", id)
-	if err != nil {
-		return nil, err
+func urlFromMap(id uint64, urls map[uint64]string) *string {
+	var urlPtr *string
+	if url, ok := urls[id]; ok {
+		urlPtr = &url
 	}
-
-	assets := []storage.Asset{}
-	paths, err = pathext.FormatWorkPaths(paths, w)
-	if err == nil {
-		err = storage.WriteWork(w, assets, paths)
-	}
-	logext.MaybeSuccess(err, "stored metadata for artwork %v in %v", id, paths)
-	logext.MaybeError(err, "failed to store metadata for artwork %v", id)
-	return w, err
+	return urlPtr
 }
 
-func (d *Downloader) DownloadArtwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
-	logext.Info("started downloading artwork %v", id)
-
-	w, firstPageUrls, thumbnailUrls, err := fetch.ArtworkMeta(d.client, id)
-	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
-	logext.MaybeError(err, "failed to fetch metadata for artwork %v", id)
-	if err != nil {
-		return nil, err
-	}
-
-	if w.Kind == work.KindUgoira {
-		err = d.continueUgoira(w, id, paths)
-	} else {
-		err = d.continueIllustOrManga(w, firstPageUrls, thumbnailUrls, id, size, paths)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return w, nil
-}
-
-func (d *Downloader) continueUgoira(w *work.Work, id uint64, paths []string) error {
-	url, frames, err := d.tryFetchFrames(w, id)
-	if err != nil {
-		return err
-	}
-
-	archive, err := fetch.Do(d.client, url, nil)
-	logext.MaybeSuccess(err, "fetched frames for artwork %v", id)
-	logext.MaybeError(err, "failed to fetch frames for artwork %v", id)
-	if err != nil {
-		return err
-	}
-
-	gif, err := encode.GifFromFrames(archive, frames)
-	logext.MaybeSuccess(err, "encoded frames for artwork %v", id)
-	logext.MaybeError(err, "failed to encode frames for artwork %v", id)
-	if err != nil {
-		return err
-	}
-
-	assets := []storage.Asset{{Bytes: gif, Extension: ".gif"}}
-	return storeArtwork(w, id, assets, paths)
-}
-
-// The function is used to fetch the information about animation frames for ugoira.
-// First the function will try to make the request without authorization and then with one.
-// If the work has age restriction, there's no point in fetching page urls without authorization,
-// so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
-func (d *Downloader) tryFetchFrames(w *work.Work, id uint64) (string, []encode.Frame, error) {
-	if w.Restriction == work.RestrictionNone || d.sessionId == nil {
-		url, frames, err := fetch.ArtworkFrames(d.client, id)
-		if err == nil {
-			logext.Success("fetched frames data for artwork %v", id)
-			return url, frames, nil
-		} else if d.sessionId == nil {
-			logext.Error("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
-			return "", nil, err
-		} else {
-			logext.Warning("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
-		}
-	}
-
-	if d.sessionId != nil {
-		url, frames, err := fetch.ArtworkFramesAuthorized(d.client, id, *d.sessionId)
-		logext.MaybeSuccess(err, "fetched frames data for artwork %v", id)
-		logext.MaybeError(err, "failed to fetch frames data for artwork %v", id)
-		if err != nil {
-			return "", nil, err
-		}
-		return url, frames, nil
-	}
-
-	err := fmt.Errorf("authorization could be required")
-	logext.Error("failed to fetch frames data for artwork %v: %v", id, err)
-	return "", nil, err
-}
-
-func (d *Downloader) continueIllustOrManga(
+// Fetch all image assets for illust or manga artwork
+func (d *Downloader) illustMangaAssets(
+	id uint64,
 	w *work.Work,
 	firstPageUrls *[4]string,
-	thumbnailUrls map[uint64]string,
-	id uint64,
+	thumbnailUrl *string,
 	size image.Size,
-	paths []string,
-) error {
-	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrls, size)
+) ([]storage.Asset, error) {
+	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrl, size)
 	if err != nil {
 		logext.Warning("failed to infer page urls for artwork %v: %v", id, err)
 	} else {
 		assets, err := d.fetchAssets(id, pageUrls, withExtensions, true)
 		if err == nil {
-			return storeArtwork(w, id, assets, paths)
+			return assets, nil
 		}
 	}
 
-	pageUrls, err = d.tryFetchPages(w, id, size)
+	pageUrls, err = d.fetchPages(w, id, size)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	assets, err := d.fetchAssets(id, pageUrls, true, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return storeArtwork(w, id, assets, paths)
+	return assets, nil
 }
 
 // For illustrations and manga it's possible to omit the request for fetching page urls
@@ -153,30 +57,34 @@ func (d *Downloader) continueIllustOrManga(
 // ! The extension for restricted images in original size cannot be derived, thus we'll have to
 // ! try each one later.
 func inferPages(
-	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, size image.Size,
+	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrl *string, size image.Size,
 ) ([]string, bool, error) {
+	if w.NumPages == nil {
+		err := fmt.Errorf("number of pages is missing in %v", w)
+		return nil, false, err
+	}
+
 	if firstPageUrls != nil {
 		firstPageUrl := (*firstPageUrls)[size]
-		if w.NumPages <= 1 {
+		if *w.NumPages <= 1 {
 			return []string{firstPageUrl}, true, nil
 		}
-		pageUrls, err := inferPagesFromFirstUrl(firstPageUrl, w.NumPages)
+		pageUrls, err := inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
 		if err == nil {
 			return pageUrls, true, nil
 		}
 	}
 
-	thumbnailUrl, ok := thumbnailUrls[id]
-	if !ok {
-		return nil, false, fmt.Errorf("cannot find urls to infer from")
+	if thumbnailUrl == nil {
+		return nil, false, fmt.Errorf("no thumbnail url to infer from")
 	}
 
 	const PREFIX_MASTER = "https://i.pximg.net/c/250x250_80_a2/img-master/img/"
 	const PREFIX_CUSTOM = "https://i.pximg.net/c/250x250_80_a2/custom-thumb/img/"
 	var prefixLength int
-	if strings.HasPrefix(thumbnailUrl, PREFIX_MASTER) {
+	if strings.HasPrefix(*thumbnailUrl, PREFIX_MASTER) {
 		prefixLength = len(PREFIX_MASTER)
-	} else if strings.HasPrefix(thumbnailUrl, PREFIX_CUSTOM) {
+	} else if strings.HasPrefix(*thumbnailUrl, PREFIX_CUSTOM) {
 		prefixLength = len(PREFIX_CUSTOM)
 	} else {
 		return nil, false, fmt.Errorf("thumbnail url has incorrect prefix")
@@ -184,10 +92,10 @@ func inferPages(
 
 	urlDateStart := prefixLength
 	urlDateEnd := prefixLength + len("0000/00/00/00/00/00")
-	if len(thumbnailUrl) < urlDateEnd {
+	if len(*thumbnailUrl) < urlDateEnd {
 		return nil, false, fmt.Errorf("thumbnail url is too short")
 	}
-	urlDate := thumbnailUrl[urlDateStart:urlDateEnd]
+	urlDate := (*thumbnailUrl)[urlDateStart:urlDateEnd]
 
 	var firstPageUrl string
 	withExtensions := true
@@ -214,7 +122,7 @@ func inferPages(
 		)
 		withExtensions = false
 	}
-	pageUrls, _ := inferPagesFromFirstUrl(firstPageUrl, w.NumPages)
+	pageUrls, _ := inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
 	return pageUrls, withExtensions, nil
 }
 
@@ -236,13 +144,16 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 // First the function will try to make the request without authorization and then with one.
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
-func (d *Downloader) tryFetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
-	if w.Restriction == work.RestrictionNone || d.sessionId == nil {
-		pageUrls, err := fetch.ArtworkPages(d.client, id, size)
+func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
+	sessionId, withSessionId := d.sessionId()
+	withUnauthorized := w.Restriction == nil ||
+		*w.Restriction == work.RestrictionNone || !withSessionId
+	if withUnauthorized {
+		pageUrls, err := fetch.ArtworkPages(d.client(), id, size)
 		if err == nil {
 			logext.Success("fetched page urls for artwork %v", id)
 			return pageUrls, nil
-		} else if d.sessionId == nil {
+		} else if !withSessionId {
 			logext.Error("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
 			return nil, err
 		} else {
@@ -250,8 +161,11 @@ func (d *Downloader) tryFetchPages(w *work.Work, id uint64, size image.Size) ([]
 		}
 	}
 
-	if d.sessionId != nil {
-		pageUrls, err := fetch.ArtworkPagesAuthorized(d.client, id, size, *d.sessionId)
+	if withSessionId {
+		if withUnauthorized {
+			logext.Info("retrying fetching pages with authorization for artwork %v", id)
+		}
+		pageUrls, err := fetch.ArtworkPagesAuthorized(d.client(), id, size, *sessionId)
 		logext.MaybeSuccess(err, "fetched page urls for artwork %v", id)
 		logext.MaybeError(err, "failed to fetch page urls for artwork %v", id)
 		if err != nil {
@@ -289,7 +203,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 	guessedExtension := ""
 	if !withExtensions {
 		for _, extension := range extensions {
-			bytes, err := fetch.Do(d.client, pageUrls[0]+extension, nil)
+			bytes, err := fetch.Do(d.client(), pageUrls[0]+extension, nil)
 			if err != nil {
 				logext.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
 				continue
@@ -313,7 +227,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			continue
 		}
 		go func() {
-			bytes, err := fetch.Do(d.client, url+guessedExtension, nil)
+			bytes, err := fetch.Do(d.client(), url+guessedExtension, nil)
 			if err != nil {
 				logErrorOrWarning("failed to fetch page %v for artwork %v: %v", i+1, id, err)
 				errorChannel <- err
@@ -342,12 +256,18 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 	return assets, nil
 }
 
-func storeArtwork(w *work.Work, id uint64, assets []storage.Asset, paths []string) error {
-	paths, err := pathext.FormatWorkPaths(paths, w)
-	if err == nil {
-		err = storage.WriteWork(w, assets, paths)
+func (d *Downloader) illustMangaAssetsChannel(
+	id uint64,
+	w *work.Work,
+	firstPageUrls *[4]string,
+	thumbnailUrl *string,
+	size image.Size,
+	assetsChannel chan []storage.Asset,
+	errorChannel chan error,
+) {
+	if assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrl, size); err == nil {
+		assetsChannel <- assets
+	} else {
+		errorChannel <- err
 	}
-	logext.MaybeSuccess(err, "stored files for artwork %v in %v", id, paths)
-	logext.MaybeError(err, "failed to store files for artwork %v", id)
-	return err
 }

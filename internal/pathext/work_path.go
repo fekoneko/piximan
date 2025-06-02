@@ -13,13 +13,11 @@ import (
 
 func FormatWorkPath(pattern string, w *work.Work) (string, error) {
 	replacer := strings.NewReplacer(
-		"{title}", w.Title,
-		"{id}", strconv.FormatUint(w.Id, 10),
-		"{user}", w.UserName,
-		"{userid}", strconv.FormatUint(w.UserId, 10),
-		"{restrict}", utils.If(
-			w.Restriction == work.RestrictionNone, "all-ages", w.Restriction.String(),
-		),
+		"{title}", utils.FromPtr(w.Title, "unknown"),
+		"{id}", utils.FromPtrTransform(w.Id, utils.FormatUint64, "unknown"),
+		"{user}", utils.FromPtr(w.UserName, "unknown"),
+		"{userid}", utils.FromPtrTransform(w.UserId, utils.FormatUint64, "unknown"),
+		"{restrict}", formatRestriction(w.Restriction),
 	)
 
 	path, err := filepath.Abs(pattern)
@@ -132,4 +130,14 @@ func InferIdsFromWorkPath(pattern string) (*map[uint64][]string, error) {
 	}
 
 	return &result, nil
+}
+
+func formatRestriction(restriction *work.Restriction) string {
+	if restriction == nil {
+		return "unknown"
+	} else if *restriction == work.RestrictionNone {
+		return "all-ages"
+	} else {
+		return restriction.String()
+	}
 }

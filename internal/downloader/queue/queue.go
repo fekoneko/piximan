@@ -52,8 +52,6 @@ func (q *Queue) String() string {
 	}
 
 	builder := strings.Builder{}
-	builder.WriteString("download queue:\n")
-
 	for i, item := range *q {
 		if i >= 10 {
 			line := fmt.Sprintf("... and %v more\n", len(*q)-i)
@@ -75,7 +73,7 @@ func FromMap(
 
 	i := 0
 	for id, paths := range *m {
-		queue[i] = Item{id, kind, size, onlyMeta, paths}
+		queue[i] = Item{id, kind, size, onlyMeta, paths, nil, nil, false}
 		i++
 	}
 
@@ -89,7 +87,7 @@ func FromMapWithPaths(
 
 	i := 0
 	for id := range *m {
-		queue[i] = Item{id, kind, size, onlyMeta, paths}
+		queue[i] = Item{id, kind, size, onlyMeta, paths, nil, nil, false}
 		i++
 	}
 

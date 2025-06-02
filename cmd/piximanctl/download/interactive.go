@@ -2,64 +2,78 @@ package download
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/utils"
-	"github.com/manifoldco/promptui"
 )
 
 func interactive() {
-	ids, inferIdPath, queuePath := selectMode()
+	ids, bookmarks, inferIdPath, queuePath := selectSource()
 	withQueue := queuePath != nil
 	withInferId := inferIdPath != nil
+	withBookmarks := bookmarks != nil
 
 	kind := selectKind(withQueue)
+	tag := promptTag(withBookmarks)
+	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withQueue)
+	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
 	size := selectSize(withQueue, onlyMeta)
 	path := promptPath(withInferId, withQueue)
 
 	fmt.Println()
 	download(&options{
 		Ids:         ids,
+		Bookmarks:   bookmarks,
 		QueuePath:   queuePath,
 		InferIdPath: inferIdPath,
 		Kind:        &kind,
 		Size:        size,
 		OnlyMeta:    &onlyMeta,
+		Tag:         tag,
+		FromOffset:  fromOffset,
+		ToOffset:    toOffset,
+		LowMeta:     lowMeta,
 		Path:        path,
 	})
 }
 
-func selectMode() (*[]uint64, *string, *string) {
-	_, mode, err := modeSelect.Run()
+func selectSource() (*[]uint64, *string, *string, *string) {
+	_, mode, err := sourceSelect.Run()
 	logext.MaybeFatal(err, "failed to read mode")
 
 	switch mode {
-	case idModeOption:
+	case idOption:
 		idsString, err := idPrompt.Run()
 		logext.MaybeFatal(err, "failed to read IDs")
-		ids, err := parseIdsString(idsString)
+		ids, err := parseIds(idsString)
 		logext.MaybeFatal(err, "failed to parse IDs")
-		return &ids, nil, nil
+		return &ids, nil, nil, nil
 
-	case inferIdModeOption:
+	case myBookmarksOption:
+		return nil, utils.ToPtr("my"), nil, nil
+
+	case userBookmarksOption:
+		userId, err := userIdPrompt.Run()
+		logext.MaybeFatal(err, "failed to read user ID")
+		return nil, utils.ToPtr(userId), nil, nil
+
+	case inferIdOption:
 		inferIdPath, err := inferIdPathPrompt.Run()
 		logext.MaybeFatal(err, "failed to read pattern")
-		return nil, &inferIdPath, nil
+		return nil, nil, &inferIdPath, nil
 
-	case queueModeOption:
+	case queueOption:
 		queuePath, err := queuePathPrompt.Run()
 		logext.MaybeFatal(err, "failed to read list path")
-		return nil, nil, &queuePath
+		return nil, nil, nil, &queuePath
 
 	default:
 		logext.Fatal("incorrect download mode: %v", mode)
+		panic("unreachable")
 	}
-	panic("unreachable")
 }
 
 func selectKind(withQueue bool) string {
@@ -73,23 +87,68 @@ func selectKind(withQueue bool) string {
 		return queue.ItemKindNovelString
 	default:
 		logext.Fatal("invalid worktype: %s", kind)
+		panic("unreachable")
 	}
-	panic("unreachable")
+}
+
+func promptTag(withBookmarks bool) *string {
+	if !withBookmarks {
+		return nil
+	}
+
+	tag, err := tagPrompt.Run()
+	logext.MaybeFatal(err, "failed to read tag")
+	if tag == "" {
+		return nil
+	}
+	return &tag
+}
+
+func promptRange(withBookmarks bool) (*uint64, *uint64) {
+	if !withBookmarks {
+		return nil, nil
+	}
+
+	rangeString, err := rangePrompt.Run()
+	logext.MaybeFatal(err, "failed to read range")
+	fromOffset, toOffset, err := parseRange(rangeString)
+	logext.MaybeFatal(err, "failed to parse range")
+
+	return fromOffset, toOffset
 }
 
 func selectOnlyMeta(withQueue bool) bool {
-	_, downloadFiles, err := onlyMetaSelect(withQueue).Run()
+	_, option, err := onlyMetaSelect(withQueue).Run()
 	logext.MaybeFatal(err, "failed to read downloaded files choice")
 
-	switch downloadFiles {
+	switch option {
 	case downloadAllOption:
 		return false
 	case downloadMetaOption:
 		return true
 	default:
-		logext.Fatal("incorrect downloaded files choice: %v", downloadFiles)
+		logext.Fatal("incorrect downloaded files choice: %v", option)
+		panic("unreachable")
 	}
-	panic("unreachable")
+}
+
+func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
+	if !withBookmarks || (kind == queue.ItemKindNovelString && !onlyMeta) {
+		return nil
+	}
+
+	_, option, err := lowMetaSelect.Run()
+	logext.MaybeFatal(err, "failed to read low metadata choice")
+
+	switch option {
+	case lowMetaOption:
+		return utils.ToPtr(true)
+	case fullMetaOption:
+		return utils.ToPtr(false)
+	default:
+		logext.Fatal("incorrect low metadata choice: %v", option)
+		panic("unreachable")
+	}
 }
 
 func selectSize(withQueue bool, onlyMeta bool) *uint {
@@ -115,8 +174,8 @@ func selectSize(withQueue bool, onlyMeta bool) *uint {
 		return &result
 	default:
 		logext.Fatal("incorrect size: %v", size)
+		panic("unreachable")
 	}
-	panic("unreachable")
 }
 
 func promptPath(withInferId bool, withQueue bool) *string {
@@ -131,124 +190,4 @@ func promptPath(withInferId bool, withQueue bool) *string {
 	path, err := pathPrompt(withQueue).Run()
 	logext.MaybeFatal(err, "failed to read path")
 	return &path
-}
-
-func parseIdsString(idsString string) ([]uint64, error) {
-	idSubstrs := strings.Split(idsString, ",")
-	ids := []uint64{}
-
-	for _, idSubstr := range idSubstrs {
-		trimmed := strings.TrimSpace(idSubstr)
-		if trimmed == "" {
-			continue
-		}
-		id, err := strconv.ParseUint(trimmed, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, id)
-	}
-
-	if len(ids) == 0 {
-		return nil, fmt.Errorf("no IDs provided")
-	}
-
-	return ids, nil
-}
-
-var modeSelectLabel = "Download mode"
-var idModeOption = "Download by ID"
-var inferIdModeOption = "Infer IDs from path"
-var queueModeOption = "Download from list"
-
-var modeSelect = promptui.Select{
-	Label: modeSelectLabel,
-	Items: []string{idModeOption, inferIdModeOption, queueModeOption},
-}
-
-var idPromptLabel = "Work IDs"
-
-var idPrompt = promptui.Prompt{
-	Label: idPromptLabel,
-	Validate: func(input string) error {
-		if _, err := parseIdsString(input); err != nil {
-			return fmt.Errorf("IDs must be a comma-separated list of numbers")
-		}
-		return nil
-	},
-}
-
-var inferIdPathPromptLabel = "Path pattern"
-
-var inferIdPathPrompt = promptui.Prompt{
-	Label: inferIdPathPromptLabel,
-	Validate: func(input string) error {
-		if !strings.Contains(input, "{id}") {
-			return fmt.Errorf("pattern must contain {id}")
-		}
-		return nil
-	},
-}
-
-var queuePathPromptLabel = "Path to YAML list"
-
-var queuePathPrompt = promptui.Prompt{
-	Label: queuePathPromptLabel,
-}
-
-var kindSelectLabel = "Type of work to download"
-var kindSelectWithQueueLabel = "Default type of work to download"
-var artworkOption = "Artwork"
-var novelOption = "Novel"
-
-func kindSelect(withQueue bool) *promptui.Select {
-	return &promptui.Select{
-		Label: utils.If(withQueue, kindSelectWithQueueLabel, kindSelectLabel),
-		Items: []string{artworkOption, novelOption},
-	}
-}
-
-var onlyMetaSelectLabel = "Only download metadata"
-var onlyMetaSelectWithQueueLabel = "Only download metadata by default"
-var downloadAllOption = "Download metadata and images"
-var downloadMetaOption = "Only download metadata"
-
-func onlyMetaSelect(withQueue bool) *promptui.Select {
-	return &promptui.Select{
-		Label: utils.If(withQueue, onlyMetaSelectWithQueueLabel, onlyMetaSelectLabel),
-		Items: []string{downloadAllOption, downloadMetaOption},
-	}
-}
-
-var sizeSelectLabel = "Size of downloaded images"
-var sizeSelectWithQueueLabel = "Default size of downloaded images"
-var thumbnailSizeOption = "Thumbnail"
-var smallSizeOption = "Small"
-var mediumSizeOption = "Medium"
-var originalSizeOption = "Original"
-
-func sizeSelect(withQueue bool) *promptui.Select {
-	return &promptui.Select{
-		Label:     utils.If(withQueue, sizeSelectWithQueueLabel, sizeSelectLabel),
-		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
-		CursorPos: 3,
-	}
-}
-
-var pathSelectLabel = "Where to save downloaded works?"
-var inferredPathOption = "Save to inferred path"
-var customPathOption = "Specify different path"
-
-var pathSelect = promptui.Select{
-	Label: pathSelectLabel,
-	Items: []string{inferredPathOption, customPathOption},
-}
-
-var pathPromptLabel = "Save to directory"
-var pathPromptWithQueueLabel = "Default saving path"
-
-func pathPrompt(withQueue bool) *promptui.Prompt {
-	return &promptui.Prompt{
-		Label: utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
-	}
 }

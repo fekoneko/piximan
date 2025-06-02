@@ -37,7 +37,7 @@ You can get session ID from your browser _cookies_ right now:
 - Go to [https://www.pixiv.net](https://wwww.pixiv.net)
 - On the website press `F12` to access the devtools panel
 - In the devtools panel switch to the _Application_ tab (for Chrome) / _Storage_ tab (for Firefox)
-- Expand the _Cookies_ section and select `https://wwww.pixiv.net` origin
+- Expand the _Cookies_ section and select `https://www.pixiv.net` origin
 - Find the row named `PHPSESSID` - this is your cookie
 - Copy the value of the cookie to the clipboard
 
@@ -75,6 +75,31 @@ piximanctl download \
   --id 584231 \
   --type novel \
   --path './novels/{user} ({userid})/{title} ({id})'
+```
+
+### Downloading bookmarks
+
+You can download public bookmarks of a user knowing their ID.
+For example, let's download artwork bookmarks of user 12345:
+
+```shell
+piximanctl download \
+  --bookmarks 12345 \
+  --path './bookmarks/{user} ({userid})/{title} ({id})'
+```
+
+The same will apply to novel bookmarks. You can Also specify one user-defined tag or
+download only a subset of bookmarks. This example will download novel bookmarks
+from user 12345 with tag 'お気に入り' from 101th to 200th latest bookmarks:
+
+```shell
+piximanctl download \
+  --bookmarks 12345 \
+  --type novel \
+  --tag 'お気に入り' \
+  --from 100 \
+  --to 200 \
+  --path './bookmarks/{user} ({userid})/{title} ({id})'
 ```
 
 ### Downloading from list

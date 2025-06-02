@@ -2,6 +2,7 @@ package download
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/image"
@@ -19,6 +20,7 @@ func download(options *options) {
 	size := utils.FromPtrTransform(options.Size, image.SizeFromUint, image.SizeDefault)
 	kind := utils.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
+	lowMeta := utils.FromPtr(options.LowMeta, false)
 	path := utils.FromPtr(options.Path, "")
 
 	d := chooseDownloader(options.Password)
@@ -29,9 +31,28 @@ func download(options *options) {
 	if options.Ids != nil {
 		paths := []string{path}
 		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
+
+	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
+		panic("not implemented") // TODO: fetch user id and use it
+
+	} else if options.Bookmarks != nil {
+		userId, err := strconv.ParseUint(*options.Bookmarks, 10, 64)
+		logext.MaybeFatal(err, "cannot parse user id %v", *options.Bookmarks)
+
+		paths := []string{path}
+		d.ScheduleBookmarks(
+			userId, kind, options.Tag, options.FromOffset, options.ToOffset,
+			size, onlyMeta, lowMeta, paths,
+		)
+		fmt.Println()
+
 	} else if options.InferIdPath != nil {
 		result, err := pathext.InferIdsFromWorkPath(*options.InferIdPath)
 		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
+		if len(*result) == 0 {
+			logext.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
+			return
+		}
 
 		if options.Path == nil {
 			q := queue.FromMap(result, kind, size, onlyMeta)
@@ -41,14 +62,20 @@ func download(options *options) {
 			q := queue.FromMapWithPaths(result, kind, size, onlyMeta, paths)
 			d.ScheduleQueue(q)
 		}
+
 	} else if options.QueuePath != nil {
 		paths := []string{path}
 		q, warnings, err := storage.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
-		logext.MaybeWarnings(warnings, "while reading queue from %v", *options.QueuePath)
-		logext.MaybeFatal(err, "cannot read queue from %v", *options.QueuePath)
+		logext.MaybeWarnings(warnings, "while reading the list from %v", *options.QueuePath)
+		logext.MaybeFatal(err, "cannot read the list from %v", *options.QueuePath)
+		if len(*q) == 0 {
+			logext.Warning("no works found in the list %v", *options.QueuePath)
+			return
+		}
 
 		d.ScheduleQueue(q)
 	}
+
 	fmt.Println(d)
 
 	logext.EnableRequestSlots()

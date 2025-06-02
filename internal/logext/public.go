@@ -6,6 +6,10 @@ import (
 	"github.com/fekoneko/piximan/internal/termext"
 )
 
+// TODO: multiline logs
+// TODO: make a dictionary with log messages
+// TODO: group logs if there are multiple of the same type
+
 func Info(message string, args ...any) {
 	log(infoPrefix+message, args...)
 }

@@ -2,32 +2,93 @@ package downloader
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 )
 
-// TODO: download own bookmarks or by user id
-
 const CHANNEL_SIZE = 10
-const PENDING_LIMIT = 10
+const DOWNLOAD_PENDING_LIMIT = 10
+const CRAWL_PENDING_LIMIT = 1
 
+// Used to queue and download works. Has two internal queues:
+// - downloadQueue - list of works to fetch and store
+// - crawlQueue - list of pages to crawl works from, modifies downloadQueue
+// Use Schedule<...>() methods to fill the queues and then Run() to start downloading.
+// Use Wait<...>() to block on the results.
 type Downloader struct {
-	sessionId       *string
-	client          http.Client
-	channel         chan *work.Work
-	queue           queue.Queue
-	numPending      int
-	numPendingMutex sync.Mutex
+	_sessionId     *string
+	sessionIdMutex sync.Mutex
+	_client        http.Client
+	clientMutex    sync.Mutex
+	channel        chan *work.Work
+
+	downloadQueue      queue.Queue
+	downloadQueueMutex sync.Mutex
+	numDownloading     int
+	numDownloadingCond sync.Cond
+	downloading        bool
+	downloadingMutex   sync.Mutex
+
+	crawlQueue      []func() error // TODO: make custom struct with Push and Pop?
+	crawlQueueMutex sync.Mutex
+	numCrawling     int
+	numCrawlingCond sync.Cond
 }
 
 func New(sessionId *string) *Downloader {
-	client := http.Client{}
-	channel := make(chan *work.Work, CHANNEL_SIZE)
-	return &Downloader{sessionId, client, channel, queue.Queue{}, 0, sync.Mutex{}}
+	return &Downloader{
+		_sessionId:         sessionId,
+		channel:            make(chan *work.Work, CHANNEL_SIZE),
+		numDownloadingCond: *sync.NewCond(&sync.Mutex{}),
+		crawlQueue:         make([]func() error, 0),
+		numCrawlingCond:    *sync.NewCond(&sync.Mutex{}),
+	}
 }
 
 func (d *Downloader) String() string {
-	return d.queue.String()
+	builder := strings.Builder{}
+
+	builder.WriteString("download queue:")
+	d.downloadQueueMutex.Lock()
+	if len(d.downloadQueue) == 0 {
+		builder.WriteString(" empty\n")
+	} else {
+		builder.WriteString("\n")
+		builder.WriteString(d.downloadQueue.String())
+	}
+	d.downloadQueueMutex.Unlock()
+
+	d.numDownloadingCond.L.Lock()
+	if d.numDownloading > 0 {
+		builder.WriteString("tasks in progress: ")
+		builder.WriteString(strconv.FormatInt(int64(d.numDownloading), 10))
+		builder.WriteString("\n")
+	}
+	d.numDownloadingCond.L.Unlock()
+
+	builder.WriteString("\n")
+
+	builder.WriteString("crawl queue: ")
+	d.crawlQueueMutex.Lock()
+	if len(d.crawlQueue) == 0 {
+		builder.WriteString("empty\n")
+	} else {
+		builder.WriteString(strconv.FormatInt(int64(len(d.crawlQueue)), 10))
+		builder.WriteString(" tasks\n")
+	}
+	d.crawlQueueMutex.Unlock()
+
+	d.numCrawlingCond.L.Lock()
+	if d.numCrawling > 0 {
+		builder.WriteString("tasks in progress: ")
+		builder.WriteString(strconv.FormatInt(int64(d.numCrawling), 10))
+		builder.WriteString("\n")
+	}
+	d.numCrawlingCond.L.Unlock()
+
+	return builder.String()
 }
