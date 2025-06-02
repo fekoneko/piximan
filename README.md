@@ -77,6 +77,31 @@ piximanctl download \
   --path './novels/{user} ({userid})/{title} ({id})'
 ```
 
+### Downloading bookmarks
+
+You can download public bookmarks of a user knowing their ID.
+For example, let's download artwork bookmarks of user 12345:
+
+```shell
+piximanctl download \
+  --bookmarks 12345 \
+  --path './bookmarks/{user} ({userid})/{title} ({id})'
+```
+
+The same will apply to novel bookmarks. You can Also specify one user-defined tag or
+download only a subset of bookmarks. This example will download novel bookmarks
+from user 12345 with tag 'お気に入り' from 101th to 200th latest bookmarks:
+
+```shell
+piximanctl download \
+  --bookmarks 12345 \
+  --type novel \
+  --tag 'お気に入り' \
+  --from 100 \
+  --to 200 \
+  --path './bookmarks/{user} ({userid})/{title} ({id})'
+```
+
 ### Downloading from list
 
 You can specify a queue for downloader using YAML format such as:

@@ -19,7 +19,6 @@ const DOWNLOAD_HELP = //
 --bookmarks  Download your bookmarks or the bookmarks of the given user.
  -b          Authorization is required for this source. See 'piximanctl help config'
              Available options are:
-             - my         - download bookmarks of the authorized user
              - <user ID>  - numeric ID of the user to download bookmarks from
 
 --list       Path to a file with information about which works to download.
@@ -99,8 +98,8 @@ const DOWNLOAD_HELP = //
 # Download novels with ID 10000 and 20000
 > piximanctl download --id 10000 --id 20000 --type novel --path "./{userid}/{id}"
 
-# Download 101th to 200th of your latest artwork bookmarks with partial metadata
-> piximanctl download --bookmarks my --from 100 --to 200 --lowmeta --path "./{id}"
+# Download 101th to 200th of latest artwork bookmarks with partial metadata
+> piximanctl download --bookmarks 10000 --from 100 --to 200 --lowmeta --path "./{userid}/{id}"
 
 # Download all novel bookmarks from user 10000 with tag 'お気に入り'
 > piximanctl download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
