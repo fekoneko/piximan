@@ -37,8 +37,11 @@ jobs:
           patch="$(printf '%s' "${{ steps.previous-tag.outputs.tag }}" | cut -d "." -f 3)"
           if [ "$bump" = "[major]" ]; then
             major=$((major + 1))
+            minor=0
+            patch=0
           elif [ "$bump" = "[minor]" ]; then
             minor=$((minor + 1))
+            patch=0
           elif [ "$bump" = "[patch]" ]; then
             patch=$((patch + 1))
           fi
@@ -64,8 +67,8 @@ jobs:
       - name: Generate Changelog
         id: generate-changelog
         run: |
-          log="$(git log "${{ steps.previous-tag.outputs.tag }}..HEAD" --oneline  --no-merges | \
-            sed 's/#EOF#/EOF/')"
+          log="$(git log "${{ steps.previous-tag.outputs.tag }}..HEAD" --oneline --no-merges | \
+            sed 's/#EOF#/EOF/' | tac)"
           feats="$(printf '%s' "$log" | sed -ne 's/.* feat://p')"
           fixes="$(printf '%s' "$log" | sed -ne 's/.* fix://p')"
           changelog=''
