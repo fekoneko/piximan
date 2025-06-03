@@ -3,15 +3,19 @@ name: Pull Request Naming Rules
 on:
   pull_request_target:
     types: [opened, edited, synchronize, reopened]
+    branches: [main]
+  merge_group:
+    types: [checks_requested]
+    branches: [main]
 
 jobs:
-  release:
-    name: Pull Request Naming Rules
+  check:
+    name: Correct PR Title Prefix
     runs-on: ubuntu-latest
 
     steps:
       - uses: deepakputhraya/action-pr-title@master
         with:
-          allowed_prefixes: '[major],[minor],[patch]'
+          allowed_prefixes: '[major],[minor],[patch],[skip ci]'
           prefix_case_sensitive: true
           verbal_description: 'Pull request name should start with one of the following prefixes: [major], [minor], [patch], [skip ci]'
