@@ -12,7 +12,7 @@ import (
 
 func ArtworkMeta(client *http.Client, id uint64) (*work.Work, *[4]string, map[uint64]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
-	body, err := Do(client, url, nil)
+	body, _, err := Do(client, url, nil)
 	if err != nil {
 		return nil, nil, nil, err
 	}

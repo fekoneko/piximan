@@ -76,7 +76,7 @@ func novelMetaWith(
 
 // fetch novel cover asset
 func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*storage.Asset, error) {
-	cover, err := fetch.Do(d.client(), coverUrl, nil)
+	cover, _, err := fetch.Do(d.client(), coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
 	logext.MaybeError(err, "failed to fetch cover for novel %v", id)
 

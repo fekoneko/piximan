@@ -17,7 +17,7 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]storage.Asset, err
 		return nil, err
 	}
 
-	archive, err := fetch.Do(d.client(), url, nil)
+	archive, _, err := fetch.Do(d.client(), url, nil)
 	logext.MaybeSuccess(err, "fetched frames for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch frames for artwork %v", id)
 	if err != nil {

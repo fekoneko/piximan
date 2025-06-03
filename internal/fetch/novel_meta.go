@@ -12,7 +12,8 @@ import (
 
 func NovelMeta(client *http.Client, id uint64) (*work.Work, *string, *string, error) {
 	return novelMetaWith(func(url string) ([]byte, error) {
-		return Do(client, url, nil)
+		body, _, err := Do(client, url, nil)
+		return body, err
 	}, id)
 }
 
@@ -20,7 +21,8 @@ func NovelMetaAuthorized(
 	client *http.Client, id uint64, sessionId string,
 ) (*work.Work, *string, *string, error) {
 	return novelMetaWith(func(url string) ([]byte, error) {
-		return DoAuthorized(client, url, sessionId, nil)
+		body, _, err := DoAuthorized(client, url, sessionId, nil)
+		return body, err
 	}, id)
 }
 
