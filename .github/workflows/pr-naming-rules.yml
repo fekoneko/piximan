@@ -10,7 +10,7 @@ on:
 
 jobs:
   check:
-    name: Pull Request Naming Rules
+    name: Correct PR Title Prefix
     runs-on: ubuntu-latest
 
     steps:
