@@ -9,8 +9,8 @@ on:
     branches: [main]
 
 jobs:
-  release:
-    name: Pull Request Naming Rules
+  check:
+    name: Correct PR Title Prefix
     runs-on: ubuntu-latest
 
     steps:
