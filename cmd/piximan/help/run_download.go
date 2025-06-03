@@ -140,3 +140,8 @@ func RunDownload() {
 
 // TODO: test if session ID is valid after configuring by sending a request
 // TODO: check if session ID is set in interractive download mode and prompt user if they want to set it
+
+// TODO: look at app api ->
+//       https://github.com/akameco/pixiv-app-api/blob/d153118b62da1e1f17c8287d7f73ce72848aaaf9/src/index.ts#L154
+//       https://hanshsieh.github.io/pixiv-api-doc/
+//       https://github.com/piglig/pixiv-token/blob/main/pixiv_token_fetcher.py

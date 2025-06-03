@@ -93,6 +93,7 @@ func chooseDownloader(passwordPtr *string) *downloader.Downloader {
 	storage, err := secretstorage.Open(password)
 	if err != nil && passwordPtr != nil {
 		logext.Fatal("cannot open session id storage: %v", err)
+		panic("unreachable")
 	} else if err != nil {
 		logext.Warning("cannot open session id storage, using only anonymous requests: %v\n", err)
 		return downloader.New(nil)
@@ -100,17 +101,18 @@ func chooseDownloader(passwordPtr *string) *downloader.Downloader {
 
 	if err := storage.Read(); err != nil && passwordPtr != nil {
 		logext.Fatal("cannot read session id: %v", err)
+		panic("unreachable")
 	} else if err != nil {
 		return promptPassword()
 	} else if storage.SessionId == nil && passwordPtr != nil {
 		logext.Fatal("no session id were configured, but password was provided")
+		panic("unreachable")
 	} else if storage.SessionId == nil {
 		logext.Info("no session id were configured, using only anonymous requests")
 		return downloader.New(nil)
 	} else {
 		return downloader.New(storage.SessionId)
 	}
-	panic("unreachable")
 }
 
 var passwordPrompt = promptui.Prompt{
