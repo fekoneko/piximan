@@ -9,7 +9,7 @@ on:
     branches: [main]
 
 jobs:
-  release:
+  check:
     name: Pull Request Naming Rules
     runs-on: ubuntu-latest
 
