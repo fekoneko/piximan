@@ -58,12 +58,6 @@ func (s *Storage) WriteSessionId(sessionId string) error {
 }
 
 func (s *Storage) RemoveSessionId() error {
-	if err := os.Remove(sessionIdPath); err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			return err
-		}
-	}
-
 	s.sessionId = nil
-	return nil
+	return os.Remove(sessionIdPath)
 }

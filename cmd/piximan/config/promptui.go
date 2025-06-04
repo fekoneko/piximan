@@ -8,10 +8,12 @@ import (
 var modeSelectLabel = "What to configure?"
 var sessionIdOption = "Authorization (session ID)"
 var requestParamsOption = "Request delays and limits"
+var resetSessionOption = "Remove configured session ID"
+var resetConfigOption = "Reset configuration"
 
 var modeSelect = promptui.Select{
 	Label: modeSelectLabel,
-	Items: []string{sessionIdOption, requestParamsOption},
+	Items: []string{sessionIdOption, requestParamsOption, resetSessionOption, resetConfigOption},
 }
 
 var sessionIdPrompt = promptui.Prompt{

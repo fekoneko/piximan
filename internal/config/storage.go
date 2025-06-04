@@ -17,7 +17,7 @@ import (
 )
 
 var homePath, _ = os.UserHomeDir()
-var sessionIdPath = filepath.Join(homePath, ".piximan", "session-id")
+var sessionIdPath = filepath.Join(homePath, ".piximan", "session_id")
 var configPath = filepath.Join(homePath, ".piximan", "config.yaml")
 
 // Stores and reads configuration. You can directly access and change public fields and then
@@ -67,10 +67,10 @@ func Open(password *string) (*Storage, error) {
 		cipher:            aesCipher,
 		gcm:               gcm,
 		sessionId:         nil,
-		PximgMaxPending:   utils.FromPtr(unmarshalled.PximgMaxPending, 5),
-		PximgDelay:        utils.FromPtr(unmarshalled.PximgDelay, time.Second*1),
-		DefaultMaxPending: utils.FromPtr(unmarshalled.DefaultMaxPending, 1),
-		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, time.Second*2),
+		PximgMaxPending:   utils.FromPtr(unmarshalled.PximgMaxPending, DEFAULT_PXIMG_MAX_PENDING),
+		PximgDelay:        utils.FromPtr(unmarshalled.PximgDelay, DEFAULT_PXIMG_DELAY),
+		DefaultMaxPending: utils.FromPtr(unmarshalled.DefaultMaxPending, DEFAULT_DEFAULT_MAX_PENDING),
+		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, DEFAULT_DEFAULT_DELAY),
 	}
 
 	return storage, nil

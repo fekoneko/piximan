@@ -18,5 +18,17 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 
+	if options.SessionId != nil && options.ResetSession != nil {
+		fmt.Println("`-s, --session-id' cannot be used with `--no-session' flag")
+		os.Exit(2)
+	}
+
+	if (options.PximgMaxPending != nil || options.PximgDelay != nil ||
+		options.DefaultMaxPending != nil || options.DefaultDelay != nil) &&
+		options.ResetConfig != nil {
+		fmt.Println("no configuration parameters can be used with `--default' flag")
+		os.Exit(2)
+	}
+
 	config(options)
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func interactive() {
-	withSessionId, withRequestParams := selectMode()
+	withSessionId, withRequestParams, resetSession, resetConfig := selectMode()
 	sessionId := promptSessionId(withSessionId)
 	password := promptPassword(withSessionId)
 	defaultMaxPending := promptRequestParamWith(withRequestParams, &defaultMaxPendingPrompt)
@@ -23,18 +23,24 @@ func interactive() {
 		PximgDelay:        pximgDelay,
 		DefaultMaxPending: defaultMaxPending,
 		DefaultDelay:      defaultDelay,
+		ResetSession:      &resetSession,
+		ResetConfig:       &resetConfig,
 	})
 }
 
-func selectMode() (bool, bool) {
+func selectMode() (bool, bool, bool, bool) {
 	_, mode, err := modeSelect.Run()
 	logext.MaybeFatal(err, "failed to read configuration mode")
 
 	switch mode {
 	case sessionIdOption:
-		return true, false
+		return true, false, false, false
 	case requestParamsOption:
-		return false, true
+		return false, true, false, false
+	case resetSessionOption:
+		return false, false, true, false
+	case resetConfigOption:
+		return false, false, false, true
 	default:
 		logext.Fatal("incorrect configuration mode: %v", mode)
 		panic("unreachable")

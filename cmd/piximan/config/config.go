@@ -16,7 +16,11 @@ func config(options *options) {
 	storage, err := appconfig.Open(options.Password)
 	logext.MaybeFatal(err, "failed to open config storage")
 
-	if options.SessionId != nil {
+	if utils.FromPtr(options.ResetSession, false) {
+		err := storage.RemoveSessionId()
+		logext.MaybeSuccess(err, "session id was removed")
+		logext.MaybeFatal(err, "failed to remove session id")
+	} else if options.SessionId != nil {
 		err = storage.WriteSessionId(*options.SessionId)
 		logext.MaybeSuccess(err, "session id was set%v",
 			utils.If(options.Password != nil, " and encrypted with password", ""),
@@ -24,23 +28,34 @@ func config(options *options) {
 		logext.MaybeFatal(err, "failed to set session id")
 	}
 
-	// err := storage.RemoveSessionId()
-	// logext.MaybeSuccess(err, "session id was removed")
-	// logext.MaybeFatal(err, "failed to remove session id")
+	if utils.FromPtr(options.ResetConfig, false) {
+		err := storage.Reset()
+		logext.MaybeSuccess(err, "configuration parameters were reset")
+		logext.MaybeFatal(err, "failed to reset configuration parameters")
+		return
+	}
+
+	changed := false
 
 	if options.PximgMaxPending != nil {
 		storage.PximgMaxPending = *options.PximgMaxPending
+		changed = true
 	}
 	if options.PximgDelay != nil {
 		storage.PximgDelay = time.Duration(*options.PximgDelay) * time.Second
+		changed = true
 	}
 	if options.DefaultMaxPending != nil {
 		storage.DefaultMaxPending = *options.DefaultMaxPending
+		changed = true
 	}
 	if options.DefaultDelay != nil {
 		storage.DefaultDelay = time.Duration(*options.DefaultDelay) * time.Second
+		changed = true
 	}
-	err = storage.Write()
-	logext.MaybeSuccess(err, "configuration parameters were saved")
-	logext.MaybeFatal(err, "failed to save configuration parameters")
+	if changed {
+		err = storage.Write()
+		logext.MaybeSuccess(err, "configuration parameters were saved")
+		logext.MaybeFatal(err, "failed to save configuration parameters")
+	}
 }
