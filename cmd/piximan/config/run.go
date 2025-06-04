@@ -4,7 +4,7 @@ import "os"
 
 type options struct {
 	SessionId string  `short:"s" long:"session-id" required:"true"`
-	Password  *string `short:"p" long:"password"`
+	Password  *string `short:"P" long:"password"`
 }
 
 func Run() {
