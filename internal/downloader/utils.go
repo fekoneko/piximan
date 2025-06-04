@@ -3,12 +3,11 @@ package downloader
 import (
 	"net/http"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/pathext"
-	"github.com/fekoneko/piximan/internal/storage"
 	"github.com/fekoneko/piximan/internal/utils"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 // thread safe method to get http client
@@ -26,12 +25,12 @@ func (d *Downloader) sessionId() (*string, bool) {
 }
 
 func writeWork(
-	id uint64, kind queue.ItemKind, w *work.Work, assets []storage.Asset,
+	id uint64, kind queue.ItemKind, w *work.Work, assets []fsext.Asset,
 	onlyMeta bool, paths []string,
 ) error {
-	paths, err := pathext.FormatWorkPaths(paths, w)
+	paths, err := fsext.FormatWorkPaths(paths, w)
 	if err == nil {
-		err = storage.WriteWork(w, assets, paths)
+		err = fsext.WriteWork(w, assets, paths)
 	}
 	what := utils.If(onlyMeta, "metadata", "files")
 	logext.MaybeSuccess(err, "stored %v for %v %v in %v", what, kind, id, paths)

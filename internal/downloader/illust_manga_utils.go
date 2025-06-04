@@ -5,11 +5,11 @@ import (
 	"path"
 	"strings"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/fetch"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/storage"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 func urlFromMap(id uint64, urls map[uint64]string) *string {
@@ -27,7 +27,7 @@ func (d *Downloader) illustMangaAssets(
 	firstPageUrls *[4]string,
 	thumbnailUrl *string,
 	size image.Size,
-) ([]storage.Asset, error) {
+) ([]fsext.Asset, error) {
 	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrl, size)
 	if err != nil {
 		logext.Warning("failed to infer page urls for artwork %v: %v", id, err)
@@ -186,7 +186,7 @@ var extensions = []string{".jpg", ".png", ".gif"}
 // page with different extensions until it finds the correct one. The list of guessed extensions
 // is small and contains only the extensions that Pixiv accepts to be uploaded.
 // Work cannot have different extensions for different pages as Pixiv does not allow it.
-func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bool, noLogErrors bool) ([]storage.Asset, error) {
+func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bool, noLogErrors bool) ([]fsext.Asset, error) {
 	logErrorOrWarning := logext.Error
 	if noLogErrors {
 		logErrorOrWarning = logext.Warning
@@ -197,7 +197,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 		return nil, err
 	}
 
-	assetChannel := make(chan storage.Asset, len(pageUrls))
+	assetChannel := make(chan fsext.Asset, len(pageUrls))
 	errorChannel := make(chan error)
 
 	guessedExtension := ""
@@ -210,7 +210,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			}
 
 			logext.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
-			assets := storage.Asset{Bytes: bytes, Extension: extension, Page: 1}
+			assets := fsext.Asset{Bytes: bytes, Extension: extension, Page: 1}
 			assetChannel <- assets
 			guessedExtension = extension
 			break
@@ -239,12 +239,12 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			if withExtensions {
 				extension = path.Ext(url)
 			}
-			assets := storage.Asset{Bytes: bytes, Extension: extension, Page: uint64(i + 1)}
+			assets := fsext.Asset{Bytes: bytes, Extension: extension, Page: uint64(i + 1)}
 			assetChannel <- assets
 		}()
 	}
 
-	assets := make([]storage.Asset, len(pageUrls))
+	assets := make([]fsext.Asset, len(pageUrls))
 	for i := range pageUrls {
 		select {
 		case assets[i] = <-assetChannel:
@@ -262,7 +262,7 @@ func (d *Downloader) illustMangaAssetsChannel(
 	firstPageUrls *[4]string,
 	thumbnailUrl *string,
 	size image.Size,
-	assetsChannel chan []storage.Asset,
+	assetsChannel chan []fsext.Asset,
 	errorChannel chan error,
 ) {
 	if assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrl, size); err == nil {

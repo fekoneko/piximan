@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fetch/dto"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 func ArtworkMeta(client *http.Client, id uint64) (*work.Work, *[4]string, map[uint64]string, error) {

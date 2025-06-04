@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/pathext"
-	"github.com/fekoneko/piximan/internal/secretstorage"
-	"github.com/fekoneko/piximan/internal/storage"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/manifoldco/promptui"
@@ -53,7 +52,7 @@ func download(options *options) {
 		fmt.Println()
 
 	} else if options.InferIdPath != nil {
-		result, err := pathext.InferIdsFromWorkPath(*options.InferIdPath)
+		result, err := fsext.InferIdsFromWorkPath(*options.InferIdPath)
 		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
 		if len(*result) == 0 {
 			logext.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
@@ -71,7 +70,7 @@ func download(options *options) {
 
 	} else if options.QueuePath != nil {
 		paths := []string{path}
-		q, warnings, err := storage.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
+		q, warnings, err := fsext.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
 		logext.MaybeWarnings(warnings, "while reading the list from %v", *options.QueuePath)
 		logext.MaybeFatal(err, "cannot read the list from %v", *options.QueuePath)
 		if len(*q) == 0 {
@@ -96,7 +95,7 @@ func download(options *options) {
 func chooseDownloader(passwordPtr *string) *downloader.Downloader {
 	password := utils.FromPtr(passwordPtr, "")
 
-	storage, err := secretstorage.Open(password)
+	storage, err := config.Open(password)
 	if err != nil && passwordPtr != nil {
 		logext.Fatal("cannot open session id storage: %v", err)
 		panic("unreachable")
@@ -135,7 +134,7 @@ func promptPassword() *downloader.Downloader {
 			return downloader.New(nil)
 		}
 
-		storage, err := secretstorage.Open(password)
+		storage, err := config.Open(password)
 		if err != nil {
 			logext.Warning("cannot open session id storage, using only anonymous requests: %v\n", err)
 			return downloader.New(nil)

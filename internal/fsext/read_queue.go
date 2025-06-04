@@ -1,11 +1,11 @@
-package storage
+package fsext
 
 import (
 	"os"
 
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
-	"github.com/fekoneko/piximan/internal/storage/dto"
+	"github.com/fekoneko/piximan/internal/fsext/dto"
 	"gopkg.in/yaml.v2"
 )
 

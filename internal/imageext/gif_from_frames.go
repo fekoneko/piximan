@@ -1,4 +1,4 @@
-package encode
+package imageext
 
 import (
 	"archive/zip"

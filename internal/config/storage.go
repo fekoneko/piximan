@@ -1,4 +1,4 @@
-package secretstorage
+package config
 
 import (
 	"crypto/aes"

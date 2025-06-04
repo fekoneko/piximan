@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fetch/dto"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 func NovelMeta(client *http.Client, id uint64) (*work.Work, *string, *string, error) {

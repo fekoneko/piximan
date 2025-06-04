@@ -3,12 +3,12 @@ package downloader
 import (
 	"fmt"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fetch"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/storage"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Download only artwork metadata and store it in paths. Blocks until done.
@@ -26,7 +26,7 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 		logext.Warning("metadata for artwork %v is incomplete", id)
 	}
 
-	assets := []storage.Asset{}
+	assets := []fsext.Asset{}
 	return w, writeWork(id, queue.ItemKindArtwork, w, assets, true, paths)
 }
 
@@ -35,7 +35,7 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 func (d *Downloader) LowArtworkMetaWithKnown(
 	id uint64, w *work.Work, paths []string,
 ) (*work.Work, error) {
-	assets := []storage.Asset{}
+	assets := []fsext.Asset{}
 	return w, writeWork(id, queue.ItemKindArtwork, w, assets, true, paths)
 }
 
@@ -77,7 +77,7 @@ func (d *Downloader) ArtworkWithKnown(
 	logext.Info("started downloading artwork %v", id)
 
 	workChannel := make(chan *work.Work)
-	assetsChannel := make(chan []storage.Asset)
+	assetsChannel := make(chan []fsext.Asset)
 	errorChannel := make(chan error)
 
 	go d.artworkMetaChannel(id, workChannel, errorChannel)
@@ -97,7 +97,7 @@ func (d *Downloader) ArtworkWithKnown(
 	}
 
 	var fullWork *work.Work
-	var assets []storage.Asset
+	var assets []fsext.Asset
 
 	for range 2 {
 		select {

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fetch"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/storage"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Fetch novel metadata, cover url and content asset.
 // Retry authorized if the content or cover url is missing.
-func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *storage.Asset, error) {
+func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *fsext.Asset, error) {
 	sessionId, withSessionId := d.sessionId()
 
 	if w, coverUrl, contentAsset, err := novelMetaWith(func() (*work.Work, *string, *string, error) {
@@ -43,7 +43,7 @@ func novelMetaWith(
 	id uint64,
 	ignoreMissing bool,
 	noLogErrors bool,
-) (*work.Work, *string, *storage.Asset, error) {
+) (*work.Work, *string, *fsext.Asset, error) {
 	logErrorOrWarning := logext.Error
 	if noLogErrors {
 		logErrorOrWarning = logext.Warning
@@ -70,17 +70,17 @@ func novelMetaWith(
 	if !w.Full() {
 		logext.Warning("metadata for novel %v is incomplete", id)
 	}
-	contentAsset := storage.Asset{Bytes: []byte(*content), Extension: ".txt"}
+	contentAsset := fsext.Asset{Bytes: []byte(*content), Extension: ".txt"}
 	return w, coverUrl, &contentAsset, nil
 }
 
 // fetch novel cover asset
-func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*storage.Asset, error) {
+func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, error) {
 	cover, _, err := fetch.Do(d.client(), coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
 	logext.MaybeError(err, "failed to fetch cover for novel %v", id)
 
-	asset := storage.Asset{Bytes: cover, Extension: path.Ext(coverUrl)}
+	asset := fsext.Asset{Bytes: cover, Extension: path.Ext(coverUrl)}
 	return &asset, nil
 }
 
@@ -88,7 +88,7 @@ func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*storage.Asset
 func (d *Downloader) novelMetaChannel(
 	id uint64,
 	workChannel chan *work.Work,
-	contentChannel chan *storage.Asset,
+	contentChannel chan *fsext.Asset,
 	errorChannel chan error,
 ) {
 	if w, _, contentAsset, err := d.novelMeta(id); err == nil {
@@ -102,7 +102,7 @@ func (d *Downloader) novelMetaChannel(
 // coverAsset() but returs results through channels
 func (d *Downloader) novelCoverAssetChannel(
 	id uint64, coverUrl string,
-	coverChannel chan *storage.Asset,
+	coverChannel chan *fsext.Asset,
 	errorChannel chan error,
 ) {
 	if coverAsset, err := d.novelCoverAsset(id, coverUrl); err == nil {

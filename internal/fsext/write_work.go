@@ -1,4 +1,4 @@
-package storage
+package fsext
 
 import (
 	"fmt"
@@ -6,10 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
-	"github.com/fekoneko/piximan/internal/pathext"
-	"github.com/fekoneko/piximan/internal/storage/dto"
+	"github.com/fekoneko/piximan/internal/fsext/dto"
 	"github.com/fekoneko/piximan/internal/utils"
+	"github.com/fekoneko/piximan/internal/work"
 	"gopkg.in/yaml.v2"
 )
 
@@ -42,7 +41,7 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 			}
 			builder.WriteString(utils.FromPtr(work.Title, "unknown"))
 			builder.WriteString(asset.Extension)
-			filename := pathext.ToValidFilename(builder.String())
+			filename := ToValidFilename(builder.String())
 			path := filepath.Join(path, filename)
 			if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
 				return err

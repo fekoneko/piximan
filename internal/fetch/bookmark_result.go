@@ -3,7 +3,7 @@ package fetch
 import (
 	"time"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 type BookmarkResult struct {

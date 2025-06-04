@@ -1,4 +1,4 @@
-package pathext
+package fsext
 
 import "strings"
 
@@ -14,6 +14,7 @@ var filenameReplacer = strings.NewReplacer(
 )
 
 func ToValidFilename(filename string) string {
+
 	switch strings.ToUpper(filename) {
 	case ".", "..", "CON", "PRN", "AUX", "NUL",
 		"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
