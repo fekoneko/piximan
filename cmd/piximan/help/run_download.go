@@ -64,6 +64,10 @@ const DOWNLOAD_HELP = //
 --to         Crawl bookmarks up to N'th latest bookmark. Zero-based, non-inclusive.
  -T          Omit this option to crawl up to the oldest bookmark.
 
+--private    Download private bookmarks. You only have access to private bookmarks
+ -R          of the authorized user so you probably want to use it with --bookmarks my.
+             If not provided, public bookmarks will be downloaded instead.
+
 --lowmeta    Specify to skip fetching the full metadata for each work. This will
  -M          significantly reduce the number of pixiv.net API calls.
              These options will be missing in the metadata.yaml files:
@@ -104,8 +108,11 @@ const DOWNLOAD_HELP = //
 # Download novels with ID 10000 and 20000
 > piximan download --id 10000 --id 20000 --type novel --path "./{userid}/{id}"
 
-# Download 101th to 200th of your latest artwork bookmarks with partial metadata
-> piximan download --bookmarks my --from 100 --to 200 --lowmeta --path "./{id}"
+# Download 101th to 200th of your latest public artwork bookmarks with full metadata
+> piximan download --bookmarks my --from 100 --to 200 --path "./{id}"
+
+# Download all of your private artwork bookmarks with partial metadata saving requests
+> piximan download --bookmarks my --private --lowmeta --path "./{id}"
 
 # Download all novel bookmarks from user 10000 with tag 'お気に入り'
 > piximan download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
@@ -114,21 +121,14 @@ const DOWNLOAD_HELP = //
 > piximan download --list "./list.yaml" --path "./{userid}/{id}"
 
 # Update metadata in the collection saved earlier
-> piximan download --inferid "$HOME/My Collection/*/{id}" --onlymeta
+> piximan download --inferid --onlymeta "$HOME/My Collection/*/{id}"
 `
 
 func RunDownload() {
 	fmt.Print(DOWNLOAD_HELP)
 }
 
-// TODO: update README.md with new features
-
-// TODO: authorized user bookmarks download (+private)
 // TODO: bookmarks --newer, --older than date
-// TODO: {tag} pattern for user-assigned tags when downloading bookmarks
-// TODO: {visibility} pattern for public / private bookmarks
-// TODO: --private --public flags for for --bookmarks my (put example in the help)
-
 // TODO: download user's works ('my' or by id)
 
 // TODO: --log, -L option to log the output to a file (-L should be reserved for language actually)

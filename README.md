@@ -27,7 +27,8 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 
 ### Authorization
 
-> If you only download works without restriction (without R-18, R-18G) you can skip this section.
+> If you only download works without age restriction and don't need to fetch user bookmarks,
+> the downloader is usable without authorization.
 
 For some requests Pixiv requires you to be authorized. For example, to fetch frames for R-18 ugoira
 you must have the R-18 option checked in your profile. To authorize these requests you need to
@@ -80,26 +81,46 @@ piximan download \
 
 ### Downloading bookmarks
 
-You can download public bookmarks of a user knowing their ID.
-For example, let's download artwork bookmarks of user 12345:
+> For downloading any bookmarks you need to be authorized (configuration the session ID).
+
+You can download your public artwork bookmarks like this:
 
 ```shell
 piximan download \
-  --bookmarks 12345 \
+  --bookmarks my \
   --path './bookmarks/{user} ({userid})/{title} ({id})'
 ```
 
-The same will apply to novel bookmarks. You can Also specify one user-defined tag or
-download only a subset of bookmarks. This example will download novel bookmarks
-from user 12345 with tag 'お気に入り' from 101th to 200th latest bookmarks:
+You can also specify `--type novel` to download novel bookmarks and `--private` to download
+private bookmarks.
+
+```shell
+piximan download \
+  --bookmarks my \
+  --type novel \
+  --private \
+  --path './bookmarks/{user} ({userid})/{title} ({id})'
+```
+
+You can also specify a user-assigned tag or download only a specified chunk. This example
+will download your public bookmarks with tag 'お気に入り' from 101th to 200th latest:
+
+```shell
+piximan download \
+  --bookmarks my \
+  --tag 'お気に入り' \
+  --from 100 \
+  --to 200 \
+  --path './bookmarks/{user} ({userid})/{title} ({id})'
+```
+
+You can also download public bookmarks of any user knowing their ID.
+For example, this will download novel bookmarks of user 12345:
 
 ```shell
 piximan download \
   --bookmarks 12345 \
   --type novel \
-  --tag 'お気に入り' \
-  --from 100 \
-  --to 200 \
   --path './bookmarks/{user} ({userid})/{title} ({id})'
 ```
 
