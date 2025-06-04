@@ -6,7 +6,7 @@ import (
 )
 
 var modeSelectLabel = "What to configure?"
-var sessionIdOption = "Session ID"
+var sessionIdOption = "Authorization (session ID)"
 var requestParamsOption = "Request delays and limits"
 
 var modeSelect = promptui.Select{

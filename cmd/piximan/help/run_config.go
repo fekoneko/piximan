@@ -9,7 +9,7 @@ const CONFIG_HELP = //
 
                             Authorization options
                             ---------------------
---session-id  The session ID to use for pixiv.net API autorization.
+--session-id The session ID to use for pixiv.net API autorization.
  -s          The authorization is used only when it's absolutely required, other
              requests will be made anonymously.
              You can get this ID from browser cookies on https://www.pixiv.net.
@@ -17,12 +17,30 @@ const CONFIG_HELP = //
              Do not paste the value directly in the command line as it could
              be logged in the terminal history (e.g. ~/.bash_history).
              Session ID will be encrypted and stored in ~/.piximan/session-id.
-             You can remove the session ID by providing one of the following values:
-             'null', 'nil', 'none', 'remove', clear', '-'
 
 --password   The master password that can be set to encrypt the provided
  -P          session ID. If omited the password will be set to an empty string.
              Similarly to the session ID, avoid pasting the value directly.
+
+                          Request delays and limits
+                          --------------------------
+--max-pending       Maximum number of concurrent requests to pixiv.net.
+ -m                 Default value is 1.
+
+--delay             Delay between eachnew request to pixiv.net in seconds.
+ -d                 Default value is 2.
+
+--pximg-max-pending Maximum number of concurrent requests to i.pximg.net.
+ -M                 Default value is 5.
+
+--pximg-delay       Delay between each new request to i.pximg.net in seconds.
+ -D                 Default value is 1.
+
+                             Reset configuration
+                             --------------------
+--no-session Remove the configured session ID.
+
+--default    Reset all configuration except the session ID to default values.
 
                                   Examples
                                   --------
