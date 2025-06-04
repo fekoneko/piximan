@@ -5,9 +5,9 @@ import (
 	"math"
 	"strings"
 
+	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
-	"github.com/fekoneko/piximan/internal/fetch"
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
@@ -22,13 +22,7 @@ func (d *Downloader) ScheduleMyBookmarks(
 	defer d.crawlQueueMutex.Unlock()
 
 	d.crawlQueue = append(d.crawlQueue, func() error {
-		sessionId, withSessionId := d.sessionId()
-		if !withSessionId {
-			err := fmt.Errorf("authorization is required")
-			logext.Error("%v: %v", "failed to fetch authorizeed user id", err)
-			return err
-		}
-		userId, err := fetch.MyIdAutorized(d.client(), *sessionId)
+		userId, err := d.client.MyIdAutorized()
 		logext.MaybeSuccess(err, "fetched authorizeed user id")
 		logext.MaybeError(err, "failed to fetch authorizeed user id")
 		if err != nil {
@@ -106,23 +100,16 @@ func (d *Downloader) scheduleBookmarksPage(
 		return 0, err
 	}
 
-	sessionId, withSessionId := d.sessionId()
-	if !withSessionId {
-		err := fmt.Errorf("authorization is required")
-		logext.Error("%v: %v", bookmarksLogMessage(errorPrefix, userId, tag, nil), err)
-		return 0, err
-	}
-
-	var results []fetch.BookmarkResult
+	var results []client.BookmarkResult
 	var total uint64
 	var err error
 	if kind == queue.ItemKindArtwork {
-		results, total, err = fetch.ArtworkBookmarksAuthorized(
-			d.client(), userId, tag, offset, limit, private, *sessionId,
+		results, total, err = d.client.ArtworkBookmarksAuthorized(
+			userId, tag, offset, limit, private,
 		)
 	} else {
-		results, total, err = fetch.NovelBookmarksAuthorized(
-			d.client(), userId, tag, offset, limit, private, *sessionId,
+		results, total, err = d.client.NovelBookmarksAuthorized(
+			userId, tag, offset, limit, private,
 		)
 	}
 	logext.MaybeSuccess(err, bookmarksLogMessage(successPrefix, userId, tag, &offset))

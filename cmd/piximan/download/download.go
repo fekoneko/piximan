@@ -2,18 +2,17 @@ package download
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
+	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/pathext"
-	"github.com/fekoneko/piximan/internal/secretstorage"
-	"github.com/fekoneko/piximan/internal/storage"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
-	"github.com/manifoldco/promptui"
 )
 
 func download(options *options) {
@@ -24,7 +23,12 @@ func download(options *options) {
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	path := utils.FromPtr(options.Path, "")
 
-	d := chooseDownloader(options.Password)
+	config, sessionId := configSession(options.Password)
+	d := downloader.New(
+		sessionId,
+		config.PximgMaxPending, config.PximgDelay,
+		config.DefaultMaxPending, config.DefaultDelay,
+	)
 
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
@@ -53,7 +57,7 @@ func download(options *options) {
 		fmt.Println()
 
 	} else if options.InferIdPath != nil {
-		result, err := pathext.InferIdsFromWorkPath(*options.InferIdPath)
+		result, err := fsext.InferIdsFromWorkPath(*options.InferIdPath)
 		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
 		if len(*result) == 0 {
 			logext.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
@@ -71,7 +75,7 @@ func download(options *options) {
 
 	} else if options.QueuePath != nil {
 		paths := []string{path}
-		q, warnings, err := storage.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
+		q, warnings, err := fsext.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
 		logext.MaybeWarnings(warnings, "while reading the list from %v", *options.QueuePath)
 		logext.MaybeFatal(err, "cannot read the list from %v", *options.QueuePath)
 		if len(*q) == 0 {
@@ -93,62 +97,78 @@ func download(options *options) {
 	logext.Info("download finished")
 }
 
-func chooseDownloader(passwordPtr *string) *downloader.Downloader {
-	password := utils.FromPtr(passwordPtr, "")
-
-	storage, err := secretstorage.Open(password)
-	if err != nil && passwordPtr != nil {
-		logext.Fatal("cannot open session id storage: %v", err)
+func configSession(password *string) (*config.Storage, *string) {
+	storage, err := config.Open(password)
+	if err != nil && password != nil {
+		logext.Fatal("cannot open config storage: %v", err)
 		panic("unreachable")
 	} else if err != nil {
-		logext.Warning("cannot open session id storage, using only anonymous requests: %v\n", err)
-		return downloader.New(nil)
+		logext.Warning("cannot open config storage: %v", err)
+		promptDefaultConfig()
+		return storage, nil
 	}
 
-	if err := storage.Read(); err != nil && passwordPtr != nil {
+	if sessionId, err := storage.SessionId(); err != nil && password != nil {
 		logext.Fatal("cannot read session id: %v", err)
 		panic("unreachable")
 	} else if err != nil {
-		return promptPassword()
-	} else if storage.SessionId == nil && passwordPtr != nil {
+		if newStorage, sessionId := promptPassword(); newStorage != nil {
+			return newStorage, sessionId
+		} else {
+			return storage, sessionId
+		}
+	} else if sessionId == nil && password != nil {
 		logext.Fatal("no session id were configured, but password was provided")
 		panic("unreachable")
-	} else if storage.SessionId == nil {
+	} else if sessionId == nil {
 		logext.Info("no session id were configured, using only anonymous requests")
-		return downloader.New(nil)
+		return storage, nil
 	} else {
-		return downloader.New(storage.SessionId)
+		return storage, sessionId
 	}
 }
 
-var passwordPrompt = promptui.Prompt{
-	Label:       "Password",
-	Mask:        '*',
-	HideEntered: true,
-}
-
-func promptPassword() *downloader.Downloader {
+func promptPassword() (*config.Storage, *string) {
 	for tries := 0; ; tries++ {
 		password, err := passwordPrompt.Run()
 		if err != nil {
-			logext.Warning("failed to read password, using only anonymous requests: %v\n", err)
-			return downloader.New(nil)
+			logext.Warning("failed to read password: %v", err)
+			promptNoAuthorization()
+			return nil, nil
 		}
 
-		storage, err := secretstorage.Open(password)
+		storage, err := config.Open(&password)
 		if err != nil {
-			logext.Warning("cannot open session id storage, using only anonymous requests: %v\n", err)
-			return downloader.New(nil)
+			logext.Warning("cannot open config storage: %v", err)
+			promptNoAuthorization()
+			return nil, nil
 		}
 
-		if err = storage.Read(); err == nil && storage.SessionId != nil {
-			return downloader.New(storage.SessionId)
+		if sessionId, err := storage.SessionId(); err == nil && sessionId != nil {
+			return storage, sessionId
 		} else if err == nil {
-			logext.Info("no session id were configured, using only anonymous requests\n")
-			return downloader.New(nil)
+			logext.Info("no session id were configured, using only anonymous requests")
+			return storage, nil
 		} else if tries == 2 {
-			logext.Warning("cannot read session id, using only anonymous requests: %v\n", err)
-			return downloader.New(nil)
+			logext.Warning("cannot read session id: %v", err)
+			promptNoAuthorization()
+			return storage, nil
 		}
+	}
+}
+
+func promptDefaultConfig() {
+	_, option, err := deafultConfigPrompt.Run()
+	logext.MaybeFatal(err, "failed to read the choice")
+	if err != nil || option != YesOption {
+		os.Exit(1)
+	}
+}
+
+func promptNoAuthorization() {
+	_, option, err := noAuthorizationPrompt.Run()
+	logext.MaybeFatal(err, "failed to read the choice")
+	if err != nil || option != YesOption {
+		os.Exit(1)
 	}
 }

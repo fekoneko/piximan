@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"reflect"
 	"strconv"
 	"time"
@@ -36,6 +37,15 @@ func MapPtr[T any, U any](ptr *T, transform func(T) U) *U {
 
 func ToPtr[T any](value T) *T {
 	return &value
+}
+
+func ValidateNumber(message string) func(string) error {
+	return func(s string) error {
+		if _, err := strconv.ParseUint(s, 10, 64); err != nil {
+			return errors.New(message)
+		}
+		return nil
+	}
 }
 
 func FormatUint64(value uint64) string {

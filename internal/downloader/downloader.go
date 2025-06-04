@@ -1,14 +1,15 @@
 package downloader
 
 import (
-	"net/http"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/utils"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 const CHANNEL_SIZE = 10
@@ -21,11 +22,8 @@ const CRAWL_PENDING_LIMIT = 1
 // Use Schedule<...>() methods to fill the queues and then Run() to start downloading.
 // Use Wait<...>() to block on the results.
 type Downloader struct {
-	_sessionId     *string
-	sessionIdMutex sync.Mutex
-	_client        http.Client
-	clientMutex    sync.Mutex
-	channel        chan *work.Work
+	client  *client.Client
+	channel chan *work.Work
 
 	downloadQueue      queue.Queue
 	downloadQueueMutex sync.Mutex
@@ -40,9 +38,15 @@ type Downloader struct {
 	numCrawlingCond sync.Cond
 }
 
-func New(sessionId *string) *Downloader {
+func New(
+	sessionId *string,
+	piximgMaxPending uint64, piximgDelay time.Duration,
+	defaultMaxPending uint64, defaultDelay time.Duration,
+) *Downloader {
+	client := client.New(sessionId, piximgMaxPending, piximgDelay, defaultMaxPending, defaultDelay)
+
 	return &Downloader{
-		_sessionId:         sessionId,
+		client:             client,
 		channel:            make(chan *work.Work, CHANNEL_SIZE),
 		numDownloadingCond: *sync.NewCond(&sync.Mutex{}),
 		crawlQueue:         make([]func() error, 0),

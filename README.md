@@ -139,11 +139,11 @@ You can specify a queue for downloader using YAML format such as:
 - id: 34567
   type: artwork
   size: 1
-  onlymeta: false
+  only-meta: false
   paths: ['./special artwork']
 - id: 45678
   type: novel
-  onlymeta: true
+  only-meta: true
   paths: ['./special novel']
 ```
 
@@ -158,12 +158,12 @@ piximan download \
 ### Inferring work IDs
 
 You can infer the IDs of works from the given path. For example, this is useful for updating
-the metadata in the existing collection when coupled with the `--onlymeta` flag:
+the metadata in the existing collection when coupled with the `--only-meta` flag:
 
 ```shell
 piximan download \
-  --inferid './artworks/*/* ({id})' \
-  --onlymeta
+  --infer-id './artworks/*/* ({id})' \
+  --only-meta
 ```
 
 ### Help

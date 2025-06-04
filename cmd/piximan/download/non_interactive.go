@@ -18,7 +18,7 @@ func nonInteractive() {
 	if !utils.ExactlyOneDefined(
 		options.Ids, options.Bookmarks, options.InferIdPath, options.QueuePath,
 	) {
-		fmt.Println("provide exactly one download source: `-i, --id', `-b, --bookmarks' `-I, --inferid' or `-l, --list'")
+		fmt.Println("provide exactly one download source: `-i, --id', `-b, --bookmarks' `-I, --infer-id' or `-l, --list'")
 		os.Exit(2)
 	}
 	withBookmarksUserId := utils.ParseUint64Ptr(options.Bookmarks) == nil
@@ -56,12 +56,12 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 	if options.LowMeta != nil && options.Bookmarks == nil {
-		fmt.Println("`-M, --lowmeta' flag can only be used with `-b, --bookmarks' source")
+		fmt.Println("`-M, --low-meta' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
 	if options.LowMeta != nil && options.Kind != nil && *options.Kind == queue.ItemKindNovelString &&
 		(options.OnlyMeta == nil || !*options.OnlyMeta) {
-		fmt.Println("`-M, --lowmeta' can be removed for novels without `-m, --onlymeta'")
+		fmt.Println("`-M, --low-meta' can be removed for novels without `-m, --only-meta'")
 		os.Exit(2)
 	}
 	if options.Private != nil && options.Bookmarks == nil {

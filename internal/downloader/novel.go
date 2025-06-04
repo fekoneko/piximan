@@ -1,10 +1,10 @@
 package downloader
 
 import (
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/storage"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Download only novel metadata and store it in paths. Blocks until done.
@@ -17,14 +17,14 @@ func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
 		return nil, err
 	}
 
-	assets := []storage.Asset{}
+	assets := []fsext.Asset{}
 	return w, writeWork(id, queue.ItemKindNovel, w, assets, true, paths)
 }
 
 // Doesn't actually make additional requests, but stores incomplete metadata, received earlier.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []string) (*work.Work, error) {
-	assets := []storage.Asset{}
+	assets := []fsext.Asset{}
 	return w, writeWork(id, queue.ItemKindNovel, w, assets, true, paths)
 }
 
@@ -41,7 +41,7 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 	if err != nil {
 		return nil, err
 	}
-	assets := []storage.Asset{*coverAsset, *contentAsset}
+	assets := []fsext.Asset{*coverAsset, *contentAsset}
 	return w, writeWork(id, queue.ItemKindNovel, w, assets, false, paths)
 }
 
@@ -51,16 +51,16 @@ func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) 
 	logext.Info("started downloading novel %v", id)
 
 	workChannel := make(chan *work.Work, 1)
-	contentChannel := make(chan *storage.Asset, 1)
-	coverChannel := make(chan *storage.Asset, 1)
+	contentChannel := make(chan *fsext.Asset, 1)
+	coverChannel := make(chan *fsext.Asset, 1)
 	errorChannel := make(chan error)
 
 	go d.novelMetaChannel(id, workChannel, contentChannel, errorChannel)
 	go d.novelCoverAssetChannel(id, coverUrl, coverChannel, errorChannel)
 
 	var w *work.Work
-	var contentAsset *storage.Asset
-	var coverAsset *storage.Asset
+	var contentAsset *fsext.Asset
+	var coverAsset *fsext.Asset
 
 	for range 3 {
 		select {
@@ -72,6 +72,6 @@ func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) 
 		}
 	}
 
-	assets := []storage.Asset{*contentAsset, *coverAsset}
+	assets := []fsext.Asset{*contentAsset, *coverAsset}
 	return w, writeWork(id, queue.ItemKindNovel, w, assets, false, paths)
 }

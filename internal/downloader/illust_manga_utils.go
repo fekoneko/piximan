@@ -5,11 +5,10 @@ import (
 	"path"
 	"strings"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
-	"github.com/fekoneko/piximan/internal/fetch"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/storage"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 func urlFromMap(id uint64, urls map[uint64]string) *string {
@@ -27,7 +26,7 @@ func (d *Downloader) illustMangaAssets(
 	firstPageUrls *[4]string,
 	thumbnailUrl *string,
 	size image.Size,
-) ([]storage.Asset, error) {
+) ([]fsext.Asset, error) {
 	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrl, size)
 	if err != nil {
 		logext.Warning("failed to infer page urls for artwork %v: %v", id, err)
@@ -145,15 +144,15 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
 func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
-	sessionId, withSessionId := d.sessionId()
+	authorized := d.client.Authorized()
 	withUnauthorized := w.Restriction == nil ||
-		*w.Restriction == work.RestrictionNone || !withSessionId
+		*w.Restriction == work.RestrictionNone || !authorized
 	if withUnauthorized {
-		pageUrls, err := fetch.ArtworkPages(d.client(), id, size)
+		pageUrls, err := d.client.ArtworkPages(id, size)
 		if err == nil {
 			logext.Success("fetched page urls for artwork %v", id)
 			return pageUrls, nil
-		} else if !withSessionId {
+		} else if !authorized {
 			logext.Error("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
 			return nil, err
 		} else {
@@ -161,11 +160,11 @@ func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]str
 		}
 	}
 
-	if withSessionId {
+	if authorized {
 		if withUnauthorized {
 			logext.Info("retrying fetching pages with authorization for artwork %v", id)
 		}
-		pageUrls, err := fetch.ArtworkPagesAuthorized(d.client(), id, size, *sessionId)
+		pageUrls, err := d.client.ArtworkPagesAuthorized(id, size)
 		logext.MaybeSuccess(err, "fetched page urls for artwork %v", id)
 		logext.MaybeError(err, "failed to fetch page urls for artwork %v", id)
 		if err != nil {
@@ -186,7 +185,9 @@ var extensions = []string{".jpg", ".png", ".gif"}
 // page with different extensions until it finds the correct one. The list of guessed extensions
 // is small and contains only the extensions that Pixiv accepts to be uploaded.
 // Work cannot have different extensions for different pages as Pixiv does not allow it.
-func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bool, noLogErrors bool) ([]storage.Asset, error) {
+func (d *Downloader) fetchAssets(
+	id uint64, pageUrls []string, withExtensions bool, noLogErrors bool,
+) ([]fsext.Asset, error) {
 	logErrorOrWarning := logext.Error
 	if noLogErrors {
 		logErrorOrWarning = logext.Warning
@@ -197,20 +198,20 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 		return nil, err
 	}
 
-	assetChannel := make(chan storage.Asset, len(pageUrls))
+	assetChannel := make(chan fsext.Asset, len(pageUrls))
 	errorChannel := make(chan error)
 
 	guessedExtension := ""
 	if !withExtensions {
 		for _, extension := range extensions {
-			bytes, _, err := fetch.Do(d.client(), pageUrls[0]+extension, nil)
+			bytes, _, err := d.client.Do(pageUrls[0]+extension, nil)
 			if err != nil {
 				logext.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
 				continue
 			}
 
 			logext.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
-			assets := storage.Asset{Bytes: bytes, Extension: extension, Page: 1}
+			assets := fsext.Asset{Bytes: bytes, Extension: extension, Page: 1}
 			assetChannel <- assets
 			guessedExtension = extension
 			break
@@ -227,7 +228,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			continue
 		}
 		go func() {
-			bytes, _, err := fetch.Do(d.client(), url+guessedExtension, nil)
+			bytes, _, err := d.client.Do(url+guessedExtension, nil)
 			if err != nil {
 				logErrorOrWarning("failed to fetch page %v for artwork %v: %v", i+1, id, err)
 				errorChannel <- err
@@ -239,12 +240,12 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			if withExtensions {
 				extension = path.Ext(url)
 			}
-			assets := storage.Asset{Bytes: bytes, Extension: extension, Page: uint64(i + 1)}
+			assets := fsext.Asset{Bytes: bytes, Extension: extension, Page: uint64(i + 1)}
 			assetChannel <- assets
 		}()
 	}
 
-	assets := make([]storage.Asset, len(pageUrls))
+	assets := make([]fsext.Asset, len(pageUrls))
 	for i := range pageUrls {
 		select {
 		case assets[i] = <-assetChannel:
@@ -257,13 +258,8 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 }
 
 func (d *Downloader) illustMangaAssetsChannel(
-	id uint64,
-	w *work.Work,
-	firstPageUrls *[4]string,
-	thumbnailUrl *string,
-	size image.Size,
-	assetsChannel chan []storage.Asset,
-	errorChannel chan error,
+	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrl *string, size image.Size,
+	assetsChannel chan []fsext.Asset, errorChannel chan error,
 ) {
 	if assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrl, size); err == nil {
 		assetsChannel <- assets

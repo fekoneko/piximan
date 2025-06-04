@@ -3,10 +3,10 @@ package downloader
 import (
 	"fmt"
 
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Schedule download. Run() to start downloading.
@@ -224,7 +224,7 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	case isArtwork && onlyMeta && withWork && lowMeta:
 		w, err = d.LowArtworkMetaWithKnown(item.Id, item.Work, item.Paths)
 	default:
-		err = fmt.Errorf("impossible combination of work type, known metadata, lowmeta and onlymeta")
+		err = fmt.Errorf("impossible combination of work type, known metadata, low-meta and only-meta")
 		logext.Error("failed to pick work %v for download: %v", item.Id, err)
 	}
 
