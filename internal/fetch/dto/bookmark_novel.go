@@ -17,7 +17,7 @@ type BookmarkNovel struct {
 func (dto *BookmarkNovel) FromDto(downloadTime time.Time) (*work.Work, bool, *time.Time, *string) {
 	work, unlisted, bookmarkedTime := dto.BookmarkWork.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
 	work.NumBookmarks = dto.BookmarkCount
-	work.IsOriginal = dto.IsOriginal
+	work.Original = dto.IsOriginal
 
 	return work, unlisted, bookmarkedTime, dto.Url
 }

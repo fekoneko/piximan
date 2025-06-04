@@ -81,7 +81,12 @@ const DOWNLOAD_HELP = //
              - {id}         : the ID of the work
              - {user}       : the username of the work author
              - {userid}     : the ID of the work author
-             - {restrict}   : age restriction of the work (all-ages, R-18, R-18G)
+             - {type}       : the type of the work (Illustrations, Manga, Ugoira, Novels)
+             - {restrict}   : age restriction of the work (All Ages, R-18, R-18G)
+             - {ai}         : whether the work is worth your attention (Human, AI)
+             - {original}   : whether the work is original (Original, Not Original)
+             - {series}     : the title of the series the work belongs to
+             - {seriesid}   : the ID of the series the work belongs to
              Be aware that any Windows / NTFS reserved names will be automaticaly
              padded with underscores, reserved characters - replaced and any dots
              or spaces in front or end of the filenames will be trimmed.
