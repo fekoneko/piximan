@@ -33,7 +33,12 @@ func download(options *options) {
 		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
 
 	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
-		panic("not implemented") // TODO: fetch user id and use it
+		paths := []string{path}
+		d.ScheduleMyBookmarks(
+			kind, options.Tag, options.FromOffset, options.ToOffset,
+			size, onlyMeta, lowMeta, paths,
+		)
+		fmt.Println()
 
 	} else if options.Bookmarks != nil {
 		userId, err := strconv.ParseUint(*options.Bookmarks, 10, 64)

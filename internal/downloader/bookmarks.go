@@ -12,7 +12,36 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-// Schedule artwork bookmarks for download. Run() to start downloading.
+// TODO: private bookmarks
+// Schedule bookmarks of authorized user for download. Run() to start downloading.
+func (d *Downloader) ScheduleMyBookmarks(
+	kind queue.ItemKind, tag *string, from *uint64, to *uint64,
+	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
+) {
+	d.crawlQueueMutex.Lock()
+	defer d.crawlQueueMutex.Unlock()
+
+	d.crawlQueue = append(d.crawlQueue, func() error {
+		sessionId, withSessionId := d.sessionId()
+		if !withSessionId {
+			err := fmt.Errorf("authorization is required")
+			logext.Error("%v: %v", "failed to fetch authorizeed user id", err)
+			return err
+		}
+		userId, err := fetch.MyIdAutorized(d.client(), *sessionId)
+		logext.MaybeSuccess(err, "fetched authorizeed user id")
+		logext.MaybeError(err, "failed to fetch authorizeed user id")
+		if err != nil {
+			return err
+		}
+
+		d.ScheduleBookmarks(userId, kind, tag, from, to, size, onlyMeta, lowMeta, paths)
+		return nil
+	})
+	logext.Info("created crawl task to fetch authorizeed user id")
+}
+
+// Schedule bookmarks for download. Run() to start downloading.
 func (d *Downloader) ScheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tag *string, from *uint64, to *uint64,
 	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
@@ -62,7 +91,7 @@ func (d *Downloader) ScheduleBookmarks(
 	logext.Info(bookmarksLogMessage("created bookmarks crawl task", userId, tag, &fromOffset))
 }
 
-// fetch bookmarks and then schedule the works for download, returns total count of bookmarks
+// Fetch bookmarks and then schedule the works for download, returns total count of bookmarks
 func (d *Downloader) scheduleBookmarksPage(
 	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64,
 	size image.Size, onlyMeta bool, lowMeta bool, paths []string,

@@ -160,7 +160,7 @@ Use `make` to run and build the project:
 
 ```shell
 make run                 # Run piximan GUI
-make run ARGS="download" # Run piximan CLI tool with the arguments
+make run ARGS='download' # Run piximan CLI tool with the arguments
 make build               # Build both for all platforms
 make build               # Build for all platforms
 make build:current       # Build for current platform

@@ -150,6 +150,7 @@ func (d *Downloader) superviseCrawl() {
 
 		d.crawlQueueMutex.Lock()
 		if len(d.crawlQueue) == 0 {
+			d.crawlQueueMutex.Unlock()
 			break
 		}
 		crawl := d.crawlQueue[0]
@@ -175,7 +176,11 @@ func (d *Downloader) waitNextCrawled() bool {
 	d.numCrawlingCond.L.Lock()
 	defer d.numCrawlingCond.L.Unlock()
 
-	if d.numCrawling <= 0 {
+	d.crawlQueueMutex.Lock()
+	numCrawlTasks := len(d.crawlQueue)
+	d.crawlQueueMutex.Unlock()
+
+	if d.numCrawling <= 0 && numCrawlTasks == 0 {
 		return false
 	}
 	d.numCrawlingCond.Wait()
