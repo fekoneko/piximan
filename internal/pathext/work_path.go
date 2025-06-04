@@ -13,11 +13,16 @@ import (
 
 func FormatWorkPath(pattern string, w *work.Work) (string, error) {
 	replacer := strings.NewReplacer(
-		"{title}", utils.FromPtr(w.Title, "unknown"),
-		"{id}", utils.FromPtrTransform(w.Id, utils.FormatUint64, "unknown"),
-		"{user}", utils.FromPtr(w.UserName, "unknown"),
-		"{userid}", utils.FromPtrTransform(w.UserId, utils.FormatUint64, "unknown"),
-		"{restrict}", formatRestriction(w.Restriction),
+		"{title}", utils.FromPtr(w.Title, "Unknown"),
+		"{id}", utils.FromPtrTransform(w.Id, utils.FormatUint64, "Unknown"),
+		"{user}", utils.FromPtr(w.UserName, "Unknown"),
+		"{userid}", utils.FromPtrTransform(w.UserId, utils.FormatUint64, "Unknown"),
+		"{type}", formatKind(w.Kind),
+		"{restriction}", formatRestriction(w.Restriction),
+		"{ai}", formatAiKind(w.AiKind),
+		"{original}", formatOriginal(w.Original),
+		"{series}", utils.FromPtr(w.SeriesTitle, "Unknown"),
+		"{seriesid}", utils.FromPtrTransform(w.SeriesId, utils.FormatUint64, "Unknown"),
 	)
 
 	path, err := filepath.Abs(pattern)
@@ -132,12 +137,52 @@ func InferIdsFromWorkPath(pattern string) (*map[uint64][]string, error) {
 	return &result, nil
 }
 
-func formatRestriction(restriction *work.Restriction) string {
-	if restriction == nil {
-		return "unknown"
-	} else if *restriction == work.RestrictionNone {
-		return "all-ages"
+func formatKind(kind *work.Kind) string {
+	switch utils.FromPtr(kind, 255) {
+	case work.KindIllust:
+		return "Illustrations"
+	case work.KindManga:
+		return "Manga"
+	case work.KindUgoira:
+		return "Ugoira"
+	case work.KindNovel:
+		return "Novels"
+	default:
+		return "Unknown"
+	}
+}
+
+func formatAiKind(aiKind *work.AiKind) string {
+	switch utils.FromPtr(aiKind, 255) {
+	case work.AiKindNotAi:
+		return "Human"
+	case work.AiKindIsAi:
+		return "AI"
+	default:
+		return "Unknown"
+	}
+}
+
+func formatOriginal(original *bool) string {
+	if original == nil {
+		return "Unknown"
+	}
+	if *original {
+		return "Original"
 	} else {
-		return restriction.String()
+		return "Not Original"
+	}
+}
+
+func formatRestriction(restriction *work.Restriction) string {
+	switch utils.FromPtr(restriction, 255) {
+	case work.RestrictionNone:
+		return "All Ages"
+	case work.RestrictionR18:
+		return "R-18"
+	case work.RestrictionR18G:
+		return "R-18G"
+	default:
+		return "Unknown"
 	}
 }

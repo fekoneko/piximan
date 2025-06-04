@@ -11,14 +11,18 @@ import (
 
 var sourceSelectLabel = "Download mode"
 var idOption = "Download by ID"
-var myBookmarksOption = "Download my bookmarks"
+var myPublicBookmarksOption = "Download my public bookmarks"
+var myPrivateBookmarksOption = "Download my private bookmarks"
 var userBookmarksOption = "Download bookmarks of other user"
 var inferIdOption = "Infer IDs from path"
 var queueOption = "Download from list"
 
 var sourceSelect = promptui.Select{
 	Label: sourceSelectLabel,
-	Items: []string{idOption, myBookmarksOption, userBookmarksOption, inferIdOption, queueOption},
+	Items: []string{
+		idOption, myPublicBookmarksOption, myPrivateBookmarksOption,
+		userBookmarksOption, inferIdOption, queueOption,
+	},
 }
 
 var idPromptLabel = "Work IDs"

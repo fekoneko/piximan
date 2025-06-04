@@ -13,6 +13,7 @@ type options struct {
 	Tag         *string   `short:"G" long:"tag"`
 	FromOffset  *uint64   `short:"F" long:"from"`
 	ToOffset    *uint64   `short:"T" long:"to"`
+	Private     *bool     `short:"R" long:"private"`
 	LowMeta     *bool     `short:"M" long:"lowmeta"`
 	Path        *string   `short:"p" long:"path"`
 	Password    *string   `short:"P" long:"password"`

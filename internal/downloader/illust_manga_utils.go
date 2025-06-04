@@ -203,7 +203,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 	guessedExtension := ""
 	if !withExtensions {
 		for _, extension := range extensions {
-			bytes, err := fetch.Do(d.client(), pageUrls[0]+extension, nil)
+			bytes, _, err := fetch.Do(d.client(), pageUrls[0]+extension, nil)
 			if err != nil {
 				logext.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
 				continue
@@ -227,7 +227,7 @@ func (d *Downloader) fetchAssets(id uint64, pageUrls []string, withExtensions bo
 			continue
 		}
 		go func() {
-			bytes, err := fetch.Do(d.client(), url+guessedExtension, nil)
+			bytes, _, err := fetch.Do(d.client(), url+guessedExtension, nil)
 			if err != nil {
 				logErrorOrWarning("failed to fetch page %v for artwork %v: %v", i+1, id, err)
 				errorChannel <- err

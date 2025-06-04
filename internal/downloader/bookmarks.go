@@ -12,9 +12,38 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-// Schedule artwork bookmarks for download. Run() to start downloading.
+// TODO: private bookmarks
+// Schedule bookmarks of authorized user for download. Run() to start downloading.
+func (d *Downloader) ScheduleMyBookmarks(
+	kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
+	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
+) {
+	d.crawlQueueMutex.Lock()
+	defer d.crawlQueueMutex.Unlock()
+
+	d.crawlQueue = append(d.crawlQueue, func() error {
+		sessionId, withSessionId := d.sessionId()
+		if !withSessionId {
+			err := fmt.Errorf("authorization is required")
+			logext.Error("%v: %v", "failed to fetch authorizeed user id", err)
+			return err
+		}
+		userId, err := fetch.MyIdAutorized(d.client(), *sessionId)
+		logext.MaybeSuccess(err, "fetched authorizeed user id")
+		logext.MaybeError(err, "failed to fetch authorizeed user id")
+		if err != nil {
+			return err
+		}
+
+		d.ScheduleBookmarks(userId, kind, tag, from, to, private, size, onlyMeta, lowMeta, paths)
+		return nil
+	})
+	logext.Info("created crawl task to fetch authorizeed user id")
+}
+
+// Schedule bookmarks for download. Run() to start downloading.
 func (d *Downloader) ScheduleBookmarks(
-	userId uint64, kind queue.ItemKind, tag *string, from *uint64, to *uint64,
+	userId uint64, kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
 	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
@@ -25,7 +54,7 @@ func (d *Downloader) ScheduleBookmarks(
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		limit := min(100, utils.FromPtr(to, math.MaxUint64)-fromOffset)
 		total, err := d.scheduleBookmarksPage(
-			userId, kind, tag, fromOffset, limit, size, onlyMeta, lowMeta, paths,
+			userId, kind, tag, fromOffset, limit, private, size, onlyMeta, lowMeta, paths,
 		)
 		if err != nil {
 			return err
@@ -42,7 +71,7 @@ func (d *Downloader) ScheduleBookmarks(
 			limit := min(100, toOffset-offset)
 			d.crawlQueue = append(d.crawlQueue, func() error {
 				_, err := d.scheduleBookmarksPage(
-					userId, kind, tag, offset, limit, size, onlyMeta, lowMeta, paths,
+					userId, kind, tag, offset, limit, private, size, onlyMeta, lowMeta, paths,
 				)
 				return err
 			})
@@ -62,9 +91,9 @@ func (d *Downloader) ScheduleBookmarks(
 	logext.Info(bookmarksLogMessage("created bookmarks crawl task", userId, tag, &fromOffset))
 }
 
-// fetch bookmarks and then schedule the works for download, returns total count of bookmarks
+// Fetch bookmarks and then schedule the works for download, returns total count of bookmarks
 func (d *Downloader) scheduleBookmarksPage(
-	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64,
+	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64, private bool,
 	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
 ) (uint64, error) {
 	var successPrefix = fmt.Sprintf("fetched %v bookmarks page", kind)
@@ -89,11 +118,11 @@ func (d *Downloader) scheduleBookmarksPage(
 	var err error
 	if kind == queue.ItemKindArtwork {
 		results, total, err = fetch.ArtworkBookmarksAuthorized(
-			d.client(), userId, tag, offset, limit, *sessionId,
+			d.client(), userId, tag, offset, limit, private, *sessionId,
 		)
 	} else {
 		results, total, err = fetch.NovelBookmarksAuthorized(
-			d.client(), userId, tag, offset, limit, *sessionId,
+			d.client(), userId, tag, offset, limit, private, *sessionId,
 		)
 	}
 	logext.MaybeSuccess(err, bookmarksLogMessage(successPrefix, userId, tag, &offset))

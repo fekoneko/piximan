@@ -5,7 +5,7 @@ import "fmt"
 const CONFIG_HELP = //
 `Run without arguments to enter interactive mode.
 
-> piximanctl config [--sessionid ...] [--password ...]
+> piximan config [--sessionid ...] [--password ...]
 
                             Authorization options
                             ---------------------
@@ -26,10 +26,10 @@ const CONFIG_HELP = //
                                   Examples
                                   --------
 # Set session ID from X11 clipboard with no password
-> piximanctl config --sessionid $(xclip -o)
+> piximan config --sessionid $(xclip -o)
 
 # Set session ID from shell environment variable with password
-> piximanctl config --sessionid $PHPSESSID --password $PASSWORD
+> piximan config --sessionid $PHPSESSID --password $PASSWORD
 `
 
 func RunConfig() {

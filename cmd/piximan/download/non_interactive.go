@@ -64,6 +64,10 @@ func nonInteractive() {
 		fmt.Println("`-M, --lowmeta' can be removed for novels without `-m, --onlymeta'")
 		os.Exit(2)
 	}
+	if options.Private != nil && options.Bookmarks == nil {
+		fmt.Println("`-R, --private' flag can only be used with `-b, --bookmarks' source")
+		os.Exit(2)
+	}
 
 	download(options)
 }

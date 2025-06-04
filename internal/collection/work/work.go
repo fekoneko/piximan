@@ -11,7 +11,7 @@ type Work struct {
 	UserName     *string
 	Restriction  *Restriction
 	AiKind       *AiKind
-	IsOriginal   *bool
+	Original     *bool
 	NumPages     *uint64
 	NumViews     *uint64
 	NumBookmarks *uint64
@@ -34,7 +34,7 @@ func (w *Work) Full() bool {
 		w.UserName != nil &&
 		w.Restriction != nil &&
 		w.AiKind != nil &&
-		w.IsOriginal != nil &&
+		w.Original != nil &&
 		w.NumPages != nil &&
 		w.NumViews != nil &&
 		w.NumBookmarks != nil &&

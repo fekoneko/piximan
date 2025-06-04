@@ -18,4 +18,4 @@ jobs:
         with:
           allowed_prefixes: '[major],[minor],[patch],[skip ci]'
           prefix_case_sensitive: true
-          verbal_description: 'Should start with one of the following prefixes: [major], [minor], [patch], [skip ci]'
+          verbal_description: 'Pull request name should start with one of the following prefixes: [major], [minor], [patch], [skip ci]'

@@ -42,7 +42,7 @@ func ToDto(w *work.Work) *Work {
 		UserName:    w.UserName,
 		Restriction: utils.MapPtr(w.Restriction, work.Restriction.String),
 		Ai:          w.AiKind.Bool(),
-		Original:    w.IsOriginal,
+		Original:    w.Original,
 		Pages:       w.NumPages,
 		Views:       w.NumViews,
 		Bookmarks:   w.NumBookmarks,

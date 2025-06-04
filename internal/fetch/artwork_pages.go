@@ -12,7 +12,8 @@ import (
 // Illustration or manga artwork is expected for this function
 func ArtworkPages(client *http.Client, id uint64, size image.Size) ([]string, error) {
 	return artworkPagesWith(func(url string) ([]byte, error) {
-		return Do(client, url, nil)
+		body, _, err := Do(client, url, nil)
+		return body, err
 	}, id, size)
 }
 
@@ -21,7 +22,8 @@ func ArtworkPagesAuthorized(
 	client *http.Client, id uint64, size image.Size, sessionId string,
 ) ([]string, error) {
 	return artworkPagesWith(func(url string) ([]byte, error) {
-		return DoAuthorized(client, url, sessionId, nil)
+		body, _, err := DoAuthorized(client, url, sessionId, nil)
+		return body, err
 	}, id, size)
 }
 

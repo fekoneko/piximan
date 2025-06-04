@@ -13,10 +13,10 @@ import (
 const BUFFER_SIZE = 4096
 const PXIMG_PENDING_LIMIT = 5
 
-func Do(client *http.Client, url string, onProgress func(int, int)) ([]byte, error) {
+func Do(client *http.Client, url string, onProgress func(int, int)) ([]byte, http.Header, error) {
 	request, err := newRequest(url)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	lock(request)
 	defer unlock(request)
@@ -34,10 +34,10 @@ func Do(client *http.Client, url string, onProgress func(int, int)) ([]byte, err
 
 func DoAuthorized(
 	client *http.Client, url string, sessionId string, onProgress func(int, int),
-) ([]byte, error) {
+) ([]byte, http.Header, error) {
 	request, err := newRequest(url)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	lock(request)
 	defer unlock(request)
@@ -67,26 +67,25 @@ func newRequest(url string) (*http.Request, error) {
 
 func doWithRequest(
 	client *http.Client, request *http.Request, onProgress func(int, int),
-) ([]byte, error) {
+) ([]byte, http.Header, error) {
 	response, err := client.Do(request)
-	if err != nil {
-		return nil, err
+	if err != nil { // TODO: should suspend and retry later if network issues occured
+		return nil, response.Header, err
 	}
 	defer response.Body.Close()
 
-	// TODO: should suspend and retry later if network issues occured
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("response status code is: %v", response.Status)
+		return nil, response.Header, fmt.Errorf("response status code is: %v", response.Status)
 	}
 
 	if response.ContentLength <= 0 {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
-			return nil, err
+			return nil, response.Header, err
 		}
 		onProgress(len(body), len(body))
 
-		return body, nil
+		return body, response.Header, nil
 	} else {
 		body := make([]byte, 0, response.ContentLength)
 		buffer := make([]byte, BUFFER_SIZE)
@@ -94,9 +93,9 @@ func doWithRequest(
 		for {
 			readLength, err := response.Body.Read(buffer)
 			if err == io.EOF {
-				return body, nil
+				return body, response.Header, nil
 			} else if err != nil {
-				return nil, err
+				return nil, response.Header, err
 			} else {
 				body = append(body, buffer[:readLength]...)
 				onProgress(len(body), int(response.ContentLength))

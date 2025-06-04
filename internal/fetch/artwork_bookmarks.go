@@ -13,13 +13,15 @@ import (
 
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
 func ArtworkBookmarksAuthorized(
-	client *http.Client, userId uint64, tag *string, offset uint64, limit uint64, sessionId string,
+	client *http.Client, userId uint64, tag *string,
+	offset uint64, limit uint64, private bool, sessionId string,
 ) ([]BookmarkResult, uint64, error) {
+	visivility := utils.If(private, "hide", "show")
 	url := fmt.Sprintf(
-		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=show",
-		userId, utils.FromPtr(tag, ""), offset, limit,
+		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v",
+		userId, utils.FromPtr(tag, ""), offset, limit, visivility,
 	)
-	body, err := DoAuthorized(client, url, sessionId, nil)
+	body, _, err := DoAuthorized(client, url, sessionId, nil)
 	if err != nil {
 		return nil, 0, err
 	}
