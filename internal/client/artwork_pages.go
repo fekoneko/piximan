@@ -1,36 +1,31 @@
-package fetch
+package client
 
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 
+	"github.com/fekoneko/piximan/internal/client/dto"
 	"github.com/fekoneko/piximan/internal/downloader/image"
-	"github.com/fekoneko/piximan/internal/fetch/dto"
 )
 
 // Illustration or manga artwork is expected for this function
-func ArtworkPages(client *http.Client, id uint64, size image.Size) ([]string, error) {
+func (c *Client) ArtworkPages(id uint64, size image.Size) ([]string, error) {
 	return artworkPagesWith(func(url string) ([]byte, error) {
-		body, _, err := Do(client, url, nil)
+		body, _, err := c.Do(url, nil)
 		return body, err
 	}, id, size)
 }
 
 // Illustration or manga artwork is expected for this function
-func ArtworkPagesAuthorized(
-	client *http.Client, id uint64, size image.Size, sessionId string,
-) ([]string, error) {
+func (c *Client) ArtworkPagesAuthorized(id uint64, size image.Size) ([]string, error) {
 	return artworkPagesWith(func(url string) ([]byte, error) {
-		body, _, err := DoAuthorized(client, url, sessionId, nil)
+		body, _, err := c.DoAuthorized(url, nil)
 		return body, err
 	}, id, size)
 }
 
 func artworkPagesWith(
-	do func(url string) ([]byte, error),
-	id uint64,
-	size image.Size,
+	do func(url string) ([]byte, error), id uint64, size image.Size,
 ) ([]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/pages", id)
 	body, err := do(url)

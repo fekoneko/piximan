@@ -1,29 +1,27 @@
-package fetch
+package client
 
 import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/fekoneko/piximan/internal/logext"
-	"github.com/fekoneko/piximan/internal/syncext"
 )
 
 const BUFFER_SIZE = 4096
 
-func Do(client *http.Client, url string, onProgress func(int, int)) ([]byte, http.Header, error) {
+func (c *Client) Do(url string, onProgress func(int, int)) ([]byte, http.Header, error) {
 	request, err := newRequest(url)
 	if err != nil {
 		return nil, nil, err
 	}
-	start(request)
-	defer done(request)
+	c.start(request)
+	defer c.done(request)
 
 	removeBar, updateBar := logext.Request(url)
 	defer removeBar()
 
-	return doWithRequest(client, request, func(current int, total int) {
+	return c.doWithRequest(request, func(current int, total int) {
 		updateBar(current, total)
 		if onProgress != nil {
 			onProgress(current, total)
@@ -31,21 +29,26 @@ func Do(client *http.Client, url string, onProgress func(int, int)) ([]byte, htt
 	})
 }
 
-func DoAuthorized(
-	client *http.Client, url string, sessionId string, onProgress func(int, int),
+func (c *Client) DoAuthorized(
+	url string, onProgress func(int, int),
 ) ([]byte, http.Header, error) {
+	sessionId, authorized := c.sessionId()
+	if !authorized {
+		return nil, nil, fmt.Errorf("authorization is required")
+	}
+
 	request, err := newRequest(url)
 	if err != nil {
 		return nil, nil, err
 	}
-	start(request)
-	defer done(request)
+	c.start(request)
+	defer c.done(request)
 
 	request.Header.Add("Cookie", "PHPSESSID="+sessionId)
 	removeBar, updateBar := logext.AuthorizedRequest(url)
 	defer removeBar()
 
-	return doWithRequest(client, request, func(current int, total int) {
+	return c.doWithRequest(request, func(current int, total int) {
 		updateBar(current, total)
 		if onProgress != nil {
 			onProgress(current, total)
@@ -64,10 +67,10 @@ func newRequest(url string) (*http.Request, error) {
 	return request, nil
 }
 
-func doWithRequest(
-	client *http.Client, request *http.Request, onProgress func(int, int),
+func (c *Client) doWithRequest(
+	request *http.Request, onProgress func(int, int),
 ) ([]byte, http.Header, error) {
-	response, err := client.Do(request)
+	response, err := c.client().Do(request)
 	if err != nil { // TODO: should suspend and retry later if network issues occured
 		return nil, response.Header, err
 	}
@@ -103,27 +106,24 @@ func doWithRequest(
 	}
 }
 
-var pximgRequestGroup = syncext.NewRequestGroup(5, time.Second*1)
-var defaultRequestGroup = syncext.NewRequestGroup(1, time.Second*2)
-
-func start(request *http.Request) {
+func (c *Client) start(request *http.Request) {
 	if request == nil || request.URL == nil {
 		return
 	}
 
 	switch request.URL.Host {
 	case "i.pximg.net":
-		pximgRequestGroup.Start()
+		c.pximgRequestGroup.Start()
 	default:
-		defaultRequestGroup.Start()
+		c.defaultRequestGroup.Start()
 	}
 }
 
-func done(request *http.Request) {
+func (c *Client) done(request *http.Request) {
 	switch request.URL.Host {
 	case "i.pximg.net":
-		pximgRequestGroup.Done()
+		c.pximgRequestGroup.Done()
 	default:
-		defaultRequestGroup.Done()
+		c.defaultRequestGroup.Done()
 	}
 }

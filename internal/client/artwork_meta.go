@@ -1,18 +1,17 @@
-package fetch
+package client
 
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/fekoneko/piximan/internal/fetch/dto"
+	"github.com/fekoneko/piximan/internal/client/dto"
 	"github.com/fekoneko/piximan/internal/work"
 )
 
-func ArtworkMeta(client *http.Client, id uint64) (*work.Work, *[4]string, map[uint64]string, error) {
+func (c *Client) ArtworkMeta(id uint64) (*work.Work, *[4]string, map[uint64]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
-	body, _, err := Do(client, url, nil)
+	body, _, err := c.Do(url, nil)
 	if err != nil {
 		return nil, nil, nil, err
 	}

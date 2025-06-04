@@ -3,7 +3,6 @@ package downloader
 import (
 	"fmt"
 
-	"github.com/fekoneko/piximan/internal/fetch"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logext"
@@ -17,7 +16,7 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error
 		return nil, err
 	}
 
-	archive, _, err := fetch.Do(d.client(), url, nil)
+	archive, _, err := d.client.Do(url, nil)
 	logext.MaybeSuccess(err, "fetched frames for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch frames for artwork %v", id)
 	if err != nil {
@@ -40,9 +39,9 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
 func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Frame, error) {
-	sessionId, withSessionId := d.sessionId()
-	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || !withSessionId {
-		url, frames, err := fetch.ArtworkFrames(d.client(), id)
+	authorized := d.client.Authorized()
+	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || !authorized {
+		url, frames, err := d.client.ArtworkFrames(id)
 		if err == nil && url == nil {
 			err = fmt.Errorf("frames archive url is missing")
 		} else if err == nil && frames == nil {
@@ -51,7 +50,7 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Fr
 		if err == nil {
 			logext.Success("fetched frames data for artwork %v", id)
 			return *url, *frames, nil
-		} else if !withSessionId {
+		} else if !authorized {
 			logext.Error("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
 			return "", nil, err
 		} else {
@@ -59,8 +58,8 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Fr
 		}
 	}
 
-	if withSessionId {
-		url, frames, err := fetch.ArtworkFramesAuthorized(d.client(), id, *sessionId)
+	if authorized {
+		url, frames, err := d.client.ArtworkFramesAuthorized(id)
 		if err == nil && url == nil {
 			err = fmt.Errorf("frames archive url is missing")
 		} else if err == nil && frames == nil {
@@ -80,9 +79,7 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Fr
 }
 
 func (d *Downloader) ugoiraAssetsChannel(
-	id uint64, w *work.Work,
-	assetsChannel chan []fsext.Asset,
-	errorChannel chan error,
+	id uint64, w *work.Work, assetsChannel chan []fsext.Asset, errorChannel chan error,
 ) {
 	if assets, err := d.ugoiraAssets(id, w); err == nil {
 		assetsChannel <- assets

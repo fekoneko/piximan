@@ -23,7 +23,12 @@ func download(options *options) {
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	path := utils.FromPtr(options.Path, "")
 
-	_, d := configDownloader(options.Password)
+	config, sessionId := configSession(options.Password)
+	d := downloader.New(
+		sessionId,
+		config.PximgMaxPending, config.PximgDelay,
+		config.DefaultMaxPending, config.DefaultDelay,
+	)
 
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
@@ -92,7 +97,7 @@ func download(options *options) {
 	logext.Info("download finished")
 }
 
-func configDownloader(password *string) (*config.Storage, *downloader.Downloader) {
+func configSession(password *string) (*config.Storage, *string) {
 	storage, err := config.Open(password)
 	if err != nil && password != nil {
 		logext.Fatal("cannot open config storage: %v", err)
@@ -100,54 +105,54 @@ func configDownloader(password *string) (*config.Storage, *downloader.Downloader
 	} else if err != nil {
 		logext.Warning("cannot open config storage: %v", err)
 		promptDefaultConfig()
-		return storage, downloader.New(nil)
+		return storage, nil
 	}
 
 	if sessionId, err := storage.SessionId(); err != nil && password != nil {
 		logext.Fatal("cannot read session id: %v", err)
 		panic("unreachable")
 	} else if err != nil {
-		if new_storage, d := promptPassword(); new_storage != nil {
-			return new_storage, d
+		if newStorage, sessionId := promptPassword(); newStorage != nil {
+			return newStorage, sessionId
 		} else {
-			return storage, d
+			return storage, sessionId
 		}
 	} else if sessionId == nil && password != nil {
 		logext.Fatal("no session id were configured, but password was provided")
 		panic("unreachable")
 	} else if sessionId == nil {
 		logext.Info("no session id were configured, using only anonymous requests")
-		return storage, downloader.New(nil)
+		return storage, nil
 	} else {
-		return storage, downloader.New(sessionId)
+		return storage, sessionId
 	}
 }
 
-func promptPassword() (*config.Storage, *downloader.Downloader) {
+func promptPassword() (*config.Storage, *string) {
 	for tries := 0; ; tries++ {
 		password, err := passwordPrompt.Run()
 		if err != nil {
 			logext.Warning("failed to read password: %v", err)
 			promptNoAuthorization()
-			return nil, downloader.New(nil)
+			return nil, nil
 		}
 
 		storage, err := config.Open(&password)
 		if err != nil {
 			logext.Warning("cannot open config storage: %v", err)
 			promptNoAuthorization()
-			return nil, downloader.New(nil)
+			return nil, nil
 		}
 
 		if sessionId, err := storage.SessionId(); err == nil && sessionId != nil {
-			return storage, downloader.New(sessionId)
+			return storage, sessionId
 		} else if err == nil {
 			logext.Info("no session id were configured, using only anonymous requests")
-			return storage, downloader.New(nil)
+			return storage, nil
 		} else if tries == 2 {
 			logext.Warning("cannot read session id: %v", err)
 			promptNoAuthorization()
-			return storage, downloader.New(nil)
+			return storage, nil
 		}
 	}
 }

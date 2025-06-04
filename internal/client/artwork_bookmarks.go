@@ -1,27 +1,25 @@
-package fetch
+package client
 
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/fekoneko/piximan/internal/fetch/dto"
+	"github.com/fekoneko/piximan/internal/client/dto"
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
-func ArtworkBookmarksAuthorized(
-	client *http.Client, userId uint64, tag *string,
-	offset uint64, limit uint64, private bool, sessionId string,
+func (c *Client) ArtworkBookmarksAuthorized(
+	userId uint64, tag *string, offset uint64, limit uint64, private bool,
 ) ([]BookmarkResult, uint64, error) {
 	visivility := utils.If(private, "hide", "show")
 	url := fmt.Sprintf(
 		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v",
 		userId, utils.FromPtr(tag, ""), offset, limit, visivility,
 	)
-	body, _, err := DoAuthorized(client, url, sessionId, nil)
+	body, _, err := c.DoAuthorized(url, nil)
 	if err != nil {
 		return nil, 0, err
 	}

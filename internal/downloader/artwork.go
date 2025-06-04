@@ -5,7 +5,6 @@ import (
 
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
-	"github.com/fekoneko/piximan/internal/fetch"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/work"
@@ -16,7 +15,7 @@ import (
 func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) {
 	logext.Info("started downloading metadata for artwork %v", id)
 
-	w, _, _, err := fetch.ArtworkMeta(d.client(), id)
+	w, _, _, err := d.client.ArtworkMeta(id)
 	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
 	logext.MaybeError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {
@@ -32,9 +31,7 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 
 // Doesn't actually make additional requests, but stores incomplete metadata, received earlier.
 // For downloading multiple works consider using ScheduleWithKnown().
-func (d *Downloader) LowArtworkMetaWithKnown(
-	id uint64, w *work.Work, paths []string,
-) (*work.Work, error) {
+func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []string) (*work.Work, error) {
 	assets := []fsext.Asset{}
 	return w, writeWork(id, queue.ItemKindArtwork, w, assets, true, paths)
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/fekoneko/piximan/internal/fetch"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/work"
@@ -13,16 +12,16 @@ import (
 // Fetch novel metadata, cover url and content asset.
 // Retry authorized if the content or cover url is missing.
 func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *fsext.Asset, error) {
-	sessionId, withSessionId := d.sessionId()
+	authorized := d.client.Authorized()
 
 	if w, coverUrl, contentAsset, err := novelMetaWith(func() (*work.Work, *string, *string, error) {
-		return fetch.NovelMeta(d.client(), id)
-	}, id, false, withSessionId); err == nil {
+		return d.client.NovelMeta(id)
+	}, id, false, authorized); err == nil {
 		return w, coverUrl, contentAsset, nil
-	} else if withSessionId {
+	} else if authorized {
 		logext.Info("retrying fetching metadata with authorization for novel %v", id)
 		return novelMetaWith(func() (*work.Work, *string, *string, error) {
-			return fetch.NovelMetaAuthorized(d.client(), id, *sessionId)
+			return d.client.NovelMetaAuthorized(id)
 		}, id, false, false)
 	} else {
 		return nil, nil, nil, err
@@ -32,7 +31,7 @@ func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *fsext.Asset, er
 // Fetch novel metadata and ignore if anything else is missing
 func (d *Downloader) novelOnlyMeta(id uint64) (*work.Work, error) {
 	w, _, _, err := novelMetaWith(func() (*work.Work, *string, *string, error) {
-		return fetch.NovelMeta(d.client(), id)
+		return d.client.NovelMeta(id)
 	}, id, true, false)
 
 	return w, err
@@ -76,7 +75,7 @@ func novelMetaWith(
 
 // fetch novel cover asset
 func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, error) {
-	cover, _, err := fetch.Do(d.client(), coverUrl, nil)
+	cover, _, err := d.client.Do(coverUrl, nil)
 	logext.MaybeSuccess(err, "fetched cover for novel %v", id)
 	logext.MaybeError(err, "failed to fetch cover for novel %v", id)
 

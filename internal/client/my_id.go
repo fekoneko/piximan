@@ -1,15 +1,14 @@
-package fetch
+package client
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 )
 
 // Fetch ID of currently autorized user
-func MyIdAutorized(client *http.Client, sessionId string) (uint64, error) {
+func (c *Client) MyIdAutorized() (uint64, error) {
 	url := "https://www.pixiv.net/ajax/user/extra"
-	_, headers, err := DoAuthorized(client, url, sessionId, nil)
+	_, headers, err := c.DoAuthorized(url, nil)
 	if headers == nil {
 		return 0, err
 	}

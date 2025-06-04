@@ -1,34 +1,30 @@
-package fetch
+package client
 
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/fekoneko/piximan/internal/fetch/dto"
+	"github.com/fekoneko/piximan/internal/client/dto"
 	"github.com/fekoneko/piximan/internal/work"
 )
 
-func NovelMeta(client *http.Client, id uint64) (*work.Work, *string, *string, error) {
+func (c *Client) NovelMeta(id uint64) (*work.Work, *string, *string, error) {
 	return novelMetaWith(func(url string) ([]byte, error) {
-		body, _, err := Do(client, url, nil)
+		body, _, err := c.Do(url, nil)
 		return body, err
 	}, id)
 }
 
-func NovelMetaAuthorized(
-	client *http.Client, id uint64, sessionId string,
-) (*work.Work, *string, *string, error) {
+func (c *Client) NovelMetaAuthorized(id uint64) (*work.Work, *string, *string, error) {
 	return novelMetaWith(func(url string) ([]byte, error) {
-		body, _, err := DoAuthorized(client, url, sessionId, nil)
+		body, _, err := c.DoAuthorized(url, nil)
 		return body, err
 	}, id)
 }
 
 func novelMetaWith(
-	do func(url string) ([]byte, error),
-	id uint64,
+	do func(url string) ([]byte, error), id uint64,
 ) (*work.Work, *string, *string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/novel/%v", id)
 	body, err := do(url)
