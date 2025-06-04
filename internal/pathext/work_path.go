@@ -17,7 +17,7 @@ func FormatWorkPath(pattern string, w *work.Work) (string, error) {
 		"{id}", utils.FromPtrTransform(w.Id, utils.FormatUint64, "unknown"),
 		"{user}", utils.FromPtr(w.UserName, "unknown"),
 		"{userid}", utils.FromPtrTransform(w.UserId, utils.FormatUint64, "unknown"),
-		"{restrict}", formatRestriction(w.Restriction),
+		"{restriction}", formatRestriction(w.Restriction),
 	)
 
 	path, err := filepath.Abs(pattern)
@@ -136,7 +136,7 @@ func formatRestriction(restriction *work.Restriction) string {
 	if restriction == nil {
 		return "unknown"
 	} else if *restriction == work.RestrictionNone {
-		return "all-ages"
+		return "all ages"
 	} else {
 		return restriction.String()
 	}
