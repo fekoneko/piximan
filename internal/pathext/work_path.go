@@ -13,10 +13,10 @@ import (
 
 func FormatWorkPath(pattern string, w *work.Work) (string, error) {
 	replacer := strings.NewReplacer(
-		"{title}", utils.FromPtr(w.Title, "unknown"),
-		"{id}", utils.FromPtrTransform(w.Id, utils.FormatUint64, "unknown"),
-		"{user}", utils.FromPtr(w.UserName, "unknown"),
-		"{userid}", utils.FromPtrTransform(w.UserId, utils.FormatUint64, "unknown"),
+		"{title}", utils.FromPtr(w.Title, "Unknown"),
+		"{id}", utils.FromPtrTransform(w.Id, utils.FormatUint64, "Unknown"),
+		"{user}", utils.FromPtr(w.UserName, "Unknown"),
+		"{userid}", utils.FromPtrTransform(w.UserId, utils.FormatUint64, "Unknown"),
 		"{restriction}", formatRestriction(w.Restriction),
 	)
 
@@ -133,11 +133,14 @@ func InferIdsFromWorkPath(pattern string) (*map[uint64][]string, error) {
 }
 
 func formatRestriction(restriction *work.Restriction) string {
-	if restriction == nil {
-		return "unknown"
-	} else if *restriction == work.RestrictionNone {
-		return "all ages"
-	} else {
-		return restriction.String()
+	switch utils.FromPtr(restriction, 255) {
+	case work.RestrictionNone:
+		return "All ages"
+	case work.RestrictionR18:
+		return "R-18"
+	case work.RestrictionR18G:
+		return "R-18G"
+	default:
+		return "Unknown"
 	}
 }
