@@ -12,7 +12,7 @@ type Queue []struct {
 	Id       *uint64   `yaml:"id"`
 	Kind     *string   `yaml:"type"`
 	Size     *uint     `yaml:"size"`
-	OnlyMeta *bool     `yaml:"onlymeta"`
+	OnlyMeta *bool     `yaml:"only-meta"`
 	Paths    *[]string `yaml:"paths"`
 }
 

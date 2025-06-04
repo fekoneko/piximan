@@ -7,8 +7,8 @@ const DOWNLOAD_HELP = //
 
 > piximan download [--id        ...] [--type ...] [--tag  ...] [--path     ...]
                       [--bookmarks ...] [--size ...] [--from ...] [--password ...]
-                      [--list      ...] [--onlymeta] [--to   ...]
-                      [--inferid   ...]              [--lowmeta ]
+                      [--list      ...] [--only-meta] [--to   ...]
+                      [--infer-id   ...]              [--low-meta ]
 
                               Download sources
                               ----------------
@@ -27,13 +27,13 @@ const DOWNLOAD_HELP = //
              - id: 12345                  # required
                type: artwork              # defaults to the --type argument
                size: 1                    # defaults to the --size argument
-               onlymeta: true             # defaults to the --onlymeta argument
+               only-meta: true             # defaults to the --only-meta argument
                paths: ['./{userid}/{id}'] # defaults to the --path argument
              - id: 23456
                type: novel
 
---inferid    Infer the IDs of works from the given path. Useful for updating
- -I          the metadata in existing collection when coupled with -onlymeta flag.
+--infer-id    Infer the IDs of works from the given path. Useful for updating
+ -I          the metadata in existing collection when coupled with -only-meta flag.
              The path may contain the following patterns:
              - {id}         : the ID of the work - required.
              - *            : matches any sequence of non-separator characters.
@@ -50,7 +50,7 @@ const DOWNLOAD_HELP = //
              - 0 thumbnail  - 2 medium
              - 1 small      - 3 original
 
---onlymeta   Only download the metadata.yaml file for the work. Useful for
+--only-meta   Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.
 
                          Bookmarks-specific options
@@ -68,18 +68,18 @@ const DOWNLOAD_HELP = //
  -R          of the authorized user so you probably want to use it with --bookmarks my.
              If not provided, public bookmarks will be downloaded instead.
 
---lowmeta    Specify to skip fetching the full metadata for each work. This will
+--low-meta    Specify to skip fetching the full metadata for each work. This will
  -M          significantly reduce the number of pixiv.net API calls.
              These options will be missing in the metadata.yaml files:
              - original, views , bookmarks, likes, comments, uploaded,
              - series_id, series_title, series_order
-             When downloading novels without --lowmeta flag, the full metadata will be
-             downloaded without any request overhead, so --lowmeta should be omitted.
+             When downloading novels without --low-meta flag, the full metadata will be
+             downloaded without any request overhead, so --low-meta should be omitted.
 
                               Other parameters
                               ----------------
 --path       Directory to save the files into. Defaults to the current directory
- -p          or the one found with -inferid flag.
+ -p          or the one found with -infer-id flag.
              You can use these substitutions in the pathname:
              - {title}      : the title of the work
              - {id}         : the ID of the work
@@ -112,7 +112,7 @@ const DOWNLOAD_HELP = //
 > piximan download --bookmarks my --from 100 --to 200 --path "./{id}"
 
 # Download all of your private artwork bookmarks with partial metadata saving requests
-> piximan download --bookmarks my --private --lowmeta --path "./{id}"
+> piximan download --bookmarks my --private --low-meta --path "./{id}"
 
 # Download all novel bookmarks from user 10000 with tag 'お気に入り'
 > piximan download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
@@ -121,7 +121,7 @@ const DOWNLOAD_HELP = //
 > piximan download --list "./list.yaml" --path "./{userid}/{id}"
 
 # Update metadata in the collection saved earlier
-> piximan download --inferid --onlymeta "$HOME/My Collection/*/{id}"
+> piximan download --infer-id --only-meta "$HOME/My Collection/*/{id}"
 `
 
 func RunDownload() {
@@ -141,7 +141,7 @@ func RunDownload() {
 // TODO: piximan dedupe --newer --path './* ({userid})/* ({id})' + interactive mode
 //       utility for merging authors and / or works with duplicate IDs
 // TODO: --dedupe option for piximan download as well
-// TODO: replace unused patterns like {title} in --inferid with *, do the same with piximan dedupe
+// TODO: replace unused patterns like {title} in --infer-id with *, do the same with piximan dedupe
 
 // TODO: test if session ID is valid after configuring by sending a request
 // TODO: check if session ID is set in interractive download mode and prompt user if they want to set it

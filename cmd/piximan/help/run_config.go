@@ -5,18 +5,18 @@ import "fmt"
 const CONFIG_HELP = //
 `Run without arguments to enter interactive mode.
 
-> piximan config [--sessionid ...] [--password ...]
+> piximan config [--session-id ...] [--password ...]
 
                             Authorization options
                             ---------------------
---sessionid  The session ID to use for pixiv.net API autorization.
+--session-id  The session ID to use for pixiv.net API autorization.
  -s          The authorization is used only when it's absolutely required, other
              requests will be made anonymously.
              You can get this ID from browser cookies on https://www.pixiv.net.
              Search for a cookie named 'PHPSESSID'.
              Do not paste the value directly in the command line as it could
              be logged in the terminal history (e.g. ~/.bash_history).
-             Session ID will be encrypted and stored in ~/.piximan/sessionid.
+             Session ID will be encrypted and stored in ~/.piximan/session-id.
              You can remove the session ID by providing an empty string.
 
 --password   The master password that can be set to encrypt the provided
@@ -26,10 +26,10 @@ const CONFIG_HELP = //
                                   Examples
                                   --------
 # Set session ID from X11 clipboard with no password
-> piximan config --sessionid $(xclip -o)
+> piximan config --session-id $(xclip -o)
 
 # Set session ID from shell environment variable with password
-> piximan config --sessionid $PHPSESSID --password $PASSWORD
+> piximan config --session-id $PHPSESSID --password $PASSWORD
 `
 
 func RunConfig() {

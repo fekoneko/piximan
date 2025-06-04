@@ -17,7 +17,7 @@ import (
 )
 
 var homePath, _ = os.UserHomeDir()
-var sessionIdPath = filepath.Join(homePath, ".piximan", "sessionid")
+var sessionIdPath = filepath.Join(homePath, ".piximan", "session-id")
 var configPath = filepath.Join(homePath, ".piximan", "config.yaml")
 
 // Stores and reads configuration. You can directly access and change public fields and then
