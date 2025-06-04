@@ -28,9 +28,9 @@ type Storage struct {
 	cipher            cipher.Block
 	gcm               cipher.AEAD
 	sessionId         *string
-	PiximgMaxPending  uint
-	PiximgDelay       time.Duration
-	DefaultMaxPending uint
+	PximgMaxPending   uint64
+	PximgDelay        time.Duration
+	DefaultMaxPending uint64
 	DefaultDelay      time.Duration
 }
 
@@ -67,8 +67,8 @@ func Open(password *string) (*Storage, error) {
 		cipher:            aesCipher,
 		gcm:               gcm,
 		sessionId:         nil,
-		PiximgMaxPending:  utils.FromPtr(unmarshalled.PiximgMaxPending, 5),
-		PiximgDelay:       utils.FromPtr(unmarshalled.PiximgDelay, time.Second*1),
+		PximgMaxPending:   utils.FromPtr(unmarshalled.PximgMaxPending, 5),
+		PximgDelay:        utils.FromPtr(unmarshalled.PximgDelay, time.Second*1),
 		DefaultMaxPending: utils.FromPtr(unmarshalled.DefaultMaxPending, 1),
 		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, time.Second*2),
 	}

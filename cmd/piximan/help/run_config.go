@@ -17,10 +17,11 @@ const CONFIG_HELP = //
              Do not paste the value directly in the command line as it could
              be logged in the terminal history (e.g. ~/.bash_history).
              Session ID will be encrypted and stored in ~/.piximan/session-id.
-             You can remove the session ID by providing an empty string.
+             You can remove the session ID by providing one of the following values:
+             'null', 'nil', 'none', 'remove', clear', '-'
 
 --password   The master password that can be set to encrypt the provided
- -p          session ID. If omited the password will be set to an empty string.
+ -P          session ID. If omited the password will be set to an empty string.
              Similarly to the session ID, avoid pasting the value directly.
 
                                   Examples

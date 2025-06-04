@@ -11,8 +11,8 @@ import (
 // Saves the current configuration state to the disk
 func (s *Storage) Write() error {
 	d := &dto.Config{
-		PiximgMaxPending:  utils.ToPtr(s.PiximgMaxPending),
-		PiximgDelay:       utils.ToPtr(s.PiximgDelay),
+		PximgMaxPending:   utils.ToPtr(s.PximgMaxPending),
+		PximgDelay:        utils.ToPtr(s.PximgDelay),
 		DefaultMaxPending: utils.ToPtr(s.DefaultMaxPending),
 		DefaultDelay:      utils.ToPtr(s.DefaultDelay),
 	}

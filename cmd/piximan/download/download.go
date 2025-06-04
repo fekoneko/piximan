@@ -13,7 +13,6 @@ import (
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
-	"github.com/manifoldco/promptui"
 )
 
 func download(options *options) {
@@ -167,23 +166,4 @@ func promptNoAuthorization() {
 	if err != nil || option != YesOption {
 		os.Exit(1)
 	}
-}
-
-var passwordPrompt = promptui.Prompt{
-	Label:       "Password",
-	Mask:        '*',
-	HideEntered: true,
-}
-
-var YesOption = "Yes"
-var NoOption = "No"
-
-var deafultConfigPrompt = promptui.Select{
-	Label: "Use default config and anonymous requests?",
-	Items: []string{"Yes", "No"},
-}
-
-var noAuthorizationPrompt = promptui.Select{
-	Label: "Use only anonymous requests?",
-	Items: []string{"Yes", "No"},
 }

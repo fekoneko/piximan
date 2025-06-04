@@ -1,43 +1,75 @@
 package config
 
 import (
+	"strconv"
+
 	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/manifoldco/promptui"
 )
 
 func interactive() {
-	sessionId := promptSessionId()
-
-	var password *string
-	if len(sessionId) != 0 {
-		p := promptPassword()
-		password = &p
-	}
+	withSessionId, withRequestParams := selectMode()
+	sessionId := promptSessionId(withSessionId)
+	password := promptPassword(withSessionId)
+	defaultMaxPending := promptRequestParamWith(withRequestParams, &defaultMaxPendingPrompt)
+	defaultDelay := promptRequestParamWith(withRequestParams, &defaultDelayPrompt)
+	pximgMaxPending := promptRequestParamWith(withRequestParams, &pximgMaxPendingPrompt)
+	pximgDelay := promptRequestParamWith(withRequestParams, &pximgDelayPrompt)
 
 	config(&options{
-		SessionId: sessionId,
-		Password:  password,
+		SessionId:         sessionId,
+		Password:          password,
+		PximgMaxPending:   pximgMaxPending,
+		PximgDelay:        pximgDelay,
+		DefaultMaxPending: defaultMaxPending,
+		DefaultDelay:      defaultDelay,
 	})
 }
 
-var sessionIdPrompt = promptui.Prompt{
-	Label: "Your session ID",
-	Mask:  '*',
+func selectMode() (bool, bool) {
+	_, mode, err := modeSelect.Run()
+	logext.MaybeFatal(err, "failed to read configuration mode")
+
+	switch mode {
+	case sessionIdOption:
+		return true, false
+	case requestParamsOption:
+		return false, true
+	default:
+		logext.Fatal("incorrect configuration mode: %v", mode)
+		panic("unreachable")
+	}
 }
 
-func promptSessionId() string {
+func promptSessionId(withSessionId bool) *string {
+	if !withSessionId {
+		return nil
+	}
+
 	sessionId, err := sessionIdPrompt.Run()
 	logext.MaybeFatal(err, "failed to read session id")
-	return sessionId
+	return &sessionId
 }
 
-var passwordPrompt = promptui.Prompt{
-	Label: "Encrypt with a password",
-	Mask:  '*',
-}
+func promptPassword(withSessionId bool) *string {
+	if !withSessionId {
+		return nil
+	}
 
-func promptPassword() string {
 	password, err := passwordPrompt.Run()
 	logext.MaybeFatal(err, "failed to read password")
-	return password
+	return &password
+}
+
+func promptRequestParamWith(withRequestParams bool, prompt *promptui.Prompt) *uint64 {
+	if !withRequestParams {
+		return nil
+	}
+
+	valueStr, err := prompt.Run()
+	logext.MaybeFatal(err, "failed to read request parameter")
+
+	value, err := strconv.ParseUint(valueStr, 10, 64)
+	logext.MaybeFatal(err, "cannot parse request parameter")
+	return &value
 }

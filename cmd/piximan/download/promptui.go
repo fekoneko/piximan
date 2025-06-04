@@ -2,7 +2,6 @@ package download
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/fekoneko/piximan/internal/utils"
@@ -40,13 +39,8 @@ var idPrompt = promptui.Prompt{
 var userIdPromptLabel = "User ID"
 
 var userIdPrompt = promptui.Prompt{
-	Label: userIdPromptLabel,
-	Validate: func(input string) error {
-		if _, err := strconv.ParseUint(input, 10, 64); err != nil {
-			return fmt.Errorf("user ID must be a number")
-		}
-		return nil
-	},
+	Label:    userIdPromptLabel,
+	Validate: utils.ValidateNumber("user ID must be a number"),
 }
 
 var inferIdPathPromptLabel = "Path pattern"
@@ -147,4 +141,23 @@ func pathPrompt(withQueue bool) *promptui.Prompt {
 	return &promptui.Prompt{
 		Label: utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
 	}
+}
+
+var passwordPrompt = promptui.Prompt{
+	Label:       "Password",
+	Mask:        '*',
+	HideEntered: true,
+}
+
+var YesOption = "Yes"
+var NoOption = "No"
+
+var deafultConfigPrompt = promptui.Select{
+	Label: "Use default config and anonymous requests?",
+	Items: []string{"Yes", "No"},
+}
+
+var noAuthorizationPrompt = promptui.Select{
+	Label: "Use only anonymous requests?",
+	Items: []string{"Yes", "No"},
 }

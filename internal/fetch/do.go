@@ -103,7 +103,7 @@ func doWithRequest(
 	}
 }
 
-var piximgRequestGroup = syncext.NewRequestGroup(5, time.Second*1)
+var pximgRequestGroup = syncext.NewRequestGroup(5, time.Second*1)
 var defaultRequestGroup = syncext.NewRequestGroup(1, time.Second*2)
 
 func start(request *http.Request) {
@@ -113,7 +113,7 @@ func start(request *http.Request) {
 
 	switch request.URL.Host {
 	case "i.pximg.net":
-		piximgRequestGroup.Start()
+		pximgRequestGroup.Start()
 	default:
 		defaultRequestGroup.Start()
 	}
@@ -122,7 +122,7 @@ func start(request *http.Request) {
 func done(request *http.Request) {
 	switch request.URL.Host {
 	case "i.pximg.net":
-		piximgRequestGroup.Done()
+		pximgRequestGroup.Done()
 	default:
 		defaultRequestGroup.Done()
 	}
