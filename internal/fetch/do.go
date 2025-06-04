@@ -4,22 +4,21 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/syncext"
 )
 
 const BUFFER_SIZE = 4096
-const PXIMG_PENDING_LIMIT = 5
 
 func Do(client *http.Client, url string, onProgress func(int, int)) ([]byte, http.Header, error) {
 	request, err := newRequest(url)
 	if err != nil {
 		return nil, nil, err
 	}
-	lock(request)
-	defer unlock(request)
+	start(request)
+	defer done(request)
 
 	removeBar, updateBar := logext.Request(url)
 	defer removeBar()
@@ -39,8 +38,8 @@ func DoAuthorized(
 	if err != nil {
 		return nil, nil, err
 	}
-	lock(request)
-	defer unlock(request)
+	start(request)
+	defer done(request)
 
 	request.Header.Add("Cookie", "PHPSESSID="+sessionId)
 	removeBar, updateBar := logext.AuthorizedRequest(url)
@@ -104,45 +103,27 @@ func doWithRequest(
 	}
 }
 
-const PXIMG_DELAY = time.Second * 1
-const DEFAULT_DELAY = time.Second * 2
+var piximgRequestGroup = syncext.NewRequestGroup(5, time.Second*1)
+var defaultRequestGroup = syncext.NewRequestGroup(1, time.Second*2)
 
-var numPximgPending = 0
-var pximgCond = sync.NewCond(&sync.Mutex{})
-var defaultMutex = sync.Mutex{}
-var prevDefaultTime time.Time
-
-func lock(request *http.Request) {
+func start(request *http.Request) {
 	if request == nil || request.URL == nil {
 		return
 	}
 
 	switch request.URL.Host {
 	case "i.pximg.net":
-		pximgCond.L.Lock()
-		for numPximgPending >= PXIMG_PENDING_LIMIT {
-			pximgCond.Wait()
-		}
-		numPximgPending++
-		pximgCond.L.Unlock()
-
+		piximgRequestGroup.Start()
 	default:
-		defaultMutex.Lock()
-		duration := time.Until(prevDefaultTime.Add(DEFAULT_DELAY))
-		time.Sleep(duration)
+		defaultRequestGroup.Start()
 	}
 }
 
-func unlock(request *http.Request) {
+func done(request *http.Request) {
 	switch request.URL.Host {
 	case "i.pximg.net":
-		pximgCond.L.Lock()
-		numPximgPending--
-		pximgCond.Broadcast()
-		pximgCond.L.Unlock()
-
+		piximgRequestGroup.Done()
 	default:
-		prevDefaultTime = time.Now()
-		defaultMutex.Unlock()
+		defaultRequestGroup.Done()
 	}
 }
