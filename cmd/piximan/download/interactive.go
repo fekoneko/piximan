@@ -10,7 +10,7 @@ import (
 )
 
 func interactive() {
-	ids, bookmarks, inferIdPath, queuePath := selectSource()
+	ids, bookmarks, private, inferIdPath, queuePath := selectSource()
 	withQueue := queuePath != nil
 	withInferId := inferIdPath != nil
 	withBookmarks := bookmarks != nil
@@ -35,12 +35,13 @@ func interactive() {
 		Tag:         tag,
 		FromOffset:  fromOffset,
 		ToOffset:    toOffset,
+		Private:     private,
 		LowMeta:     lowMeta,
 		Path:        path,
 	})
 }
 
-func selectSource() (*[]uint64, *string, *string, *string) {
+func selectSource() (*[]uint64, *string, *bool, *string, *string) {
 	_, mode, err := sourceSelect.Run()
 	logext.MaybeFatal(err, "failed to read mode")
 
@@ -50,25 +51,28 @@ func selectSource() (*[]uint64, *string, *string, *string) {
 		logext.MaybeFatal(err, "failed to read IDs")
 		ids, err := parseIds(idsString)
 		logext.MaybeFatal(err, "failed to parse IDs")
-		return &ids, nil, nil, nil
+		return &ids, nil, nil, nil, nil
 
-	case myBookmarksOption:
-		return nil, utils.ToPtr("my"), nil, nil
+	case myPublicBookmarksOption:
+		return nil, utils.ToPtr("my"), utils.ToPtr(false), nil, nil
+
+	case myPrivateBookmarksOption:
+		return nil, utils.ToPtr("my"), utils.ToPtr(true), nil, nil
 
 	case userBookmarksOption:
 		userId, err := userIdPrompt.Run()
 		logext.MaybeFatal(err, "failed to read user ID")
-		return nil, utils.ToPtr(userId), nil, nil
+		return nil, utils.ToPtr(userId), nil, nil, nil
 
 	case inferIdOption:
 		inferIdPath, err := inferIdPathPrompt.Run()
 		logext.MaybeFatal(err, "failed to read pattern")
-		return nil, nil, &inferIdPath, nil
+		return nil, nil, nil, &inferIdPath, nil
 
 	case queueOption:
 		queuePath, err := queuePathPrompt.Run()
 		logext.MaybeFatal(err, "failed to read list path")
-		return nil, nil, nil, &queuePath
+		return nil, nil, nil, nil, &queuePath
 
 	default:
 		logext.Fatal("incorrect download mode: %v", mode)

@@ -19,6 +19,7 @@ import (
 func download(options *options) {
 	size := utils.FromPtrTransform(options.Size, image.SizeFromUint, image.SizeDefault)
 	kind := utils.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
+	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	path := utils.FromPtr(options.Path, "")
@@ -35,7 +36,7 @@ func download(options *options) {
 	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
 		paths := []string{path}
 		d.ScheduleMyBookmarks(
-			kind, options.Tag, options.FromOffset, options.ToOffset,
+			kind, options.Tag, options.FromOffset, options.ToOffset, private,
 			size, onlyMeta, lowMeta, paths,
 		)
 		fmt.Println()
@@ -46,7 +47,7 @@ func download(options *options) {
 
 		paths := []string{path}
 		d.ScheduleBookmarks(
-			userId, kind, options.Tag, options.FromOffset, options.ToOffset,
+			userId, kind, options.Tag, options.FromOffset, options.ToOffset, private,
 			size, onlyMeta, lowMeta, paths,
 		)
 		fmt.Println()

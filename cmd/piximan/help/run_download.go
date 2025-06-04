@@ -145,3 +145,8 @@ func RunDownload() {
 //       https://github.com/akameco/pixiv-app-api/blob/d153118b62da1e1f17c8287d7f73ce72848aaaf9/src/index.ts#L154
 //       https://hanshsieh.github.io/pixiv-api-doc/
 //       https://github.com/piglig/pixiv-token/blob/main/pixiv_token_fetcher.py
+
+// TODO: multilpe sources in one command:
+//       piximan download --id 12345 --path "./{id}" \
+//                        --bookmarks my --path "./{id}"
+//       or in list.yaml
