@@ -6,16 +6,16 @@ import (
 )
 
 type RequestGroup struct {
-	maxPending int
+	maxPending uint
 	delay      time.Duration
 
-	numPending        int
+	numPending        uint
 	numPendingCond    *sync.Cond
 	previousTime      time.Time
 	previousTimeMutex sync.Mutex
 }
 
-func NewRequestGroup(maxPending int, delay time.Duration) *RequestGroup {
+func NewRequestGroup(maxPending uint, delay time.Duration) *RequestGroup {
 	return &RequestGroup{
 		maxPending:     maxPending,
 		delay:          delay,

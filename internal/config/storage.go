@@ -4,26 +4,39 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/pbkdf2"
-	"crypto/rand"
 	"crypto/sha256"
 	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"time"
+
+	"github.com/fekoneko/piximan/internal/config/dto"
+	"github.com/fekoneko/piximan/internal/utils"
+	"gopkg.in/yaml.v2"
 )
 
 var homePath, _ = os.UserHomeDir()
 var sessionIdPath = filepath.Join(homePath, ".piximan", "sessionid")
+var configPath = filepath.Join(homePath, ".piximan", "config.yaml")
 
-type SecretStorage struct {
-	cipher    cipher.Block
-	gcm       cipher.AEAD
-	SessionId *string
+// Stores and reads configuration. You can directly access and change public fields and then
+// call Write() to save the changes on the disk.
+// SessionId() is decrypted lazily and cached in the Storage. WriteSessionId() writes the
+// encrypted session id to the disk separately from other fields.
+type Storage struct {
+	cipher            cipher.Block
+	gcm               cipher.AEAD
+	sessionId         *string
+	PiximgMaxPending  uint
+	PiximgDelay       time.Duration
+	DefaultMaxPending uint
+	DefaultDelay      time.Duration
 }
 
-func Open(password string) (*SecretStorage, error) {
+func Open(password *string) (*Storage, error) {
 	// TODO: maybe make the salt not empty and store it as well
-	key, err := pbkdf2.Key(sha256.New, password, []byte{}, 4096, 32)
+	key, err := pbkdf2.Key(sha256.New, utils.FromPtr(password, ""), []byte{}, 4096, 32)
 	if err != nil {
 		return nil, err
 	}
@@ -38,64 +51,27 @@ func Open(password string) (*SecretStorage, error) {
 		return nil, err
 	}
 
-	return &SecretStorage{aesCipher, gcm, nil}, nil
-}
+	bytes, err := os.ReadFile(configPath)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return nil, err
+	}
 
-func (s *SecretStorage) Read() error {
-	if _, err := os.Stat(sessionIdPath); err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return nil
-		} else {
-			return err
+	unmarshalled := dto.Config{}
+	if err == nil {
+		if err := yaml.Unmarshal(bytes, &unmarshalled); err != nil {
+			return nil, err
 		}
 	}
 
-	encrypted, err := os.ReadFile(sessionIdPath)
-	if err != nil {
-		return err
+	storage := &Storage{
+		cipher:            aesCipher,
+		gcm:               gcm,
+		sessionId:         nil,
+		PiximgMaxPending:  utils.FromPtr(unmarshalled.PiximgMaxPending, 5),
+		PiximgDelay:       utils.FromPtr(unmarshalled.PiximgDelay, time.Second*1),
+		DefaultMaxPending: utils.FromPtr(unmarshalled.DefaultMaxPending, 1),
+		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, time.Second*2),
 	}
 
-	nonceSize := s.gcm.NonceSize()
-	nonce, ciphertext := encrypted[:nonceSize], encrypted[nonceSize:]
-
-	decrypted, err := s.gcm.Open(nil, []byte(nonce), []byte(ciphertext), nil)
-	if err != nil {
-		return err
-	}
-
-	sessionId := string(decrypted)
-	s.SessionId = &sessionId
-	return nil
-}
-
-func (s *SecretStorage) WriteSessionId(sessionId string) error {
-	err := os.MkdirAll(filepath.Dir(sessionIdPath), 0775)
-	if err != nil {
-		return err
-	}
-
-	nonce := make([]byte, s.gcm.NonceSize())
-	_, err = rand.Read(nonce)
-	if err != nil {
-		return err
-	}
-
-	encrypted := s.gcm.Seal(nonce, nonce, []byte(sessionId), nil)
-
-	err = os.WriteFile(sessionIdPath, encrypted, 0600)
-	if err != nil {
-		return err
-	}
-
-	s.SessionId = &sessionId
-	return nil
-}
-
-func RemoveSessionId() error {
-	if err := os.Remove(sessionIdPath); err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			return err
-		}
-	}
-	return nil
+	return storage, nil
 }
