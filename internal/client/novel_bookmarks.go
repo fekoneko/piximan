@@ -12,7 +12,7 @@ import (
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
 func (c *Client) NovelBookmarksAuthorized(
 	userId uint64, tag *string, offset uint64, limit uint64, private bool,
-) ([]BookmarkResult, uint64, error) { // TODO: label all "tuples"
+) ([]BookmarkResult, uint64, error) {
 	visivility := utils.If(private, "hide", "show")
 	url := fmt.Sprintf(
 		"https://www.pixiv.net/ajax/user/%v/novels/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v",

@@ -24,11 +24,11 @@ func download(options *options) {
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	path := utils.FromPtr(options.Path, "")
 
-	config, sessionId := configSession(options.Password)
+	storage, sessionId := configAndSession(options.Password)
 	c := client.New(
 		sessionId, logger.DefaultLogger,
-		config.PximgMaxPending, config.PximgDelay,
-		config.DefaultMaxPending, config.DefaultDelay,
+		storage.PximgMaxPending, storage.PximgDelay,
+		storage.DefaultMaxPending, storage.DefaultDelay,
 	)
 	d := downloader.New(c, logger.DefaultLogger)
 
@@ -99,7 +99,7 @@ func download(options *options) {
 	logger.Info("download finished")
 }
 
-func configSession(password *string) (*config.Storage, *string) {
+func configAndSession(password *string) (*config.Storage, *string) {
 	storage, err := config.Open(password)
 	if err != nil && password != nil {
 		logger.Fatal("cannot open config storage: %v", err)

@@ -28,23 +28,19 @@ func interactive() {
 	})
 }
 
-func selectMode() (bool, bool, bool, bool) {
+func selectMode() (withSessionId bool, withRequestParams bool, resetSession bool, resetConfig bool) {
 	_, mode, err := modeSelect.Run()
 	logger.MaybeFatal(err, "failed to read configuration mode")
 
-	switch mode {
-	case sessionIdOption:
-		return true, false, false, false
-	case requestParamsOption:
-		return false, true, false, false
-	case resetSessionOption:
-		return false, false, true, false
-	case resetConfigOption:
-		return false, false, false, true
-	default:
+	withSessionId = mode == sessionIdOption
+	withRequestParams = mode == requestParamsOption
+	resetSession = mode == resetSessionOption
+	resetConfig = mode == resetConfigOption
+
+	if !withSessionId && !withRequestParams && !resetSession && !resetConfig {
 		logger.Fatal("incorrect configuration mode: %v", mode)
-		panic("unreachable")
 	}
+	return
 }
 
 func promptSessionId(withSessionId bool) *string {

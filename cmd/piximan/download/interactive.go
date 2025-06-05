@@ -41,7 +41,7 @@ func interactive() {
 	})
 }
 
-func selectSource() (*[]uint64, *string, *bool, *string, *string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIdPath *string, queuePath *string) {
 	_, mode, err := sourceSelect.Run()
 	logger.MaybeFatal(err, "failed to read mode")
 
@@ -49,35 +49,37 @@ func selectSource() (*[]uint64, *string, *bool, *string, *string) {
 	case idOption:
 		idsString, err := idPrompt.Run()
 		logger.MaybeFatal(err, "failed to read IDs")
-		ids, err := parseIds(idsString)
+		parsed, err := parseIds(idsString)
 		logger.MaybeFatal(err, "failed to parse IDs")
-		return &ids, nil, nil, nil, nil
+		ids = &parsed
 
 	case myPublicBookmarksOption:
-		return nil, utils.ToPtr("my"), utils.ToPtr(false), nil, nil
+		bookmarks = utils.ToPtr("my")
+		private = utils.ToPtr(false)
 
 	case myPrivateBookmarksOption:
-		return nil, utils.ToPtr("my"), utils.ToPtr(true), nil, nil
+		bookmarks = utils.ToPtr("my")
+		private = utils.ToPtr(true)
 
 	case userBookmarksOption:
 		userId, err := userIdPrompt.Run()
 		logger.MaybeFatal(err, "failed to read user ID")
-		return nil, utils.ToPtr(userId), nil, nil, nil
+		bookmarks = utils.ToPtr(userId)
 
 	case inferIdOption:
-		inferIdPath, err := inferIdPathPrompt.Run()
+		result, err := inferIdPathPrompt.Run()
 		logger.MaybeFatal(err, "failed to read pattern")
-		return nil, nil, nil, &inferIdPath, nil
+		inferIdPath = &result
 
 	case queueOption:
-		queuePath, err := queuePathPrompt.Run()
+		result, err := queuePathPrompt.Run()
 		logger.MaybeFatal(err, "failed to read list path")
-		return nil, nil, nil, nil, &queuePath
+		queuePath = &result
 
 	default:
 		logger.Fatal("incorrect download mode: %v", mode)
-		panic("unreachable")
 	}
+	return
 }
 
 func selectKind(withQueue bool) string {
@@ -108,17 +110,16 @@ func promptTag(withBookmarks bool) *string {
 	return &tag
 }
 
-func promptRange(withBookmarks bool) (*uint64, *uint64) {
+func promptRange(withBookmarks bool) (fromOffset *uint64, toOffset *uint64) {
 	if !withBookmarks {
-		return nil, nil
+		return
 	}
 
 	rangeString, err := rangePrompt.Run()
 	logger.MaybeFatal(err, "failed to read range")
-	fromOffset, toOffset, err := parseRange(rangeString)
+	fromOffset, toOffset, err = parseRange(rangeString)
 	logger.MaybeFatal(err, "failed to parse range")
-
-	return fromOffset, toOffset
+	return
 }
 
 func selectOnlyMeta(withQueue bool) bool {
