@@ -47,8 +47,14 @@ const CONFIG_HELP = //
 # Set session ID from X11 clipboard with no password
 > piximan config --session-id $(xclip -o)
 
-# Set session ID from shell environment variable with password
+# Set session ID from shell environment variable with a password
 > piximan config --session-id $PHPSESSID --password $PASSWORD
+
+# Adjust request delays and limits to be more restrictive
+> piximan config --max-pending 1 --delay 5 --pximg-max-pending 1 --pximg-delay 2
+
+# Reset all configuration and remove session ID
+> piximan config --no-session --default
 `
 
 func RunConfig() {
