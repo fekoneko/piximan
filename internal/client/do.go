@@ -18,7 +18,7 @@ func (c *Client) Do(url string, onProgress func(int, int)) ([]byte, http.Header,
 		return nil, nil, err
 	}
 
-	return c.doWithRequest(request, onProgress)
+	return c.doWithRequest(request, logext.Request, onProgress)
 }
 
 func (c *Client) DoAuthorized(
@@ -35,7 +35,7 @@ func (c *Client) DoAuthorized(
 	}
 	request.Header.Add("Cookie", "PHPSESSID="+sessionId)
 
-	return c.doWithRequest(request, onProgress)
+	return c.doWithRequest(request, logext.AuthorizedRequest, onProgress)
 }
 
 func newRequest(url string) (*http.Request, error) {
@@ -50,14 +50,14 @@ func newRequest(url string) (*http.Request, error) {
 }
 
 func (c *Client) doWithRequest(
-	request *http.Request, onProgress func(int, int),
+	request *http.Request, log func(url string) (func(), func(int, int)), onProgress func(int, int),
 ) ([]byte, http.Header, error) {
 	c.startRequest(request)
 	defer c.requestDone(request)
 
-	retryDelay := time.Duration(10) * time.Second
+	retryDelay := time.Duration(0)
 	for {
-		removeBar, updateBar := logext.Request(request.URL.String())
+		removeBar, updateBar := log(request.URL.String())
 		body, headers, err := c.tryRequest(request, func(current int, total int) {
 			updateBar(current, total)
 			if onProgress != nil {
@@ -76,7 +76,7 @@ func (c *Client) doWithRequest(
 			err, retryDelay,
 		)
 		time.Sleep(retryDelay)
-		retryDelay *= 2
+		retryDelay = retryDelay*2 + time.Second*10
 	}
 }
 
