@@ -5,7 +5,7 @@ import (
 
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/imageext"
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/work"
 )
 
@@ -17,15 +17,15 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error
 	}
 
 	archive, _, err := d.client.Do(url, nil)
-	logext.MaybeSuccess(err, "fetched frames for artwork %v", id)
-	logext.MaybeError(err, "failed to fetch frames for artwork %v", id)
+	logger.MaybeSuccess(err, "fetched frames for artwork %v", id)
+	logger.MaybeError(err, "failed to fetch frames for artwork %v", id)
 	if err != nil {
 		return nil, err
 	}
 
 	gif, err := imageext.GifFromFrames(archive, frames)
-	logext.MaybeSuccess(err, "encoded frames for artwork %v", id)
-	logext.MaybeError(err, "failed to encode frames for artwork %v", id)
+	logger.MaybeSuccess(err, "encoded frames for artwork %v", id)
+	logger.MaybeError(err, "failed to encode frames for artwork %v", id)
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +48,13 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Fr
 			err = fmt.Errorf("invalid or missing frames data")
 		}
 		if err == nil {
-			logext.Success("fetched frames data for artwork %v", id)
+			logger.Success("fetched frames data for artwork %v", id)
 			return *url, *frames, nil
 		} else if !authorized {
-			logext.Error("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
+			logger.Error("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
 			return "", nil, err
 		} else {
-			logext.Warning("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
+			logger.Warning("failed to fetch frames data for artwork %v (authorization could be required): %v", id, err)
 		}
 	}
 
@@ -65,8 +65,8 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Fr
 		} else if err == nil && frames == nil {
 			err = fmt.Errorf("invalid or missing frames data")
 		}
-		logext.MaybeSuccess(err, "fetched frames data for artwork %v", id)
-		logext.MaybeError(err, "failed to fetch frames data for artwork %v", id)
+		logger.MaybeSuccess(err, "fetched frames data for artwork %v", id)
+		logger.MaybeError(err, "failed to fetch frames data for artwork %v", id)
 		if err != nil {
 			return "", nil, err
 		}
@@ -74,7 +74,7 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Fr
 	}
 
 	err := fmt.Errorf("authorization could be required")
-	logext.Error("failed to fetch frames data for artwork %v: %v", id, err)
+	logger.Error("failed to fetch frames data for artwork %v: %v", id, err)
 	return "", nil, err
 }
 

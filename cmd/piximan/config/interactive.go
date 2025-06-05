@@ -3,7 +3,7 @@ package config
 import (
 	"strconv"
 
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/manifoldco/promptui"
 )
 
@@ -30,7 +30,7 @@ func interactive() {
 
 func selectMode() (bool, bool, bool, bool) {
 	_, mode, err := modeSelect.Run()
-	logext.MaybeFatal(err, "failed to read configuration mode")
+	logger.MaybeFatal(err, "failed to read configuration mode")
 
 	switch mode {
 	case sessionIdOption:
@@ -42,7 +42,7 @@ func selectMode() (bool, bool, bool, bool) {
 	case resetConfigOption:
 		return false, false, false, true
 	default:
-		logext.Fatal("incorrect configuration mode: %v", mode)
+		logger.Fatal("incorrect configuration mode: %v", mode)
 		panic("unreachable")
 	}
 }
@@ -53,7 +53,7 @@ func promptSessionId(withSessionId bool) *string {
 	}
 
 	sessionId, err := sessionIdPrompt.Run()
-	logext.MaybeFatal(err, "failed to read session id")
+	logger.MaybeFatal(err, "failed to read session id")
 	return &sessionId
 }
 
@@ -63,7 +63,7 @@ func promptPassword(withSessionId bool) *string {
 	}
 
 	password, err := passwordPrompt.Run()
-	logext.MaybeFatal(err, "failed to read password")
+	logger.MaybeFatal(err, "failed to read password")
 	return &password
 }
 
@@ -73,9 +73,9 @@ func promptRequestParamWith(withRequestParams bool, prompt *promptui.Prompt) *ui
 	}
 
 	valueStr, err := prompt.Run()
-	logext.MaybeFatal(err, "failed to read request parameter")
+	logger.MaybeFatal(err, "failed to read request parameter")
 
 	value, err := strconv.ParseUint(valueStr, 10, 64)
-	logext.MaybeFatal(err, "cannot parse request parameter")
+	logger.MaybeFatal(err, "cannot parse request parameter")
 	return &value
 }

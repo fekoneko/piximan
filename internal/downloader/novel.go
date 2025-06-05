@@ -3,14 +3,14 @@ package downloader
 import (
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Download only novel metadata and store it in paths. Blocks until done.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
-	logext.Info("started downloading metadata for novel %v", id)
+	logger.Info("started downloading metadata for novel %v", id)
 
 	w, err := d.novelOnlyMeta(id)
 	if err != nil {
@@ -31,7 +31,7 @@ func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []stri
 // Download novel with all assets and metadata and store it in paths. Blocks until done.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
-	logext.Info("started downloading novel %v", id)
+	logger.Info("started downloading novel %v", id)
 
 	w, coverUrl, contentAsset, err := d.novelMeta(id)
 	if err != nil {
@@ -48,7 +48,7 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 // Download novel with cover url known in advance and store it in paths. Blocks until done.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) (*work.Work, error) {
-	logext.Info("started downloading novel %v", id)
+	logger.Info("started downloading novel %v", id)
 
 	workChannel := make(chan *work.Work, 1)
 	contentChannel := make(chan *fsext.Asset, 1)

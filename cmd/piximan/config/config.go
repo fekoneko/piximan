@@ -4,7 +4,7 @@ import (
 	"time"
 
 	appconfig "github.com/fekoneko/piximan/internal/config"
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
@@ -14,24 +14,24 @@ func config(options *options) {
 	defer termext.RestoreInputEcho()
 
 	storage, err := appconfig.Open(options.Password)
-	logext.MaybeFatal(err, "failed to open config storage")
+	logger.MaybeFatal(err, "failed to open config storage")
 
 	if utils.FromPtr(options.ResetSession, false) {
 		err := storage.RemoveSessionId()
-		logext.MaybeSuccess(err, "session id was removed")
-		logext.MaybeFatal(err, "failed to remove session id")
+		logger.MaybeSuccess(err, "session id was removed")
+		logger.MaybeFatal(err, "failed to remove session id")
 	} else if options.SessionId != nil {
 		err = storage.WriteSessionId(*options.SessionId)
-		logext.MaybeSuccess(err, "session id was set%v",
+		logger.MaybeSuccess(err, "session id was set%v",
 			utils.If(options.Password != nil, " and encrypted with password", ""),
 		)
-		logext.MaybeFatal(err, "failed to set session id")
+		logger.MaybeFatal(err, "failed to set session id")
 	}
 
 	if utils.FromPtr(options.ResetConfig, false) {
 		err := storage.Reset()
-		logext.MaybeSuccess(err, "configuration parameters were reset")
-		logext.MaybeFatal(err, "failed to reset configuration parameters")
+		logger.MaybeSuccess(err, "configuration parameters were reset")
+		logger.MaybeFatal(err, "failed to reset configuration parameters")
 		return
 	}
 
@@ -55,7 +55,7 @@ func config(options *options) {
 	}
 	if changed {
 		err = storage.Write()
-		logext.MaybeSuccess(err, "configuration parameters were saved")
-		logext.MaybeFatal(err, "failed to save configuration parameters")
+		logger.MaybeSuccess(err, "configuration parameters were saved")
+		logger.MaybeFatal(err, "failed to save configuration parameters")
 	}
 }

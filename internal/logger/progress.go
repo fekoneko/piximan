@@ -1,4 +1,4 @@
-package logext
+package logger
 
 import (
 	"fmt"

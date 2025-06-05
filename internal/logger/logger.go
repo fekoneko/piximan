@@ -1,9 +1,12 @@
-package logext
+package logger
 
 import (
+	"io"
+	"os"
 	"sync"
 
 	"github.com/fatih/color"
+	"github.com/mattn/go-colorable"
 )
 
 const NUM_SLOTS = 6
@@ -26,10 +29,30 @@ var errorPrefix = red("[ERROR]") + "   "
 var requestPrefix = magenta("[REQUEST]") + " " + white("(unauthorized)") + " "
 var authRequestPrefix = magenta("[REQUEST]") + " " + red("(authorized)") + " "
 
-var mutex = sync.Mutex{}
-var progressMap = map[int]*progress{}
-var slots = make([]int, NUM_SLOTS)
-var statsShown = false
-var prevStatsShown = false
-var numRequests = int(0)
-var numAuthorizedRequests = int(0)
+// Used to log the messages and display request statuses.
+// Avoid using multiple loggers on the same output at the same time.
+type Logger struct {
+	mutex                 *sync.Mutex
+	writer                *io.Writer
+	progressMap           map[int]*progress
+	slots                 []int
+	statsShown            bool
+	prevStatsShown        bool
+	numRequests           int
+	numAuthorizedRequests int
+}
+
+func New(file *os.File) *Logger {
+	writer := colorable.NewColorable(file)
+
+	return &Logger{
+		mutex:                 &sync.Mutex{},
+		writer:                &writer,
+		progressMap:           map[int]*progress{},
+		slots:                 make([]int, NUM_SLOTS),
+		statsShown:            false,
+		prevStatsShown:        false,
+		numRequests:           0,
+		numAuthorizedRequests: 0,
+	}
+}

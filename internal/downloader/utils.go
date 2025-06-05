@@ -3,7 +3,7 @@ package downloader
 import (
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/fekoneko/piximan/internal/work"
 )
@@ -16,7 +16,7 @@ func writeWork(
 		err = fsext.WriteWork(w, assets, paths)
 	}
 	what := utils.If(onlyMeta, "metadata", "files")
-	logext.MaybeSuccess(err, "stored %v for %v %v in %v", what, kind, id, paths)
-	logext.MaybeError(err, "failed to store %v for %v %v", what, kind, id)
+	logger.MaybeSuccess(err, "stored %v for %v %v in %v", what, kind, id, paths)
+	logger.MaybeError(err, "failed to store %v for %v %v", what, kind, id)
 	return err
 }

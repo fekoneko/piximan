@@ -8,7 +8,7 @@ import (
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -23,8 +23,8 @@ func (d *Downloader) ScheduleMyBookmarks(
 
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		userId, err := d.client.MyIdAutorized()
-		logext.MaybeSuccess(err, "fetched authorizeed user id")
-		logext.MaybeError(err, "failed to fetch authorizeed user id")
+		logger.MaybeSuccess(err, "fetched authorizeed user id")
+		logger.MaybeError(err, "failed to fetch authorizeed user id")
 		if err != nil {
 			return err
 		}
@@ -32,7 +32,7 @@ func (d *Downloader) ScheduleMyBookmarks(
 		d.ScheduleBookmarks(userId, kind, tag, from, to, private, size, onlyMeta, lowMeta, paths)
 		return nil
 	})
-	logext.Info("created crawl task to fetch authorizeed user id")
+	logger.Info("created crawl task to fetch authorizeed user id")
 }
 
 // Schedule bookmarks for download. Run() to start downloading.
@@ -74,7 +74,7 @@ func (d *Downloader) ScheduleBookmarks(
 		}
 
 		if numTasks > 0 {
-			logext.Info(
+			logger.Info(
 				bookmarksLogMessage("created %v bookmarks crawl %v", userId, tag, nil),
 				numTasks, utils.If(numTasks == 1, "task", "tasks"),
 			)
@@ -82,7 +82,7 @@ func (d *Downloader) ScheduleBookmarks(
 
 		return nil
 	})
-	logext.Info(bookmarksLogMessage("created bookmarks crawl task", userId, tag, &fromOffset))
+	logger.Info(bookmarksLogMessage("created bookmarks crawl task", userId, tag, &fromOffset))
 }
 
 // Fetch bookmarks and then schedule the works for download, returns total count of bookmarks
@@ -96,7 +96,7 @@ func (d *Downloader) scheduleBookmarksPage(
 
 	if kind != queue.ItemKindArtwork && kind != queue.ItemKindNovel {
 		err := fmt.Errorf("invalid work type: %v", uint8(kind))
-		logext.Error("%v: %v", bookmarksLogMessage(errorPrefix, userId, tag, nil), err)
+		logger.Error("%v: %v", bookmarksLogMessage(errorPrefix, userId, tag, nil), err)
 		return 0, err
 	}
 
@@ -112,19 +112,19 @@ func (d *Downloader) scheduleBookmarksPage(
 			userId, tag, offset, limit, private,
 		)
 	}
-	logext.MaybeSuccess(err, bookmarksLogMessage(successPrefix, userId, tag, &offset))
-	logext.MaybeError(err, bookmarksLogMessage(errorPrefix, userId, tag, &offset))
+	logger.MaybeSuccess(err, bookmarksLogMessage(successPrefix, userId, tag, &offset))
+	logger.MaybeError(err, bookmarksLogMessage(errorPrefix, userId, tag, &offset))
 	if err != nil {
 		return 0, err
 	}
 	if len(results) == 0 {
-		logext.Warning(bookmarksLogMessage(noResultsPrefix, userId, tag, &offset))
+		logger.Warning(bookmarksLogMessage(noResultsPrefix, userId, tag, &offset))
 	}
 
 	for _, result := range results {
 		if result.Work.Id == nil {
 			err := fmt.Errorf("work id is missing in %v", result.Work)
-			logext.Error("%v %v: %v", bookmarksLogMessage("failed to schedule", userId, tag, &offset), kind, err)
+			logger.Error("%v %v: %v", bookmarksLogMessage("failed to schedule", userId, tag, &offset), kind, err)
 			continue
 		}
 		d.ScheduleWithKnown(

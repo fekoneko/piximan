@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/internal/client/dto"
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -33,7 +33,7 @@ func (c *Client) ArtworkBookmarksAuthorized(
 	for _, work := range unmarshalled.Body.Works {
 		work, unlisted, bookmarkedTime, thumbnailUrl := work.FromDto(time.Now())
 		if unlisted {
-			logext.Warning("bookmarked artwork %v is unlisted", utils.FromPtr(work.Id, 0))
+			logger.Warning("bookmarked artwork %v is unlisted", utils.FromPtr(work.Id, 0))
 			continue
 		}
 
