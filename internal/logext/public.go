@@ -29,7 +29,7 @@ func Error(message string, args ...any) {
 func Fatal(message string, args ...any) {
 	log(errorPrefix+message, args...)
 	termext.RestoreInputEcho()
-	DisableRequestSlots()
+	DisableProgress()
 	os.Exit(1)
 }
 
@@ -70,27 +70,27 @@ func MaybeErrors(errs []error, prefix string, args ...any) {
 }
 
 func Request(url string) (func(), func(int, int)) {
-	removeBar, updateBar := handleRequest(url, false)
+	removeBar, updateBar := registerRequest(url, false)
 	log(requestPrefix + url)
 	return removeBar, updateBar
 }
 
 func AuthorizedRequest(url string) (func(), func(int, int)) {
-	removeBar, updateBar := handleRequest(url, true)
+	removeBar, updateBar := registerRequest(url, true)
 	log(authRequestPrefix + url)
 	return removeBar, updateBar
 }
 
-func EnableRequestSlots() {
+func EnableProgress() {
 	mutex.Lock()
-	requestSlotsShown = true
+	statsShown = true
 	mutex.Unlock()
-	printWithRequestSlots("")
+	refreshStats()
 }
 
-func DisableRequestSlots() {
+func DisableProgress() {
 	mutex.Lock()
-	requestSlotsShown = false
+	statsShown = false
 	mutex.Unlock()
-	printWithRequestSlots("")
+	refreshStats()
 }

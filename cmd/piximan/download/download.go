@@ -88,8 +88,8 @@ func download(options *options) {
 
 	fmt.Println(d)
 
-	logext.EnableRequestSlots()
-	defer logext.DisableRequestSlots()
+	logext.EnableProgress()
+	defer logext.DisableProgress()
 
 	logext.Info("download started")
 	d.Run() // TODO: confirmation by user (or -y flag)
