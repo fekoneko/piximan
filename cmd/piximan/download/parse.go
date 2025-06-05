@@ -29,7 +29,7 @@ func parseIds(idsString string) ([]uint64, error) {
 	return ids, nil
 }
 
-func parseRange(rangeString string) (*uint64, *uint64, error) {
+func parseRange(rangeString string) (fromOffset *uint64, toOffset *uint64, err error) {
 	trimmed := strings.TrimSpace(rangeString)
 	if trimmed == "" {
 		return nil, nil, nil
@@ -39,9 +39,6 @@ func parseRange(rangeString string) (*uint64, *uint64, error) {
 	if len(parts) != 2 {
 		return nil, nil, fmt.Errorf("the range must contain exactly one ':'")
 	}
-
-	var fromOffset *uint64
-	var toOffset *uint64
 
 	trimmedFromString := strings.TrimSpace(parts[0])
 	if trimmedFromString != "" {

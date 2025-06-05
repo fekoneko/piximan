@@ -16,7 +16,13 @@ func MaybeError(err error, prefix string, args ...any)       { l.MaybeError(err,
 func MaybeFatal(err error, prefix string, args ...any)       { l.MaybeFatal(err, prefix, args) }
 func MaybeWarnings(errs []error, prefix string, args ...any) { l.MaybeWarnings(errs, prefix, args) }
 func MaybeErrors(errs []error, prefix string, args ...any)   { l.MaybeErrors(errs, prefix, args) }
-func Request(url string) (func(), func(int, int))            { return l.Request(url) }
-func AuthorizedRequest(url string) (func(), func(int, int))  { return l.AuthorizedRequest(url) }
 func EnableProgress()                                        { l.EnableProgress() }
 func DisableProgress()                                       { l.DisableProgress() }
+
+func Request(url string) (removeBar func(), updateBar func(int, int)) {
+	return l.Request(url)
+}
+
+func AuthorizedRequest(url string) (removeBar func(), updateBar func(int, int)) {
+	return l.AuthorizedRequest(url)
+}

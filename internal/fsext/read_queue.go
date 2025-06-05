@@ -15,7 +15,7 @@ func ReadQueue(
 	defaultSize image.Size,
 	defaultOnlyMeta bool,
 	defaultPaths []string,
-) (*queue.Queue, []error, error) {
+) (q *queue.Queue, warnings []error, err error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, nil, err
@@ -26,6 +26,6 @@ func ReadQueue(
 		return nil, nil, err
 	}
 
-	q, warnings := unmarshalled.FromDto(defaultKind, defaultSize, defaultOnlyMeta, defaultPaths)
+	q, warnings = unmarshalled.FromDto(defaultKind, defaultSize, defaultOnlyMeta, defaultPaths)
 	return q, warnings, nil
 }

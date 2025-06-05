@@ -10,7 +10,7 @@ import (
 
 // Fetch novel metadata, cover url and content asset.
 // Retry authorized if the content or cover url is missing.
-func (d *Downloader) novelMeta(id uint64) (*work.Work, *string, *fsext.Asset, error) {
+func (d *Downloader) novelMeta(id uint64) (w *work.Work, content *string, coverUrl *fsext.Asset, err error) {
 	authorized := d.client.Authorized()
 
 	if w, coverUrl, contentAsset, err := d.novelMetaWith(func() (*work.Work, *string, *string, error) {
@@ -37,11 +37,11 @@ func (d *Downloader) novelOnlyMeta(id uint64) (*work.Work, error) {
 }
 
 func (d *Downloader) novelMetaWith(
-	do func() (*work.Work, *string, *string, error),
+	do func() (w *work.Work, content *string, coverUrl *string, err error),
 	id uint64,
 	ignoreMissing bool,
 	noLogErrors bool,
-) (*work.Work, *string, *fsext.Asset, error) {
+) (w *work.Work, content *string, coverAsset *fsext.Asset, err error) {
 	logErrorOrWarning := d.logger.Error
 	if noLogErrors {
 		logErrorOrWarning = d.logger.Warning

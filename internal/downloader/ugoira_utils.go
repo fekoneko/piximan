@@ -37,7 +37,9 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error
 // First the function will try to make the request without authorization and then with one.
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
-func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Frame, error) {
+func (d *Downloader) fetchFrames(
+	w *work.Work, id uint64,
+) (framesUrl string, frames []imageext.Frame, err error) {
 	authorized := d.client.Authorized()
 	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || !authorized {
 		url, frames, err := d.client.ArtworkFrames(id)
@@ -72,7 +74,7 @@ func (d *Downloader) fetchFrames(w *work.Work, id uint64) (string, []imageext.Fr
 		return *url, *frames, nil
 	}
 
-	err := fmt.Errorf("authorization could be required")
+	err = fmt.Errorf("authorization could be required")
 	d.logger.Error("failed to fetch frames data for artwork %v: %v", id, err)
 	return "", nil, err
 }

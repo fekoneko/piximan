@@ -12,7 +12,7 @@ import (
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
 func (c *Client) ArtworkBookmarksAuthorized(
 	userId uint64, tag *string, offset uint64, limit uint64, private bool,
-) ([]BookmarkResult, uint64, error) {
+) (results []BookmarkResult, total uint64, err error) {
 	visivility := utils.If(private, "hide", "show")
 	url := fmt.Sprintf(
 		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v",
@@ -28,7 +28,7 @@ func (c *Client) ArtworkBookmarksAuthorized(
 		return nil, 0, err
 	}
 
-	results := make([]BookmarkResult, 0, len(unmarshalled.Body.Works))
+	results = make([]BookmarkResult, 0, len(unmarshalled.Body.Works))
 	for _, work := range unmarshalled.Body.Works {
 		work, unlisted, bookmarkedTime, thumbnailUrl := work.FromDto(time.Now())
 		if unlisted {

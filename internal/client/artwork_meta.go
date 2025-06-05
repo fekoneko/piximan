@@ -9,7 +9,9 @@ import (
 	"github.com/fekoneko/piximan/internal/work"
 )
 
-func (c *Client) ArtworkMeta(id uint64) (*work.Work, *[4]string, map[uint64]string, error) {
+func (c *Client) ArtworkMeta(
+	id uint64,
+) (w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, err error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
 	body, _, err := c.Do(url, nil)
 	if err != nil {
@@ -21,7 +23,7 @@ func (c *Client) ArtworkMeta(id uint64) (*work.Work, *[4]string, map[uint64]stri
 		return nil, nil, nil, err
 	}
 
-	work, firstPageUrls, thumbnailUrls := unmarshalled.Body.FromDto(time.Now())
+	w, firstPageUrls, thumbnailUrls = unmarshalled.Body.FromDto(time.Now())
 
-	return work, firstPageUrls, thumbnailUrls, nil
+	return w, firstPageUrls, thumbnailUrls, nil
 }

@@ -10,7 +10,7 @@ import (
 
 const BUFFER_SIZE = 4096
 
-func (c *Client) Do(url string, onProgress func(int, int)) ([]byte, http.Header, error) {
+func (c *Client) Do(url string, onProgress func(int, int)) (body []byte, headers http.Header, err error) {
 	request, err := newRequest(url)
 	if err != nil {
 		return nil, nil, err
@@ -21,7 +21,7 @@ func (c *Client) Do(url string, onProgress func(int, int)) ([]byte, http.Header,
 
 func (c *Client) DoAuthorized(
 	url string, onProgress func(int, int),
-) ([]byte, http.Header, error) {
+) (body []byte, headers http.Header, err error) {
 	sessionId, authorized := c.sessionId()
 	if !authorized {
 		return nil, nil, fmt.Errorf("authorization is required")
@@ -49,7 +49,7 @@ func newRequest(url string) (*http.Request, error) {
 
 func (c *Client) doWithRequest(
 	request *http.Request, log func(url string) (func(), func(int, int)), onProgress func(int, int),
-) ([]byte, http.Header, error) {
+) (body []byte, headers http.Header, err error) {
 	c.startRequest(request)
 	defer c.requestDone(request)
 
@@ -78,7 +78,9 @@ func (c *Client) doWithRequest(
 	}
 }
 
-func (c *Client) tryRequest(request *http.Request, onProgress func(int, int)) ([]byte, http.Header, error) {
+func (c *Client) tryRequest(
+	request *http.Request, onProgress func(int, int),
+) (body []byte, headers http.Header, err error) {
 	response, err := c.client().Do(request)
 	if err != nil {
 		return nil, nil, err

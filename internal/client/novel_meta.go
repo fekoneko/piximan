@@ -9,14 +9,14 @@ import (
 	"github.com/fekoneko/piximan/internal/work"
 )
 
-func (c *Client) NovelMeta(id uint64) (*work.Work, *string, *string, error) {
+func (c *Client) NovelMeta(id uint64) (w *work.Work, content *string, coverUrl *string, err error) {
 	return novelMetaWith(func(url string) ([]byte, error) {
 		body, _, err := c.Do(url, nil)
 		return body, err
 	}, id)
 }
 
-func (c *Client) NovelMetaAuthorized(id uint64) (*work.Work, *string, *string, error) {
+func (c *Client) NovelMetaAuthorized(id uint64) (w *work.Work, content *string, coverUrl *string, err error) {
 	return novelMetaWith(func(url string) ([]byte, error) {
 		body, _, err := c.DoAuthorized(url, nil)
 		return body, err
@@ -25,7 +25,7 @@ func (c *Client) NovelMetaAuthorized(id uint64) (*work.Work, *string, *string, e
 
 func novelMetaWith(
 	do func(url string) ([]byte, error), id uint64,
-) (*work.Work, *string, *string, error) {
+) (w *work.Work, content *string, coverUrl *string, err error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/novel/%v", id)
 	body, err := do(url)
 	if err != nil {
@@ -37,7 +37,7 @@ func novelMetaWith(
 		return nil, nil, nil, err
 	}
 
-	work, content, coverUrl := unmarshalled.Body.FromDto(time.Now())
+	w, content, coverUrl = unmarshalled.Body.FromDto(time.Now())
 
-	return work, content, coverUrl, nil
+	return w, content, coverUrl, nil
 }

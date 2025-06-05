@@ -56,7 +56,7 @@ func (d *Downloader) illustMangaAssets(
 // ! try each one later.
 func inferPages(
 	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrl *string, size image.Size,
-) ([]string, bool, error) {
+) (pageUrls []string, withExtensions bool, err error) {
 	if w.NumPages == nil {
 		err := fmt.Errorf("number of pages is missing in %v", w)
 		return nil, false, err
@@ -96,7 +96,7 @@ func inferPages(
 	urlDate := (*thumbnailUrl)[urlDateStart:urlDateEnd]
 
 	var firstPageUrl string
-	withExtensions := true
+	withExtensions = true
 	switch size {
 	case image.SizeThumbnail:
 		firstPageUrl = fmt.Sprintf(
@@ -120,7 +120,7 @@ func inferPages(
 		)
 		withExtensions = false
 	}
-	pageUrls, _ := inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
+	pageUrls, _ = inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
 	return pageUrls, withExtensions, nil
 }
 

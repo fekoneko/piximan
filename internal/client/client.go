@@ -47,7 +47,7 @@ func (c *Client) client() *http.Client {
 }
 
 // thread safe method to get session id, second return value is weather session id is known
-func (c *Client) sessionId() (string, bool) {
+func (c *Client) sessionId() (sessionId string, authorized bool) {
 	c.sessionIdMutex.Lock()
 	defer c.sessionIdMutex.Unlock()
 	return utils.FromPtr(c._sessionId, ""), c._sessionId != nil

@@ -65,7 +65,7 @@ var inferPatternReplacer = strings.NewReplacer(
 )
 
 // TODO: refactor this abomination
-func InferIdsFromWorkPath(pattern string) (*map[uint64][]string, error) {
+func InferIdsFromWorkPath(pattern string) (idPathMap *map[uint64][]string, err error) {
 	pattern = inferPatternReplacer.Replace(pattern)
 	patternIdIndex := strings.Index(pattern, "{id}")
 	if patternIdIndex == -1 {

@@ -88,7 +88,7 @@ func (d *Downloader) ScheduleBookmarks(
 func (d *Downloader) scheduleBookmarksPage(
 	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64, private bool,
 	size image.Size, onlyMeta bool, lowMeta bool, paths []string,
-) (uint64, error) {
+) (total uint64, err error) {
 	var successPrefix = fmt.Sprintf("fetched %v bookmarks page", kind)
 	var errorPrefix = fmt.Sprintf("failed to fetch %v bookmarks page", kind)
 	var noResultsPrefix = fmt.Sprintf("no %v bookmarks found", kind)
@@ -100,8 +100,6 @@ func (d *Downloader) scheduleBookmarksPage(
 	}
 
 	var results []client.BookmarkResult
-	var total uint64
-	var err error
 	if kind == queue.ItemKindArtwork {
 		results, total, err = d.client.ArtworkBookmarksAuthorized(
 			userId, tag, offset, limit, private,

@@ -59,19 +59,19 @@ func download(options *options) {
 		fmt.Println()
 
 	} else if options.InferIdPath != nil {
-		result, err := fsext.InferIdsFromWorkPath(*options.InferIdPath)
+		idPathMap, err := fsext.InferIdsFromWorkPath(*options.InferIdPath)
 		logger.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
-		if len(*result) == 0 {
+		if len(*idPathMap) == 0 {
 			logger.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
 			return
 		}
 
 		if options.Path == nil {
-			q := queue.FromMap(result, kind, size, onlyMeta)
+			q := queue.FromMap(idPathMap, kind, size, onlyMeta)
 			d.ScheduleQueue(q)
 		} else {
 			paths := []string{path}
-			q := queue.FromMapWithPaths(result, kind, size, onlyMeta, paths)
+			q := queue.FromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
 			d.ScheduleQueue(q)
 		}
 
@@ -99,7 +99,7 @@ func download(options *options) {
 	logger.Info("download finished")
 }
 
-func configAndSession(password *string) (*config.Storage, *string) {
+func configAndSession(password *string) (storage *config.Storage, sessionId *string) {
 	storage, err := config.Open(password)
 	if err != nil && password != nil {
 		logger.Fatal("cannot open config storage: %v", err)
@@ -130,7 +130,7 @@ func configAndSession(password *string) (*config.Storage, *string) {
 	}
 }
 
-func promptPassword() (*config.Storage, *string) {
+func promptPassword() (storage *config.Storage, sessionId *string) {
 	for tries := 0; ; tries++ {
 		password, err := passwordPrompt.Run()
 		if err != nil {

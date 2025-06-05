@@ -9,7 +9,7 @@ import (
 )
 
 // Ugoira artwork is expected for this function
-func (c *Client) ArtworkFrames(id uint64) (*string, *[]imageext.Frame, error) {
+func (c *Client) ArtworkFrames(id uint64) (framesUrl *string, frames *[]imageext.Frame, err error) {
 	return artworkFramesWith(func(url string) ([]byte, error) {
 		body, _, err := c.Do(url, nil)
 		return body, err
@@ -17,7 +17,7 @@ func (c *Client) ArtworkFrames(id uint64) (*string, *[]imageext.Frame, error) {
 }
 
 // Ugoira artwork is expected for this function
-func (c *Client) ArtworkFramesAuthorized(id uint64) (*string, *[]imageext.Frame, error) {
+func (c *Client) ArtworkFramesAuthorized(id uint64) (framesUrl *string, frames *[]imageext.Frame, err error) {
 	return artworkFramesWith(func(url string) ([]byte, error) {
 		body, _, err := c.DoAuthorized(url, nil)
 		return body, err
@@ -26,7 +26,7 @@ func (c *Client) ArtworkFramesAuthorized(id uint64) (*string, *[]imageext.Frame,
 
 func artworkFramesWith(
 	do func(url string) ([]byte, error), id uint64,
-) (*string, *[]imageext.Frame, error) {
+) (framesUrl *string, frames *[]imageext.Frame, err error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/ugoira_meta", id)
 	body, err := do(url)
 	if err != nil {
@@ -38,7 +38,7 @@ func artworkFramesWith(
 		return nil, nil, err
 	}
 
-	archiveUrl, frames := unmarshalled.Body.FromDto()
+	framesUrl, frames = unmarshalled.Body.FromDto()
 
-	return archiveUrl, frames, nil
+	return framesUrl, frames, nil
 }
