@@ -12,14 +12,17 @@ type RequestGroup struct {
 	numPending        uint64
 	numPendingCond    *sync.Cond
 	previousTime      time.Time
-	previousTimeMutex sync.Mutex
+	previousTimeMutex *sync.Mutex
 }
 
 func NewRequestGroup(maxPending uint64, delay time.Duration) *RequestGroup {
 	return &RequestGroup{
-		maxPending:     maxPending,
-		delay:          delay,
-		numPendingCond: sync.NewCond(&sync.Mutex{}),
+		maxPending:        maxPending,
+		delay:             delay,
+		numPending:        0,
+		numPendingCond:    sync.NewCond(&sync.Mutex{}),
+		previousTime:      time.Time{},
+		previousTimeMutex: &sync.Mutex{},
 	}
 }
 

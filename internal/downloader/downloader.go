@@ -21,21 +21,22 @@ const CRAWL_PENDING_LIMIT = 1
 // - crawlQueue - list of pages to crawl works from, modifies downloadQueue
 // Use Schedule<...>() methods to fill the queues and then Run() to start downloading.
 // Use Wait<...>() to block on the results.
+// Don't copy Downloader after creation
 type Downloader struct {
 	client  *client.Client
 	channel chan *work.Work
 
 	downloadQueue      queue.Queue
-	downloadQueueMutex sync.Mutex
+	downloadQueueMutex *sync.Mutex
 	numDownloading     int
-	numDownloadingCond sync.Cond
+	numDownloadingCond *sync.Cond
 	downloading        bool
-	downloadingMutex   sync.Mutex
+	downloadingMutex   *sync.Mutex
 
 	crawlQueue      []func() error // TODO: make custom struct with Push and Pop?
-	crawlQueueMutex sync.Mutex
+	crawlQueueMutex *sync.Mutex
 	numCrawling     int
-	numCrawlingCond sync.Cond
+	numCrawlingCond *sync.Cond
 }
 
 func New(
@@ -48,9 +49,16 @@ func New(
 	return &Downloader{
 		client:             client,
 		channel:            make(chan *work.Work, CHANNEL_SIZE),
-		numDownloadingCond: *sync.NewCond(&sync.Mutex{}),
+		downloadQueue:      make(queue.Queue, 0),
+		downloadQueueMutex: &sync.Mutex{},
+		numDownloading:     0,
+		numDownloadingCond: sync.NewCond(&sync.Mutex{}),
+		downloading:        false,
+		downloadingMutex:   &sync.Mutex{},
 		crawlQueue:         make([]func() error, 0),
-		numCrawlingCond:    *sync.NewCond(&sync.Mutex{}),
+		crawlQueueMutex:    &sync.Mutex{},
+		numCrawling:        0,
+		numCrawlingCond:    sync.NewCond(&sync.Mutex{}),
 	}
 }
 

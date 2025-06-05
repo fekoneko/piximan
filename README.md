@@ -22,6 +22,7 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 - Make requests concurrently when it's possible without bothering the Pixiv servers too much
 - Authorize requests with your session ID, `piximan` will try to use it as few as possible
 - Encrypt your session ID with a master password
+- Adjust request delays and concurrency limits
 
 ## Getting started with `piximan` CLI
 

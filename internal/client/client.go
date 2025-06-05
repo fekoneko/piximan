@@ -9,11 +9,13 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
+// Client is used to make requests to Pixiv API, it holds the session id and request configuration
+// Don't copy Client after creation
 type Client struct {
 	_sessionId          *string
-	sessionIdMutex      sync.Mutex
-	_client             http.Client
-	clientMutex         sync.Mutex
+	sessionIdMutex      *sync.Mutex
+	_client             *http.Client
+	clientMutex         *sync.Mutex
 	pximgRequestGroup   *syncext.RequestGroup
 	defaultRequestGroup *syncext.RequestGroup
 }
@@ -23,8 +25,12 @@ func New(
 	piximgMaxPending uint64, piximgDelay time.Duration,
 	defaultMaxPending uint64, defaultDelay time.Duration,
 ) *Client {
+
 	return &Client{
 		_sessionId:          sessionId,
+		sessionIdMutex:      &sync.Mutex{},
+		_client:             &http.Client{},
+		clientMutex:         &sync.Mutex{},
 		pximgRequestGroup:   syncext.NewRequestGroup(piximgMaxPending, piximgDelay),
 		defaultRequestGroup: syncext.NewRequestGroup(defaultMaxPending, defaultDelay),
 	}
@@ -34,7 +40,7 @@ func New(
 func (c *Client) client() *http.Client {
 	c.clientMutex.Lock()
 	defer c.clientMutex.Unlock()
-	return &c._client
+	return c._client
 }
 
 // thread safe method to get session id, second return value is weather session id is known
