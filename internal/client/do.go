@@ -1,9 +1,11 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/fekoneko/piximan/internal/logext"
 )
@@ -15,18 +17,8 @@ func (c *Client) Do(url string, onProgress func(int, int)) ([]byte, http.Header,
 	if err != nil {
 		return nil, nil, err
 	}
-	c.start(request)
-	defer c.done(request)
 
-	removeBar, updateBar := logext.Request(url)
-	defer removeBar()
-
-	return c.doWithRequest(request, func(current int, total int) {
-		updateBar(current, total)
-		if onProgress != nil {
-			onProgress(current, total)
-		}
-	})
+	return c.doWithRequest(request, onProgress)
 }
 
 func (c *Client) DoAuthorized(
@@ -41,19 +33,9 @@ func (c *Client) DoAuthorized(
 	if err != nil {
 		return nil, nil, err
 	}
-	c.start(request)
-	defer c.done(request)
-
 	request.Header.Add("Cookie", "PHPSESSID="+sessionId)
-	removeBar, updateBar := logext.AuthorizedRequest(url)
-	defer removeBar()
 
-	return c.doWithRequest(request, func(current int, total int) {
-		updateBar(current, total)
-		if onProgress != nil {
-			onProgress(current, total)
-		}
-	})
+	return c.doWithRequest(request, onProgress)
 }
 
 func newRequest(url string) (*http.Request, error) {
@@ -70,14 +52,46 @@ func newRequest(url string) (*http.Request, error) {
 func (c *Client) doWithRequest(
 	request *http.Request, onProgress func(int, int),
 ) ([]byte, http.Header, error) {
+	c.startRequest(request)
+	defer c.requestDone(request)
+
+	retryDelay := time.Duration(10) * time.Second
+	for {
+		removeBar, updateBar := logext.Request(request.URL.String())
+		body, headers, err := c.tryRequest(request, func(current int, total int) {
+			updateBar(current, total)
+			if onProgress != nil {
+				onProgress(current, total)
+			}
+		})
+		removeBar()
+
+		if err == nil {
+			return body, headers, nil
+		} else if errors.Is(err, StatusError{}) {
+			return nil, nil, err
+		}
+
+		logext.Warning("request failed: %v (retrying in %v)",
+			err, retryDelay,
+		)
+		time.Sleep(retryDelay)
+		retryDelay *= 2
+	}
+}
+
+func (c *Client) tryRequest(request *http.Request, onProgress func(int, int)) ([]byte, http.Header, error) {
 	response, err := c.client().Do(request)
-	if err != nil { // TODO: should suspend and retry later if network issues occured
-		return nil, response.Header, err
+	if err != nil {
+		return nil, nil, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, response.Header, fmt.Errorf("response status code is: %v", response.Status)
+		return nil, response.Header, StatusError{
+			error: fmt.Errorf("response status code is: %v", response.Status),
+			code:  response.StatusCode,
+		}
 	}
 
 	if response.ContentLength <= 0 {
@@ -106,7 +120,7 @@ func (c *Client) doWithRequest(
 	}
 }
 
-func (c *Client) start(request *http.Request) {
+func (c *Client) startRequest(request *http.Request) {
 	if request == nil || request.URL == nil {
 		return
 	}
@@ -119,7 +133,7 @@ func (c *Client) start(request *http.Request) {
 	}
 }
 
-func (c *Client) done(request *http.Request) {
+func (c *Client) requestDone(request *http.Request) {
 	switch request.URL.Host {
 	case "i.pximg.net":
 		c.pximgRequestGroup.Done()
