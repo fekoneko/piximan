@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
@@ -41,17 +40,7 @@ type Downloader struct {
 	numCrawlingCond *sync.Cond
 }
 
-func New(
-	sessionId *string, logger *logger.Logger,
-	piximgMaxPending uint64, piximgDelay time.Duration,
-	defaultMaxPending uint64, defaultDelay time.Duration,
-) *Downloader {
-	client := client.New(
-		sessionId, logger,
-		piximgMaxPending, piximgDelay,
-		defaultMaxPending, defaultDelay,
-	)
-
+func New(client *client.Client, logger *logger.Logger) *Downloader {
 	return &Downloader{
 		client:             client,
 		logger:             logger,

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/image"
@@ -24,11 +25,12 @@ func download(options *options) {
 	path := utils.FromPtr(options.Path, "")
 
 	config, sessionId := configSession(options.Password)
-	d := downloader.New(
+	c := client.New(
 		sessionId, logger.DefaultLogger,
 		config.PximgMaxPending, config.PximgDelay,
 		config.DefaultMaxPending, config.DefaultDelay,
 	)
+	d := downloader.New(c, logger.DefaultLogger)
 
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
