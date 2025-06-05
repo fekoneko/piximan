@@ -25,7 +25,7 @@ func download(options *options) {
 
 	config, sessionId := configSession(options.Password)
 	d := downloader.New(
-		sessionId,
+		sessionId, logger.DefaultLogger,
 		config.PximgMaxPending, config.PximgDelay,
 		config.DefaultMaxPending, config.DefaultDelay,
 	)

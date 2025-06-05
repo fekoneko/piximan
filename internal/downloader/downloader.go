@@ -8,6 +8,7 @@ import (
 
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/fekoneko/piximan/internal/work"
 )
@@ -24,6 +25,7 @@ const CRAWL_PENDING_LIMIT = 1
 // Don't copy Downloader after creation
 type Downloader struct {
 	client  *client.Client
+	logger  *logger.Logger
 	channel chan *work.Work
 
 	downloadQueue      queue.Queue
@@ -40,14 +42,19 @@ type Downloader struct {
 }
 
 func New(
-	sessionId *string,
+	sessionId *string, logger *logger.Logger,
 	piximgMaxPending uint64, piximgDelay time.Duration,
 	defaultMaxPending uint64, defaultDelay time.Duration,
 ) *Downloader {
-	client := client.New(sessionId, piximgMaxPending, piximgDelay, defaultMaxPending, defaultDelay)
+	client := client.New(
+		sessionId, logger,
+		piximgMaxPending, piximgDelay,
+		defaultMaxPending, defaultDelay,
+	)
 
 	return &Downloader{
 		client:             client,
+		logger:             logger,
 		channel:            make(chan *work.Work, CHANNEL_SIZE),
 		downloadQueue:      make(queue.Queue, 0),
 		downloadQueueMutex: &sync.Mutex{},

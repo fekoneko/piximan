@@ -42,8 +42,8 @@ type Logger struct {
 	numAuthorizedRequests int
 }
 
-func New(file *os.File) *Logger {
-	writer := colorable.NewColorable(file)
+func New(output *os.File) *Logger {
+	writer := colorable.NewColorable(output)
 
 	return &Logger{
 		mutex:                 &sync.Mutex{},

@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/syncext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
@@ -16,12 +17,13 @@ type Client struct {
 	sessionIdMutex      *sync.Mutex
 	_client             *http.Client
 	clientMutex         *sync.Mutex
+	logger              *logger.Logger
 	pximgRequestGroup   *syncext.RequestGroup
 	defaultRequestGroup *syncext.RequestGroup
 }
 
 func New(
-	sessionId *string,
+	sessionId *string, logger *logger.Logger,
 	piximgMaxPending uint64, piximgDelay time.Duration,
 	defaultMaxPending uint64, defaultDelay time.Duration,
 ) *Client {
@@ -31,6 +33,7 @@ func New(
 		sessionIdMutex:      &sync.Mutex{},
 		_client:             &http.Client{},
 		clientMutex:         &sync.Mutex{},
+		logger:              logger,
 		pximgRequestGroup:   syncext.NewRequestGroup(piximgMaxPending, piximgDelay),
 		defaultRequestGroup: syncext.NewRequestGroup(defaultMaxPending, defaultDelay),
 	}

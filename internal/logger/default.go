@@ -2,7 +2,8 @@ package logger
 
 import "os"
 
-var l = New(os.Stdout)
+var DefaultLogger = New(os.Stdout)
+var l = DefaultLogger
 
 func Info(message string, args ...any)                       { l.Info(message, args) }
 func Success(message string, args ...any)                    { l.Success(message, args) }

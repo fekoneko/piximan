@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/internal/client/dto"
-	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -33,7 +32,7 @@ func (c *Client) NovelBookmarksAuthorized(
 	for _, work := range unmarshalled.Body.Works {
 		work, unlisted, bookmarkedTime, coverUrl := work.FromDto(time.Now())
 		if unlisted {
-			logger.Warning("bookmarked novel %v is unlisted", utils.FromPtr(work.Id, 0))
+			c.logger.Warning("bookmarked novel %v is unlisted", utils.FromPtr(work.Id, 0))
 			continue
 		}
 

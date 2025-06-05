@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/fekoneko/piximan/internal/logger"
 )
 
 const BUFFER_SIZE = 4096
@@ -18,7 +16,7 @@ func (c *Client) Do(url string, onProgress func(int, int)) ([]byte, http.Header,
 		return nil, nil, err
 	}
 
-	return c.doWithRequest(request, logger.Request, onProgress)
+	return c.doWithRequest(request, c.logger.Request, onProgress)
 }
 
 func (c *Client) DoAuthorized(
@@ -35,7 +33,7 @@ func (c *Client) DoAuthorized(
 	}
 	request.Header.Add("Cookie", "PHPSESSID="+sessionId)
 
-	return c.doWithRequest(request, logger.AuthorizedRequest, onProgress)
+	return c.doWithRequest(request, c.logger.AuthorizedRequest, onProgress)
 }
 
 func newRequest(url string) (*http.Request, error) {
@@ -72,7 +70,7 @@ func (c *Client) doWithRequest(
 			return nil, nil, err
 		}
 
-		logger.Warning("request failed: %v (retrying in %v)",
+		c.logger.Warning("request failed: %v (retrying in %v)",
 			err, retryDelay,
 		)
 		time.Sleep(retryDelay)
