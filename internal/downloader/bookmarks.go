@@ -11,7 +11,6 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-// TODO: private bookmarks
 // Schedule bookmarks of authorized user for download. Run() to start downloading.
 func (d *Downloader) ScheduleMyBookmarks(
 	kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
