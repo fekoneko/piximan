@@ -56,29 +56,29 @@ func nonInteractive() {
 		fmt.Println("argument `-F, --from' must be less than `-T, --to'")
 		os.Exit(2)
 	}
-	if options.OlderThan != nil && options.Bookmarks == nil {
-		fmt.Println("`-O, --older' flag can only be used with `-b, --bookmarks' source")
-		os.Exit(2)
-	}
 	if options.NewerThan != nil && options.Bookmarks == nil {
 		fmt.Println("`-N, --newer' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
-	olderThan, newerThan, err := (*time.Time)(nil), (*time.Time)(nil), error(nil)
-	if options.OlderThan != nil {
-		if olderThan, err = parseTime(*options.OlderThan); err != nil {
-			fmt.Println("argumnet `-O, --older' has incorrect format")
-			os.Exit(2)
-		}
+	if options.OlderThan != nil && options.Bookmarks == nil {
+		fmt.Println("`-O, --older' flag can only be used with `-b, --bookmarks' source")
+		os.Exit(2)
 	}
+	olderThan, newerThan, err := (*time.Time)(nil), (*time.Time)(nil), error(nil)
 	if options.NewerThan != nil {
 		if newerThan, err = parseTime(*options.NewerThan); err != nil {
 			fmt.Println("argumnet `-N, --newer' has incorrect format")
 			os.Exit(2)
 		}
 	}
-	if olderThan != nil && newerThan != nil && olderThan.After(*newerThan) {
-		fmt.Println("argument `-O, --older' must represent time before `-N, --newer'")
+	if options.OlderThan != nil {
+		if olderThan, err = parseTime(*options.OlderThan); err != nil {
+			fmt.Println("argumnet `-O, --older' has incorrect format")
+			os.Exit(2)
+		}
+	}
+	if newerThan != nil && olderThan != nil && newerThan.After(*olderThan) {
+		fmt.Println("argument `-N, --newer' must represent time before `-O, --older'")
 		os.Exit(2)
 	}
 	if options.Private != nil && options.Bookmarks == nil {

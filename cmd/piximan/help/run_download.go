@@ -64,11 +64,11 @@ const DOWNLOAD_HELP = //
 --to         Crawl bookmarks up to N'th latest bookmark. Zero-based, non-inclusive.
  -T          Omit this option to crawl up to the oldest bookmark.
 
---older      Crawl only the bookmarks that were added before the given time.
- -O          Format example: 2006-01-02-15:04:05
-
 --newer      Crawl only the bookmarks that were added after the given time.
  -N          Format example: 2006-01-02-15:04:05
+
+--older      Crawl only the bookmarks that were added before the given time.
+ -O          Format example: 2006-01-02-15:04:05
 
 --private    Download private bookmarks. You only have access to private bookmarks
  -R          of the authorized user so you probably want to use it with --bookmarks my.
@@ -117,8 +117,8 @@ const DOWNLOAD_HELP = //
 # Download 101th to 200th of your latest public artwork bookmarks with full metadata
 > piximan download --bookmarks my --from 100 --to 200 --path "./{id}"
 
-# Download artworks that you bookmarked before 2025-01-01 but after 2023-01-01
-> piximan download --bookmarks my --older 2025-01-01 --newer 2023-01-01 --path "./{id}"
+# Download artworks that you bookmarked after 2024-01-01 but before 2025-01-01
+> piximan download --bookmarks my --older --newer 2024-01-01 2025-01-01 --path "./{id}"
 
 # Download all of your private artwork bookmarks with partial metadata saving requests
 > piximan download --bookmarks my --private --low-meta --path "./{id}"

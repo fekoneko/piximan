@@ -149,13 +149,13 @@ func promptRange() (fromOffset *uint64, toOffset *uint64) {
 
 func promptOlderThan() *string {
 	olderThan, err := olderThanPrompt.Run()
-	logext.MaybeFatal(err, "failed to read newer time boundary")
+	logext.MaybeFatal(err, "failed to read older time boundary")
 	return &olderThan
 }
 
 func promptNewerThan() *string {
 	newerThan, err := newerThanPrompt.Run()
-	logext.MaybeFatal(err, "failed to read older time boundary")
+	logext.MaybeFatal(err, "failed to read newer time boundary")
 	return &newerThan
 }
 

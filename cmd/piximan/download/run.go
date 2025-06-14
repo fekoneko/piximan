@@ -13,8 +13,8 @@ type options struct {
 	Tag         *string   `short:"G" long:"tag"`
 	FromOffset  *uint64   `short:"F" long:"from"`
 	ToOffset    *uint64   `short:"T" long:"to"`
-	OlderThan   *string   `short:"O" long:"older"`
 	NewerThan   *string   `short:"N" long:"newer"`
+	OlderThan   *string   `short:"O" long:"older"`
 	Private     *bool     `short:"R" long:"private"`
 	LowMeta     *bool     `short:"M" long:"low-meta"`
 	Path        *string   `short:"p" long:"path"`

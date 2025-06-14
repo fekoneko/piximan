@@ -24,13 +24,13 @@ func download(options *options) {
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	path := utils.FromPtr(options.Path, "")
 
-	olderTime, newerTime, err := (*time.Time)(nil), (*time.Time)(nil), error(nil)
+	newerThan, olderThan, err := (*time.Time)(nil), (*time.Time)(nil), error(nil)
 	if options.NewerThan != nil {
-		olderTime, err = parseTime(*options.NewerThan)
+		newerThan, err = parseTime(*options.NewerThan)
 		logext.MaybeFatal(err, "cannot parse older time boundary")
 	}
 	if options.OlderThan != nil {
-		newerTime, err = parseTime(*options.OlderThan)
+		olderThan, err = parseTime(*options.OlderThan)
 		logext.MaybeFatal(err, "cannot parse newer time boundary")
 	}
 
@@ -52,7 +52,7 @@ func download(options *options) {
 		paths := []string{path}
 		d.ScheduleMyBookmarks(
 			kind, options.Tag, options.FromOffset, options.ToOffset,
-			olderTime, newerTime, private, size, onlyMeta, lowMeta, paths,
+			newerThan, olderThan, private, size, onlyMeta, lowMeta, paths,
 		)
 		fmt.Println()
 
@@ -63,7 +63,7 @@ func download(options *options) {
 		paths := []string{path}
 		d.ScheduleBookmarks(
 			userId, kind, options.Tag, options.FromOffset, options.ToOffset,
-			olderTime, newerTime, private, size, onlyMeta, lowMeta, paths,
+			newerThan, olderThan, private, size, onlyMeta, lowMeta, paths,
 		)
 		fmt.Println()
 
