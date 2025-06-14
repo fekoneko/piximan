@@ -215,13 +215,13 @@ func (d *Downloader) fetchBookmarksAndScheduleWorks(
 		if result.BookmarkedTime == nil && newerThan != nil && olderThan != nil {
 			err := fmt.Errorf("bookmarked time is missing in %v", result.Work)
 			logext.Error("%v %v: %v", bookmarksLogMessage("failed to schedule", userId, tag, &offset), kind, err)
-		} else if result.Work.Id == nil {
-			err := fmt.Errorf("work id is missing in %v", result.Work)
-			logext.Error("%v %v: %v", bookmarksLogMessage("failed to schedule", userId, tag, &offset), kind, err)
 		} else if newerThan != nil && result.BookmarkedTime.Before(*newerThan) {
 			hasOlderTime = true
 		} else if olderThan != nil && result.BookmarkedTime.After(*olderThan) {
 			hasNewerTime = true
+		} else if result.Work.Id == nil {
+			err := fmt.Errorf("work id is missing in %v", result.Work)
+			logext.Error("%v %v: %v", bookmarksLogMessage("failed to schedule", userId, tag, &offset), kind, err)
 		} else {
 			d.ScheduleWithKnown(
 				[]uint64{*result.Work.Id}, kind, size, onlyMeta, paths,
@@ -232,7 +232,8 @@ func (d *Downloader) fetchBookmarksAndScheduleWorks(
 
 	if hasOlderTime || hasNewerTime {
 		logext.Info(
-			bookmarksLogMessage("found bookmarks outside of the specified time range", userId, tag, &offset),
+			"%v %v", bookmarksLogMessage("bookmarks", userId, tag, &offset),
+			"outside of the time period were ignored",
 		)
 	}
 	return total, hasOlderTime, hasNewerTime, nil
