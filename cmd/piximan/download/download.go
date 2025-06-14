@@ -40,8 +40,9 @@ func download(options *options) {
 	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
 		paths := []string{path}
 		d.ScheduleMyBookmarks(
-			kind, options.Tag, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, paths,
+			// TODO: olderTime, newerTime
+			kind, options.Tag, options.FromOffset, options.ToOffset,
+			nil, nil, private, size, onlyMeta, lowMeta, paths,
 		)
 		fmt.Println()
 
@@ -51,8 +52,9 @@ func download(options *options) {
 
 		paths := []string{path}
 		d.ScheduleBookmarks(
-			userId, kind, options.Tag, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, paths,
+			// TODO: olderTime, newerTime
+			userId, kind, options.Tag, options.FromOffset, options.ToOffset,
+			nil, nil, private, size, onlyMeta, lowMeta, paths,
 		)
 		fmt.Println()
 
