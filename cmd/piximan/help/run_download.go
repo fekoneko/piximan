@@ -64,6 +64,12 @@ const DOWNLOAD_HELP = //
 --to         Crawl bookmarks up to N'th latest bookmark. Zero-based, non-inclusive.
  -T          Omit this option to crawl up to the oldest bookmark.
 
+--older      Crawl only the bookmarks that were added before the given time.
+ -O          Format example: 2006-01-02-15:04:05
+
+--newer      Crawl only the bookmarks that were added after the given time.
+ -N          Format example: 2006-01-02-15:04:05
+
 --private    Download private bookmarks. You only have access to private bookmarks
  -R          of the authorized user so you probably want to use it with --bookmarks my.
              If not provided, public bookmarks will be downloaded instead.
@@ -111,6 +117,9 @@ const DOWNLOAD_HELP = //
 # Download 101th to 200th of your latest public artwork bookmarks with full metadata
 > piximan download --bookmarks my --from 100 --to 200 --path "./{id}"
 
+# Download artworks that you bookmarked before 2025-01-01 but after 2023-01-01
+> piximan download --bookmarks my --older 2025-01-01 --newer 2023-01-01 --path "./{id}"
+
 # Download all of your private artwork bookmarks with partial metadata saving requests
 > piximan download --bookmarks my --private --low-meta --path "./{id}"
 
@@ -128,8 +137,8 @@ func RunDownload() {
 	fmt.Print(DOWNLOAD_HELP)
 }
 
-// TODO: bookmarks --newer, --older than date
 // TODO: download user's works ('my' or by id)
+// TODO: change time format for the arguments
 
 // TODO: --log, -L option to log the output to a file (-L should be reserved for language actually)
 // TODO: summary about downloaded / not downloaded works at the end of download

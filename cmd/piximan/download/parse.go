@@ -70,7 +70,7 @@ func parseRange(rangeString string) (*uint64, *uint64, error) {
 }
 
 func parseTime(timeString string) (*time.Time, error) {
-	time, err := time.Parse("2006-01-02 15:04:05", timeString)
+	time, err := time.Parse("2006-01-02-15:04:05", timeString)
 	if err != nil {
 		return nil, err
 	}
