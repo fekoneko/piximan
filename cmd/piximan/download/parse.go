@@ -17,7 +17,7 @@ func parseIds(idsString string) ([]uint64, error) {
 		}
 		id, err := strconv.ParseUint(trimmed, 10, 64)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("IDs must be a comma-separated list of numbers")
 		}
 		ids = append(ids, id)
 	}
