@@ -3,6 +3,7 @@ package download
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/utils"
@@ -55,6 +56,35 @@ func nonInteractive() {
 		fmt.Println("argument `-F, --from' must be less than `-T, --to'")
 		os.Exit(2)
 	}
+	if options.OlderThan != nil && options.Bookmarks == nil {
+		fmt.Println("`-O, --older' flag can only be used with `-b, --bookmarks' source")
+		os.Exit(2)
+	}
+	if options.NewerThan != nil && options.Bookmarks == nil {
+		fmt.Println("`-N, --newer' flag can only be used with `-b, --bookmarks' source")
+		os.Exit(2)
+	}
+	olderThan, newerThan, err := (*time.Time)(nil), (*time.Time)(nil), error(nil)
+	if options.OlderThan != nil {
+		if olderThan, err = parseTime(*options.OlderThan); err != nil {
+			fmt.Println("argumnet `-O, --older' has incorrect format")
+			os.Exit(2)
+		}
+	}
+	if options.NewerThan != nil {
+		if newerThan, err = parseTime(*options.NewerThan); err != nil {
+			fmt.Println("argumnet `-N, --newer' has incorrect format")
+			os.Exit(2)
+		}
+	}
+	if olderThan != nil && newerThan != nil && olderThan.After(*newerThan) {
+		fmt.Println("argument `-O, --older' must represent time before `-N, --newer'")
+		os.Exit(2)
+	}
+	if options.Private != nil && options.Bookmarks == nil {
+		fmt.Println("`-R, --private' flag can only be used with `-b, --bookmarks' source")
+		os.Exit(2)
+	}
 	if options.LowMeta != nil && options.Bookmarks == nil {
 		fmt.Println("`-M, --low-meta' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
@@ -62,10 +92,6 @@ func nonInteractive() {
 	if options.LowMeta != nil && options.Kind != nil && *options.Kind == queue.ItemKindNovelString &&
 		(options.OnlyMeta == nil || !*options.OnlyMeta) {
 		fmt.Println("`-M, --low-meta' can be removed for novels without `-m, --only-meta'")
-		os.Exit(2)
-	}
-	if options.Private != nil && options.Bookmarks == nil {
-		fmt.Println("`-R, --private' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
 

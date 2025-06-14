@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func parseIds(idsString string) ([]uint64, error) {
@@ -66,4 +67,12 @@ func parseRange(rangeString string) (*uint64, *uint64, error) {
 	}
 
 	return fromOffset, toOffset, nil
+}
+
+func parseTime(timeString string) (*time.Time, error) {
+	time, err := time.Parse("2006-01-02 15:04:05", timeString)
+	if err != nil {
+		return nil, err
+	}
+	return &time, nil
 }

@@ -13,6 +13,8 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
+const BOOKMARK_PAGE_SIZE = 100
+
 // TODO: private bookmarks
 // Schedule bookmarks of authorized user for download. Run() to start downloading.
 func (d *Downloader) ScheduleMyBookmarks(
@@ -58,7 +60,7 @@ func (d *Downloader) ScheduleBookmarks(
 
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		fromOffset, toOffset := utils.FromPtr(from, 0), utils.FromPtr(to, math.MaxUint64)
-		limit := min(100, toOffset-fromOffset)
+		limit := min(BOOKMARK_PAGE_SIZE, toOffset-fromOffset)
 		total, hasOlderTime, hasNewerTime, err := d.fetchBookmarksAndScheduleWorks(
 			userId, kind, tag, fromOffset, limit, olderTime, newerTime,
 			private, size, onlyMeta, lowMeta, paths,
@@ -66,7 +68,7 @@ func (d *Downloader) ScheduleBookmarks(
 		if err != nil {
 			return err
 		}
-		fromOffset += 100
+		fromOffset += BOOKMARK_PAGE_SIZE
 		toOffset = min(toOffset, total)
 
 		if olderTime == nil && newerTime == nil {
@@ -104,7 +106,7 @@ func (d *Downloader) processBookmarksParallel(
 
 	offset, numTasks := fromOffset, 0
 	for offset < toOffset {
-		limit := min(100, toOffset-offset)
+		limit := min(BOOKMARK_PAGE_SIZE, toOffset-offset)
 		d.crawlQueue = append(d.crawlQueue, func() error {
 			_, _, _, err := d.fetchBookmarksAndScheduleWorks(
 				userId, kind, tag, offset, limit, olderTime, newerTime,
@@ -137,12 +139,11 @@ func (d *Downloader) processBookmarksSeq(
 ) error {
 	hasOlderTime, err := false, error(nil)
 	for fromOffset < toOffset && !hasOlderTime {
-		limit := min(100, toOffset-fromOffset)
-		_, hasOlderTime, _, err = d.fetchBookmarksAndScheduleWorks(
+		limit := min(BOOKMARK_PAGE_SIZE, toOffset-fromOffset)
+		if _, hasOlderTime, _, err = d.fetchBookmarksAndScheduleWorks(
 			userId, kind, tag, fromOffset, limit, olderTime, newerTime,
 			private, size, onlyMeta, lowMeta, paths,
-		)
-		if err != nil {
+		); err != nil {
 			return err
 		} else if fromOffset+limit > fromOffset {
 			fromOffset += limit
@@ -161,12 +162,11 @@ func (d *Downloader) processBookmarksSeqReverse(
 ) error {
 	hasNewerTime, err := false, error(nil)
 	for toOffset > fromOffset && !hasNewerTime {
-		limit := min(100, toOffset-fromOffset)
-		_, _, hasNewerTime, err = d.fetchBookmarksAndScheduleWorks(
+		limit := min(BOOKMARK_PAGE_SIZE, toOffset-fromOffset)
+		if _, _, hasNewerTime, err = d.fetchBookmarksAndScheduleWorks(
 			userId, kind, tag, toOffset-limit, limit, olderTime, newerTime,
 			private, size, onlyMeta, lowMeta, paths,
-		)
-		if err != nil {
+		); err != nil {
 			return err
 		} else if toOffset-limit < toOffset {
 			toOffset -= limit
