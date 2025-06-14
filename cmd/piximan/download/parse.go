@@ -18,7 +18,7 @@ func parseIds(idsString string) ([]uint64, error) {
 		}
 		id, err := strconv.ParseUint(trimmed, 10, 64)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("IDs must be a comma-separated list of numbers")
 		}
 		ids = append(ids, id)
 	}
@@ -70,9 +70,9 @@ func parseRange(rangeString string) (*uint64, *uint64, error) {
 }
 
 func parseTime(timeString string) (*time.Time, error) {
-	time, err := time.Parse("2006-01-02-15:04:05", timeString)
+	time, err := time.Parse("2006-01-02", timeString)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("time must be in format YYYY-MM-DD")
 	}
 	return &time, nil
 }

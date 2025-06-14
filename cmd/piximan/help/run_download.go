@@ -137,8 +137,10 @@ func RunDownload() {
 	fmt.Print(DOWNLOAD_HELP)
 }
 
+// TODO: change time format for the arguments (update in help, examples and interactive mode hints)
+// TODO: check if timezones are correct when using time arguments
+
 // TODO: download user's works ('my' or by id)
-// TODO: change time format for the arguments
 
 // TODO: --log, -L option to log the output to a file (-L should be reserved for language actually)
 // TODO: summary about downloaded / not downloaded works at the end of download

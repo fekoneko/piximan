@@ -17,7 +17,7 @@ func interactive() {
 
 	kind := selectKind(withQueue)
 	tag := promptTag(withBookmarks)
-	fromOffset, toOffset := promptRange(withBookmarks)
+	fromOffset, toOffset, olderThan, newerThan := selectBookmarksConstraint(withBookmarks)
 	onlyMeta := selectOnlyMeta(withQueue)
 	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
 	size := selectSize(withQueue, onlyMeta)
@@ -35,6 +35,8 @@ func interactive() {
 		Tag:         tag,
 		FromOffset:  fromOffset,
 		ToOffset:    toOffset,
+		OlderThan:   olderThan,
+		NewerThan:   newerThan,
 		Private:     private,
 		LowMeta:     lowMeta,
 		Path:        path,
@@ -108,17 +110,53 @@ func promptTag(withBookmarks bool) *string {
 	return &tag
 }
 
-func promptRange(withBookmarks bool) (*uint64, *uint64) {
+func selectBookmarksConstraint(
+	withBookmarks bool,
+) (fromOffset *uint64, toOffset *uint64, olderThan *string, newerThan *string) {
 	if !withBookmarks {
-		return nil, nil
+		return nil, nil, nil, nil
 	}
 
+	_, constraint, err := bookmarksConstraintSelect.Run()
+	logext.MaybeFatal(err, "failed to read bookmarks constraint choice")
+
+	switch constraint {
+	case withRangeOption:
+		fromOffset, toOffset := promptRange()
+		return fromOffset, toOffset, nil, nil
+
+	case withTimeOption:
+		olderThan := promptOlderThan()
+		newerThan := promptNewerThan()
+		return nil, nil, olderThan, newerThan
+
+	case noBookmarksConstraintOption:
+		return nil, nil, nil, nil
+
+	default:
+		logext.Fatal("incorrect bookmarks constraint choice: %v", constraint)
+		panic("unreachable")
+	}
+}
+
+func promptRange() (fromOffset *uint64, toOffset *uint64) {
 	rangeString, err := rangePrompt.Run()
 	logext.MaybeFatal(err, "failed to read range")
-	fromOffset, toOffset, err := parseRange(rangeString)
+	fromOffset, toOffset, err = parseRange(rangeString)
 	logext.MaybeFatal(err, "failed to parse range")
-
 	return fromOffset, toOffset
+}
+
+func promptOlderThan() *string {
+	olderThan, err := olderThanPrompt.Run()
+	logext.MaybeFatal(err, "failed to read newer time boundary")
+	return &olderThan
+}
+
+func promptNewerThan() *string {
+	newerThan, err := newerThanPrompt.Run()
+	logext.MaybeFatal(err, "failed to read older time boundary")
+	return &newerThan
 }
 
 func selectOnlyMeta(withQueue bool) bool {

@@ -29,10 +29,8 @@ var idPromptLabel = "Work IDs"
 var idPrompt = promptui.Prompt{
 	Label: idPromptLabel,
 	Validate: func(input string) error {
-		if _, err := parseIds(input); err != nil {
-			return fmt.Errorf("IDs must be a comma-separated list of numbers")
-		}
-		return nil
+		_, err := parseIds(input)
+		return err
 	},
 }
 
@@ -79,12 +77,42 @@ var tagPrompt = promptui.Prompt{
 	Label: tagPromptLabel,
 }
 
+var bookmarksConstraintSelectLabel = "Limit downloaded bookmarks"
+var withRangeOption = "By offset range"
+var withTimeOption = "By time the work was bookmarked"
+var noBookmarksConstraintOption = "Download all bookmarks"
+
+var bookmarksConstraintSelect = promptui.Select{
+	Label: bookmarksConstraintSelectLabel,
+	Items: []string{withRangeOption, withTimeOption},
+}
+
 var rangePromptLabel = "Download range (from:to, from:, :to)"
 
 var rangePrompt = promptui.Prompt{
 	Label: rangePromptLabel,
 	Validate: func(input string) error {
 		_, _, err := parseRange(input)
+		return err
+	},
+}
+
+var olderThanPromptLabel = "Bookmarked before (YYYY-MM-DD)"
+
+var olderThanPrompt = promptui.Prompt{
+	Label: olderThanPromptLabel,
+	Validate: func(input string) error {
+		_, err := parseTime(input)
+		return err
+	},
+}
+
+var newerThanPromptLabel = "Bookmarked after (YYYY-MM-DD)"
+
+var newerThanPrompt = promptui.Prompt{
+	Label: newerThanPromptLabel,
+	Validate: func(input string) error {
+		_, err := parseTime(input)
 		return err
 	},
 }
