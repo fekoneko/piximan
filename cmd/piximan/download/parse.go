@@ -70,9 +70,14 @@ func parseRange(rangeString string) (*uint64, *uint64, error) {
 }
 
 func parseTime(timeString string) (*time.Time, error) {
+	if timeString == "" {
+		return nil, nil
+	}
+
 	time, err := time.Parse("2006-01-02", timeString)
 	if err != nil {
 		return nil, fmt.Errorf("time must be in format YYYY-MM-DD")
 	}
+
 	return &time, nil
 }

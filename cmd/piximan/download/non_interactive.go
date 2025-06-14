@@ -66,13 +66,13 @@ func nonInteractive() {
 	}
 	olderThan, newerThan, err := (*time.Time)(nil), (*time.Time)(nil), error(nil)
 	if options.NewerThan != nil {
-		if newerThan, err = parseTime(*options.NewerThan); err != nil {
+		if newerThan, err = parseTime(*options.NewerThan); newerThan == nil || err != nil {
 			fmt.Println("argumnet `-N, --newer' has incorrect format")
 			os.Exit(2)
 		}
 	}
 	if options.OlderThan != nil {
-		if olderThan, err = parseTime(*options.OlderThan); err != nil {
+		if olderThan, err = parseTime(*options.OlderThan); olderThan == nil || err != nil {
 			fmt.Println("argumnet `-O, --older' has incorrect format")
 			os.Exit(2)
 		}

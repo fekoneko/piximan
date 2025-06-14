@@ -97,7 +97,7 @@ var rangePrompt = promptui.Prompt{
 	},
 }
 
-var olderThanPromptLabel = "Bookmarked before (YYYY-MM-DD)"
+var olderThanPromptLabel = "Bookmarked before (YYYY-MM-DD or empty)"
 
 var olderThanPrompt = promptui.Prompt{
 	Label: olderThanPromptLabel,
@@ -107,7 +107,7 @@ var olderThanPrompt = promptui.Prompt{
 	},
 }
 
-var newerThanPromptLabel = "Bookmarked after (YYYY-MM-DD)"
+var newerThanPromptLabel = "Bookmarked after (YYYY-MM-DD or empty)"
 
 var newerThanPrompt = promptui.Prompt{
 	Label: newerThanPromptLabel,
