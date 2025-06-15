@@ -3,7 +3,8 @@ package help
 import "fmt"
 
 const GENERAL_HELP = //
-`Viewer GUI:     > piximan                # Run the main application
+`Viewer GUI:     > piximan                # Run piximan collection viewer
+                > piximan help app       # More information
 
 Downloader CLI: > piximan download       # Run in interactive mode
                 > piximan help download  # More information

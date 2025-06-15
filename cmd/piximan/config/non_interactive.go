@@ -9,7 +9,10 @@ import (
 
 func nonInteractive() {
 	options := &options{}
-	if _, err := flags.Parse(options); err != nil {
+	if args, err := flags.Parse(options); err != nil {
+		os.Exit(1)
+	} else if len(args) > 0 {
+		fmt.Println("extra arguments provided")
 		os.Exit(2)
 	}
 

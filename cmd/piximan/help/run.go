@@ -11,6 +11,8 @@ func Run() {
 	}
 
 	switch section {
+	case "app":
+		RunApp()
 	case "config":
 		RunConfig()
 	case "download":

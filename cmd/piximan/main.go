@@ -22,14 +22,15 @@ func main() {
 	}
 
 	switch command {
-	case "":
+	case "app", "--", "":
 		app.Run()
 	case "config":
 		config.Run()
 	case "download":
 		download.Run()
-	case "help":
+	case "help", "--help", "-h":
 		help.Run()
+	case "version", "--version", "-v":
 	default:
 		help.RunGeneral()
 	}
