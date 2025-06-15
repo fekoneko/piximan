@@ -1,4 +1,4 @@
-name: Pull Request Naming Rules
+name: PR naming rules
 
 on:
   pull_request_target:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   check:
-    name: Correct PR Title Prefix
+    name: PR title prefix
     runs-on: ubuntu-latest
 
     steps:

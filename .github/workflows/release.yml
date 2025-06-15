@@ -10,25 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up Go
+        uses: actions/setup-go@v4
+
+      - name: Set up Blueprint Compiler
+        run: apt-get install -y blueprint-compiler
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Get Merged Pull Request Info
+      - name: Get merged pull request info
         uses: actions-ecosystem/action-get-merged-pull-request@v1.0.1
         id: merged-pr-info
         with:
           github_token: ${{ github.token }}
 
-      - name: Get Previous Tag
+      - name: Get previous tag
         id: previous-tag
         run: |
           tag="$(git describe --tags --abbrev=0)"
           printf '%s' "tag=$tag" >> "$GITHUB_OUTPUT"
 
-      - name: Create Tag
+      - name: Create tag
         id: create-tag
         run: |
           bump="$(printf '%s' "${{ steps.merged-pr-info.outputs.title }}" | cut -d " " -f 1)"
@@ -52,9 +58,6 @@ jobs:
           git config --local user.email "action@github.com"
           git tag -a "$version" -m "Release $version"
 
-      - name: Set Up Go
-        uses: actions/setup-go@v4
-
       - name: Build
         run: make build
 
@@ -64,7 +67,7 @@ jobs:
             zip -rj "./bin/piximan_${{ steps.create-tag.outputs.version  }}_$(basename $f).zip" "$f"; \
           done
 
-      - name: Generate Changelog
+      - name: Generate changelog
         id: generate-changelog
         run: |
           log="$(git log "${{ steps.previous-tag.outputs.tag }}..HEAD" --oneline --no-merges | \
@@ -94,10 +97,10 @@ jobs:
 
           printf '%s' $'changelog<<#EOF#\n'"$changelog"$'\n#EOF#' >> "$GITHUB_OUTPUT"
 
-      - name: Push Tag
+      - name: Push tag
         run: git push origin "${{ steps.create-tag.outputs.version }}"
 
-      - name: Create Release
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           name: '${{ steps.create-tag.outputs.version  }}'
