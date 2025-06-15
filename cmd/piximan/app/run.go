@@ -1,13 +1,32 @@
 package app
 
-import "fmt"
+import (
+	"os"
 
-const MESSAGE = //
-`GUI for this application is not yet implemented.
-- To use the available downloader CLI, run 'piximan download'
-- Run 'piximan help downloader' or 'piximan help config' to see usage
-- Follow the project on https://github.com/fekoneko/piximan to see the updates`
+	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
+	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+)
+
+const APPLICATION_ID = "com.fekoneko.piximan"
+const WINDOW_TITLE = "piximan"
 
 func Run() {
-	fmt.Println(MESSAGE)
+	app := adw.NewApplication(APPLICATION_ID, 0)
+	app.ConnectActivate(func() { activate(&app.Application) })
+
+	if code := app.Run(os.Args); code > 0 {
+		os.Exit(code)
+	}
+}
+
+func activate(app *gtk.Application) {
+	header := adw.NewHeaderBar()
+	box := gtk.NewBox(gtk.OrientationVertical, 0)
+	box.Append(header)
+
+	window := adw.NewApplicationWindow(app)
+	window.SetDefaultSize(600, 300)
+	window.SetTitle(WINDOW_TITLE)
+	window.SetContent(box)
+	window.SetVisible(true)
 }
