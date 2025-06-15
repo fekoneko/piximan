@@ -2,14 +2,16 @@
 
 Pixiv batch **downloader** and local collection **viewer**. Preserve your favorite art with ease!
 
-> [!NOTE]
-> The GUI for viewer is yet to be implemented. By now you can use CLI tool to download works.
-
 ## Installation
 
 Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 
-## Downloader Features
+## Viewer features
+
+> [!TODO]
+> If I forget to mention something here before the release, my bad
+
+## Downloader features
 
 - Download illustrations / manga / ugoira / novels
 - Download user bookmarks by ID
@@ -23,8 +25,19 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 - Authorize requests with your session ID, `piximan` will try to use it as few as possible
 - Encrypt your session ID with a master password
 - Adjust request delays and concurrency limits
+- Retry failed requests
 
-## Getting started with `piximan` CLI
+## Getting started with `piximan` viewer GUI
+
+To start the application run the command:
+
+```shell
+piximan
+```
+
+That's it, enjoy!
+
+## Getting started with `piximan` downloader CLI
 
 ### Authorization
 
@@ -82,7 +95,7 @@ piximan download \
 
 ### Downloading bookmarks
 
-> For downloading any bookmarks you need to be authorized (configuration the session ID).
+> For downloading any bookmarks you need to be authorized (configure the session ID).
 
 You can download your public artwork bookmarks like this:
 
@@ -183,7 +196,6 @@ Use `make` to run and build the project:
 ```shell
 make run                 # Run piximan GUI
 make run ARGS='download' # Run piximan CLI tool with the arguments
-make build               # Build both for all platforms
 make build               # Build for all platforms
 make build:current       # Build for current platform
 make build:$PLATFORM     # Build for $PLATFORM
