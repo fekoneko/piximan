@@ -2,7 +2,7 @@ VERSION := $(shell git describe --always --tags --dirty)
 VERSION_ARGS := -ldflags="-X main.version=${VERSION}"
 MAKEFLAGS += --no-print-directory
 
-define BUILD_CMD
+define BUILD
 	if [ -z "$${GOOS}" ]; then GOOS="$$(go env GOOS)"; fi; \
   if [ -z "$${GOARCH}" ]; then GOARCH="$$(go env GOARCH)"; fi; \
   BIN_DIR="bin/$${GOOS}_$${GOARCH}"; \
@@ -18,26 +18,25 @@ run:
 
 build\:current:
 	@echo "Building for current platform"
-	@GOOS=;        GOARCH=;      $(call BUILD_CMD)
+	@GOOS=;        GOARCH=;      $(call BUILD)
 
 build\:linux:
 	@echo "Building for Linux"
-	@GOOS=linux;   GOARCH=386;   $(call BUILD_CMD)
-	@GOOS=linux;   GOARCH=amd64; $(call BUILD_CMD)
-	@GOOS=linux;   GOARCH=arm64; $(call BUILD_CMD)
+	@GOOS=linux;   GOARCH=386;   $(call BUILD)
+	@GOOS=linux;   GOARCH=amd64; $(call BUILD)
+	@GOOS=linux;   GOARCH=arm64; $(call BUILD)
 
 build\:darwin:
 	@echo "Building for Darwin"
-	@GOOS=darwin;  GOARCH=amd64; $(call BUILD_CMD)
-	@GOOS=darwin;  GOARCH=arm64; $(call BUILD_CMD)
+	@GOOS=darwin;  GOARCH=amd64; $(call BUILD)
+	@GOOS=darwin;  GOARCH=arm64; $(call BUILD)
 
 build\:windows:
 	@echo "Building for Windows"
-	@GOOS=windows; GOARCH=386;   $(call BUILD_CMD)
-	@GOOS=windows; GOARCH=amd64; $(call BUILD_CMD)
-	@GOOS=windows; GOARCH=arm64; $(call BUILD_CMD)
+	@GOOS=windows; GOARCH=386;   $(call BUILD)
+	@GOOS=windows; GOARCH=amd64; $(call BUILD)
+	@GOOS=windows; GOARCH=arm64; $(call BUILD)
 
-build:
-	@make build:linux
-	@make build:darwin
-	@make build:windows
+# TODO: test building GTK for all platforms and architectures
+# TODO: migrate to meson to include blueprint nicely?
+build: build\:linux build\:darwin build\:windows
