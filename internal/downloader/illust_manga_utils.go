@@ -7,7 +7,6 @@ import (
 
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/fsext"
-	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/work"
 )
 
@@ -29,7 +28,7 @@ func (d *Downloader) illustMangaAssets(
 ) ([]fsext.Asset, error) {
 	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrl, size)
 	if err != nil {
-		logext.Warning("failed to infer page urls for artwork %v: %v", id, err)
+		d.logger.Warning("failed to infer page urls for artwork %v: %v", id, err)
 	} else {
 		assets, err := d.fetchAssets(id, pageUrls, withExtensions, true)
 		if err == nil {
@@ -57,7 +56,7 @@ func (d *Downloader) illustMangaAssets(
 // ! try each one later.
 func inferPages(
 	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrl *string, size image.Size,
-) ([]string, bool, error) {
+) (pageUrls []string, withExtensions bool, err error) {
 	if w.NumPages == nil {
 		err := fmt.Errorf("number of pages is missing in %v", w)
 		return nil, false, err
@@ -97,7 +96,7 @@ func inferPages(
 	urlDate := (*thumbnailUrl)[urlDateStart:urlDateEnd]
 
 	var firstPageUrl string
-	withExtensions := true
+	withExtensions = true
 	switch size {
 	case image.SizeThumbnail:
 		firstPageUrl = fmt.Sprintf(
@@ -121,7 +120,7 @@ func inferPages(
 		)
 		withExtensions = false
 	}
-	pageUrls, _ := inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
+	pageUrls, _ = inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
 	return pageUrls, withExtensions, nil
 }
 
@@ -150,23 +149,23 @@ func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]str
 	if withUnauthorized {
 		pageUrls, err := d.client.ArtworkPages(id, size)
 		if err == nil {
-			logext.Success("fetched page urls for artwork %v", id)
+			d.logger.Success("fetched page urls for artwork %v", id)
 			return pageUrls, nil
 		} else if !authorized {
-			logext.Error("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
+			d.logger.Error("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
 			return nil, err
 		} else {
-			logext.Warning("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
+			d.logger.Warning("failed to fetch page urls for artwork %v (authorization could be required): %v", id, err)
 		}
 	}
 
 	if authorized {
 		if withUnauthorized {
-			logext.Info("retrying fetching pages with authorization for artwork %v", id)
+			d.logger.Info("retrying fetching pages with authorization for artwork %v", id)
 		}
 		pageUrls, err := d.client.ArtworkPagesAuthorized(id, size)
-		logext.MaybeSuccess(err, "fetched page urls for artwork %v", id)
-		logext.MaybeError(err, "failed to fetch page urls for artwork %v", id)
+		d.logger.MaybeSuccess(err, "fetched page urls for artwork %v", id)
+		d.logger.MaybeError(err, "failed to fetch page urls for artwork %v", id)
 		if err != nil {
 			return nil, err
 		}
@@ -174,7 +173,7 @@ func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]str
 	}
 
 	err := fmt.Errorf("authorization could be required")
-	logext.Error("failed to fetch page urls for artwork %v: %v", id, err)
+	d.logger.Error("failed to fetch page urls for artwork %v: %v", id, err)
 	return nil, err
 }
 
@@ -188,9 +187,9 @@ var extensions = []string{".jpg", ".png", ".gif"}
 func (d *Downloader) fetchAssets(
 	id uint64, pageUrls []string, withExtensions bool, noLogErrors bool,
 ) ([]fsext.Asset, error) {
-	logErrorOrWarning := logext.Error
+	logErrorOrWarning := d.logger.Error
 	if noLogErrors {
-		logErrorOrWarning = logext.Warning
+		logErrorOrWarning = d.logger.Warning
 	}
 	if len(pageUrls) == 0 {
 		err := fmt.Errorf("no pages to download")
@@ -206,11 +205,11 @@ func (d *Downloader) fetchAssets(
 		for _, extension := range extensions {
 			bytes, _, err := d.client.Do(pageUrls[0]+extension, nil)
 			if err != nil {
-				logext.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
+				d.logger.Info("guessed extension %v was incorrect for artwork %v: %v", extension, id, err)
 				continue
 			}
 
-			logext.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
+			d.logger.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
 			assets := fsext.Asset{Bytes: bytes, Extension: extension, Page: 1}
 			assetChannel <- assets
 			guessedExtension = extension
@@ -235,7 +234,7 @@ func (d *Downloader) fetchAssets(
 				return
 			}
 
-			logext.Success("fetched page %v for artwork %v", i+1, id)
+			d.logger.Success("fetched page %v for artwork %v", i+1, id)
 			var extension = guessedExtension
 			if withExtensions {
 				extension = path.Ext(url)

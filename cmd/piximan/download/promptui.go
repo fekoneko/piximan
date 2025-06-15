@@ -29,10 +29,8 @@ var idPromptLabel = "Work IDs"
 var idPrompt = promptui.Prompt{
 	Label: idPromptLabel,
 	Validate: func(input string) error {
-		if _, err := parseIds(input); err != nil {
-			return fmt.Errorf("IDs must be a comma-separated list of numbers")
-		}
-		return nil
+		_, err := parseIds(input)
+		return err
 	},
 }
 

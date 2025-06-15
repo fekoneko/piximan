@@ -5,7 +5,6 @@ import (
 
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
-	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/work"
 )
 
@@ -200,7 +199,7 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 
 	if !isArtwork && !isNovel {
 		err = fmt.Errorf("invalid work type: %v", uint8(item.Kind))
-		logext.Error("failed to pick work %v for download: %v", item.Id, err)
+		d.logger.Error("failed to pick work %v for download: %v", item.Id, err)
 		return
 	}
 
@@ -225,7 +224,7 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 		w, err = d.LowArtworkMetaWithKnown(item.Id, item.Work, item.Paths)
 	default:
 		err = fmt.Errorf("impossible combination of work type, known metadata, low-meta and only-meta")
-		logext.Error("failed to pick work %v for download: %v", item.Id, err)
+		d.logger.Error("failed to pick work %v for download: %v", item.Id, err)
 	}
 
 	if err == nil {

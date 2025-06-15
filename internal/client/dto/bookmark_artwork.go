@@ -14,9 +14,11 @@ type BookmarkArtwork struct {
 	Url        *string `json:"url"`
 }
 
-func (dto *BookmarkArtwork) FromDto(downloadTime time.Time) (*work.Work, bool, *time.Time, *string) {
+func (dto *BookmarkArtwork) FromDto(
+	downloadTime time.Time,
+) (w *work.Work, unlisted bool, bookmarkedTime *time.Time, thumbnailUrl *string) {
 	kind := utils.MapPtr(dto.IllustType, work.KindFromUint)
-	work, unlisted, bookmarkedTime := dto.BookmarkWork.FromDto(kind, downloadTime)
+	w, unlisted, bookmarkedTime = dto.BookmarkWork.FromDto(kind, downloadTime)
 
-	return work, unlisted, bookmarkedTime, dto.Url
+	return w, unlisted, bookmarkedTime, dto.Url
 }

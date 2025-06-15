@@ -17,10 +17,12 @@ type Artwork struct {
 	} `json:"userIllusts"`
 }
 
-func (dto *Artwork) FromDto(downloadTime time.Time) (*work.Work, *[4]string, map[uint64]string) {
+func (dto *Artwork) FromDto(
+	downloadTime time.Time,
+) (w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string) {
 	kind := utils.MapPtr(dto.IllustType, work.KindFromUint)
 
-	thumbnailUrls := make(map[uint64]string, len(dto.UserIllusts))
+	thumbnailUrls = make(map[uint64]string, len(dto.UserIllusts))
 	for id, userIllust := range dto.UserIllusts {
 		if userIllust == nil {
 			continue

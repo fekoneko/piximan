@@ -14,7 +14,7 @@ type Novel struct {
 	TextEmbeddedImages interface{} `json:"textEmbeddedImages"` // TODO: implement
 }
 
-func (dto *Novel) FromDto(downloadTime time.Time) (*work.Work, *string, *string) {
-	work := dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
-	return work, dto.Content, dto.CoverUrl
+func (dto *Novel) FromDto(downloadTime time.Time) (w *work.Work, content *string, coverUrl *string) {
+	w = dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
+	return w, dto.Content, dto.CoverUrl
 }

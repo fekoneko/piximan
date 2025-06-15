@@ -1,20 +1,21 @@
 package downloader
 
 import (
-	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Fetch artwork metadata, map with urls to the first page and thumbnail urls
-func (d *Downloader) artworkMeta(id uint64) (*work.Work, *[4]string, map[uint64]string, error) {
-	w, firstPageUrls, thumbnailUrls, err := d.client.ArtworkMeta(id)
-	logext.MaybeSuccess(err, "fetched metadata for artwork %v", id)
-	logext.MaybeError(err, "failed to fetch metadata for artwork %v", id)
+func (d *Downloader) artworkMeta(
+	id uint64,
+) (w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, err error) {
+	w, firstPageUrls, thumbnailUrls, err = d.client.ArtworkMeta(id)
+	d.logger.MaybeSuccess(err, "fetched metadata for artwork %v", id)
+	d.logger.MaybeError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	if !w.Full() {
-		logext.Warning("metadata for artwork %v is incomplete", id)
+		d.logger.Warning("metadata for artwork %v is incomplete", id)
 	}
 	return w, firstPageUrls, thumbnailUrls, nil
 }

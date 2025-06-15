@@ -14,10 +14,12 @@ type BookmarkNovel struct {
 	Url           *string `json:"url"`
 }
 
-func (dto *BookmarkNovel) FromDto(downloadTime time.Time) (*work.Work, bool, *time.Time, *string) {
-	work, unlisted, bookmarkedTime := dto.BookmarkWork.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
-	work.NumBookmarks = dto.BookmarkCount
-	work.Original = dto.IsOriginal
+func (dto *BookmarkNovel) FromDto(
+	downloadTime time.Time,
+) (w *work.Work, unlisted bool, bookmarkedTime *time.Time, coverUrl *string) {
+	w, unlisted, bookmarkedTime = dto.BookmarkWork.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
+	w.NumBookmarks = dto.BookmarkCount
+	w.Original = dto.IsOriginal
 
-	return work, unlisted, bookmarkedTime, dto.Url
+	return w, unlisted, bookmarkedTime, dto.Url
 }

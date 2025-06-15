@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/internal/client/dto"
-	"github.com/fekoneko/piximan/internal/logext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
 func (c *Client) NovelBookmarksAuthorized(
 	userId uint64, tag *string, offset uint64, limit uint64, private bool,
-) ([]BookmarkResult, uint64, error) { // TODO: label all "tuples"
+) (results []BookmarkResult, total uint64, err error) {
 	visivility := utils.If(private, "hide", "show")
 	url := fmt.Sprintf(
 		"https://www.pixiv.net/ajax/user/%v/novels/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v",
@@ -29,11 +28,11 @@ func (c *Client) NovelBookmarksAuthorized(
 		return nil, 0, err
 	}
 
-	results := make([]BookmarkResult, 0, len(unmarshalled.Body.Works))
+	results = make([]BookmarkResult, 0, len(unmarshalled.Body.Works))
 	for _, work := range unmarshalled.Body.Works {
 		work, unlisted, bookmarkedTime, coverUrl := work.FromDto(time.Now())
 		if unlisted {
-			logext.Warning("bookmarked novel %v is unlisted", utils.FromPtr(work.Id, 0))
+			c.logger.Warning("bookmarked novel %v is unlisted", utils.FromPtr(work.Id, 0))
 			continue
 		}
 

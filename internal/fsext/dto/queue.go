@@ -21,9 +21,8 @@ func (dto *Queue) FromDto(
 	defaultSize image.Size,
 	defaultOnlyMeta bool,
 	defaultPaths []string,
-) (*queue.Queue, []error) {
-	q := make(queue.Queue, len(*dto))
-	warnings := []error{}
+) (q *queue.Queue, warnings []error) {
+	q = utils.ToPtr(make(queue.Queue, len(*dto)))
 
 	for i, itemDto := range *dto {
 		if itemDto.Id == nil {
@@ -31,7 +30,7 @@ func (dto *Queue) FromDto(
 			continue
 		}
 
-		q[i] = queue.Item{
+		(*q)[i] = queue.Item{
 			Id:       *itemDto.Id,
 			Kind:     utils.FromPtrTransform(itemDto.Kind, queue.ItemKindFromString, defaultKind),
 			Size:     utils.FromPtrTransform(itemDto.Size, image.SizeFromUint, defaultSize),
@@ -40,5 +39,5 @@ func (dto *Queue) FromDto(
 		}
 	}
 
-	return &q, warnings
+	return q, warnings
 }

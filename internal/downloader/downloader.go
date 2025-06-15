@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/fekoneko/piximan/internal/work"
 )
@@ -24,6 +24,7 @@ const CRAWL_PENDING_LIMIT = 1
 // Don't copy Downloader after creation
 type Downloader struct {
 	client  *client.Client
+	logger  *logger.Logger
 	channel chan *work.Work
 
 	downloadQueue      queue.Queue
@@ -39,15 +40,10 @@ type Downloader struct {
 	numCrawlingCond *sync.Cond
 }
 
-func New(
-	sessionId *string,
-	piximgMaxPending uint64, piximgDelay time.Duration,
-	defaultMaxPending uint64, defaultDelay time.Duration,
-) *Downloader {
-	client := client.New(sessionId, piximgMaxPending, piximgDelay, defaultMaxPending, defaultDelay)
-
+func New(client *client.Client, logger *logger.Logger) *Downloader {
 	return &Downloader{
 		client:             client,
+		logger:             logger,
 		channel:            make(chan *work.Work, CHANNEL_SIZE),
 		downloadQueue:      make(queue.Queue, 0),
 		downloadQueueMutex: &sync.Mutex{},
@@ -91,7 +87,7 @@ func (d *Downloader) String() string {
 		builder.WriteString("empty\n")
 	} else {
 		builder.WriteString(strconv.FormatInt(int64(len(d.crawlQueue)), 10))
-		builder.WriteString(utils.If(len(d.crawlQueue) == 1, " task", " tasks"))
+		builder.WriteString(utils.If(len(d.crawlQueue) == 1, " task\n", " tasks\n"))
 	}
 	d.crawlQueueMutex.Unlock()
 

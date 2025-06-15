@@ -5,12 +5,13 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
@@ -23,12 +24,13 @@ func download(options *options) {
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	path := utils.FromPtr(options.Path, "")
 
-	config, sessionId := configSession(options.Password)
-	d := downloader.New(
-		sessionId,
-		config.PximgMaxPending, config.PximgDelay,
-		config.DefaultMaxPending, config.DefaultDelay,
+	storage, sessionId := configAndSession(options.Password)
+	c := client.New(
+		sessionId, logger.DefaultLogger,
+		storage.PximgMaxPending, storage.PximgDelay,
+		storage.DefaultMaxPending, storage.DefaultDelay,
 	)
+	d := downloader.New(c, logger.DefaultLogger)
 
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
@@ -47,7 +49,7 @@ func download(options *options) {
 
 	} else if options.Bookmarks != nil {
 		userId, err := strconv.ParseUint(*options.Bookmarks, 10, 64)
-		logext.MaybeFatal(err, "cannot parse user id %v", *options.Bookmarks)
+		logger.MaybeFatal(err, "cannot parse user id %v", *options.Bookmarks)
 
 		paths := []string{path}
 		d.ScheduleBookmarks(
@@ -57,29 +59,29 @@ func download(options *options) {
 		fmt.Println()
 
 	} else if options.InferIdPath != nil {
-		result, err := fsext.InferIdsFromWorkPath(*options.InferIdPath)
-		logext.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
-		if len(*result) == 0 {
-			logext.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
+		idPathMap, err := fsext.InferIdsFromWorkPath(*options.InferIdPath)
+		logger.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
+		if len(*idPathMap) == 0 {
+			logger.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
 			return
 		}
 
 		if options.Path == nil {
-			q := queue.FromMap(result, kind, size, onlyMeta)
+			q := queue.FromMap(idPathMap, kind, size, onlyMeta)
 			d.ScheduleQueue(q)
 		} else {
 			paths := []string{path}
-			q := queue.FromMapWithPaths(result, kind, size, onlyMeta, paths)
+			q := queue.FromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
 			d.ScheduleQueue(q)
 		}
 
 	} else if options.QueuePath != nil {
 		paths := []string{path}
 		q, warnings, err := fsext.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
-		logext.MaybeWarnings(warnings, "while reading the list from %v", *options.QueuePath)
-		logext.MaybeFatal(err, "cannot read the list from %v", *options.QueuePath)
+		logger.MaybeWarnings(warnings, "while reading the list from %v", *options.QueuePath)
+		logger.MaybeFatal(err, "cannot read the list from %v", *options.QueuePath)
 		if len(*q) == 0 {
-			logext.Warning("no works found in the list %v", *options.QueuePath)
+			logger.Warning("no works found in the list %v", *options.QueuePath)
 			return
 		}
 
@@ -88,28 +90,28 @@ func download(options *options) {
 
 	fmt.Println(d)
 
-	logext.EnableRequestSlots()
-	defer logext.DisableRequestSlots()
+	logger.EnableProgress()
+	defer logger.DisableProgress()
 
-	logext.Info("download started")
+	logger.Info("download started")
 	d.Run() // TODO: confirmation by user (or -y flag)
 	d.WaitDone()
-	logext.Info("download finished")
+	logger.Info("download finished")
 }
 
-func configSession(password *string) (*config.Storage, *string) {
+func configAndSession(password *string) (storage *config.Storage, sessionId *string) {
 	storage, err := config.Open(password)
 	if err != nil && password != nil {
-		logext.Fatal("cannot open config storage: %v", err)
+		logger.Fatal("cannot open config storage: %v", err)
 		panic("unreachable")
 	} else if err != nil {
-		logext.Warning("cannot open config storage: %v", err)
+		logger.Warning("cannot open config storage: %v", err)
 		promptDefaultConfig()
 		return storage, nil
 	}
 
 	if sessionId, err := storage.SessionId(); err != nil && password != nil {
-		logext.Fatal("cannot read session id: %v", err)
+		logger.Fatal("cannot read session id: %v", err)
 		panic("unreachable")
 	} else if err != nil {
 		if newStorage, sessionId := promptPassword(); newStorage != nil {
@@ -118,28 +120,28 @@ func configSession(password *string) (*config.Storage, *string) {
 			return storage, sessionId
 		}
 	} else if sessionId == nil && password != nil {
-		logext.Fatal("no session id were configured, but password was provided")
+		logger.Fatal("no session id were configured, but password was provided")
 		panic("unreachable")
 	} else if sessionId == nil {
-		logext.Info("no session id were configured, using only anonymous requests")
+		logger.Info("no session id were configured, using only anonymous requests")
 		return storage, nil
 	} else {
 		return storage, sessionId
 	}
 }
 
-func promptPassword() (*config.Storage, *string) {
+func promptPassword() (storage *config.Storage, sessionId *string) {
 	for tries := 0; ; tries++ {
 		password, err := passwordPrompt.Run()
 		if err != nil {
-			logext.Warning("failed to read password: %v", err)
+			logger.Warning("failed to read password: %v", err)
 			promptNoAuthorization()
 			return nil, nil
 		}
 
 		storage, err := config.Open(&password)
 		if err != nil {
-			logext.Warning("cannot open config storage: %v", err)
+			logger.Warning("cannot open config storage: %v", err)
 			promptNoAuthorization()
 			return nil, nil
 		}
@@ -147,10 +149,10 @@ func promptPassword() (*config.Storage, *string) {
 		if sessionId, err := storage.SessionId(); err == nil && sessionId != nil {
 			return storage, sessionId
 		} else if err == nil {
-			logext.Info("no session id were configured, using only anonymous requests")
+			logger.Info("no session id were configured, using only anonymous requests")
 			return storage, nil
 		} else if tries == 2 {
-			logext.Warning("cannot read session id: %v", err)
+			logger.Warning("cannot read session id: %v", err)
 			promptNoAuthorization()
 			return storage, nil
 		}
@@ -159,7 +161,7 @@ func promptPassword() (*config.Storage, *string) {
 
 func promptDefaultConfig() {
 	_, option, err := deafultConfigPrompt.Run()
-	logext.MaybeFatal(err, "failed to read the choice")
+	logger.MaybeFatal(err, "failed to read the choice")
 	if err != nil || option != YesOption {
 		os.Exit(1)
 	}
@@ -167,7 +169,7 @@ func promptDefaultConfig() {
 
 func promptNoAuthorization() {
 	_, option, err := noAuthorizationPrompt.Run()
-	logext.MaybeFatal(err, "failed to read the choice")
+	logger.MaybeFatal(err, "failed to read the choice")
 	if err != nil || option != YesOption {
 		os.Exit(1)
 	}

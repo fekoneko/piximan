@@ -5,7 +5,7 @@ import (
 
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
-	"github.com/fekoneko/piximan/internal/logext"
+	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -41,48 +41,50 @@ func interactive() {
 	})
 }
 
-func selectSource() (*[]uint64, *string, *bool, *string, *string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIdPath *string, queuePath *string) {
 	_, mode, err := sourceSelect.Run()
-	logext.MaybeFatal(err, "failed to read mode")
+	logger.MaybeFatal(err, "failed to read mode")
 
 	switch mode {
 	case idOption:
 		idsString, err := idPrompt.Run()
-		logext.MaybeFatal(err, "failed to read IDs")
-		ids, err := parseIds(idsString)
-		logext.MaybeFatal(err, "failed to parse IDs")
-		return &ids, nil, nil, nil, nil
+		logger.MaybeFatal(err, "failed to read IDs")
+		parsed, err := parseIds(idsString)
+		logger.MaybeFatal(err, "failed to parse IDs")
+		ids = &parsed
 
 	case myPublicBookmarksOption:
-		return nil, utils.ToPtr("my"), utils.ToPtr(false), nil, nil
+		bookmarks = utils.ToPtr("my")
+		private = utils.ToPtr(false)
 
 	case myPrivateBookmarksOption:
-		return nil, utils.ToPtr("my"), utils.ToPtr(true), nil, nil
+		bookmarks = utils.ToPtr("my")
+		private = utils.ToPtr(true)
 
 	case userBookmarksOption:
 		userId, err := userIdPrompt.Run()
-		logext.MaybeFatal(err, "failed to read user ID")
-		return nil, utils.ToPtr(userId), nil, nil, nil
+		logger.MaybeFatal(err, "failed to read user ID")
+		bookmarks = utils.ToPtr(userId)
 
 	case inferIdOption:
-		inferIdPath, err := inferIdPathPrompt.Run()
-		logext.MaybeFatal(err, "failed to read pattern")
-		return nil, nil, nil, &inferIdPath, nil
+		result, err := inferIdPathPrompt.Run()
+		logger.MaybeFatal(err, "failed to read pattern")
+		inferIdPath = &result
 
 	case queueOption:
-		queuePath, err := queuePathPrompt.Run()
-		logext.MaybeFatal(err, "failed to read list path")
-		return nil, nil, nil, nil, &queuePath
+		result, err := queuePathPrompt.Run()
+		logger.MaybeFatal(err, "failed to read list path")
+		queuePath = &result
 
 	default:
-		logext.Fatal("incorrect download mode: %v", mode)
-		panic("unreachable")
+		logger.Fatal("incorrect download mode: %v", mode)
 	}
+	return
 }
 
 func selectKind(withQueue bool) string {
 	_, kind, err := kindSelect(withQueue).Run()
-	logext.MaybeFatal(err, "failed to read work type")
+	logger.MaybeFatal(err, "failed to read work type")
 
 	switch kind {
 	case artworkOption:
@@ -90,7 +92,7 @@ func selectKind(withQueue bool) string {
 	case novelOption:
 		return queue.ItemKindNovelString
 	default:
-		logext.Fatal("invalid worktype: %s", kind)
+		logger.Fatal("invalid worktype: %s", kind)
 		panic("unreachable")
 	}
 }
@@ -101,29 +103,28 @@ func promptTag(withBookmarks bool) *string {
 	}
 
 	tag, err := tagPrompt.Run()
-	logext.MaybeFatal(err, "failed to read tag")
+	logger.MaybeFatal(err, "failed to read tag")
 	if tag == "" {
 		return nil
 	}
 	return &tag
 }
 
-func promptRange(withBookmarks bool) (*uint64, *uint64) {
+func promptRange(withBookmarks bool) (fromOffset *uint64, toOffset *uint64) {
 	if !withBookmarks {
-		return nil, nil
+		return
 	}
 
 	rangeString, err := rangePrompt.Run()
-	logext.MaybeFatal(err, "failed to read range")
-	fromOffset, toOffset, err := parseRange(rangeString)
-	logext.MaybeFatal(err, "failed to parse range")
-
-	return fromOffset, toOffset
+	logger.MaybeFatal(err, "failed to read range")
+	fromOffset, toOffset, err = parseRange(rangeString)
+	logger.MaybeFatal(err, "failed to parse range")
+	return
 }
 
 func selectOnlyMeta(withQueue bool) bool {
 	_, option, err := onlyMetaSelect(withQueue).Run()
-	logext.MaybeFatal(err, "failed to read downloaded files choice")
+	logger.MaybeFatal(err, "failed to read downloaded files choice")
 
 	switch option {
 	case downloadAllOption:
@@ -131,7 +132,7 @@ func selectOnlyMeta(withQueue bool) bool {
 	case downloadMetaOption:
 		return true
 	default:
-		logext.Fatal("incorrect downloaded files choice: %v", option)
+		logger.Fatal("incorrect downloaded files choice: %v", option)
 		panic("unreachable")
 	}
 }
@@ -142,7 +143,7 @@ func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
 	}
 
 	_, option, err := lowMetaSelect.Run()
-	logext.MaybeFatal(err, "failed to read low metadata choice")
+	logger.MaybeFatal(err, "failed to read low metadata choice")
 
 	switch option {
 	case lowMetaOption:
@@ -150,7 +151,7 @@ func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
 	case fullMetaOption:
 		return utils.ToPtr(false)
 	default:
-		logext.Fatal("incorrect low metadata choice: %v", option)
+		logger.Fatal("incorrect low metadata choice: %v", option)
 		panic("unreachable")
 	}
 }
@@ -161,7 +162,7 @@ func selectSize(withQueue bool, onlyMeta bool) *uint {
 	}
 
 	_, size, err := sizeSelect(withQueue).Run()
-	logext.MaybeFatal(err, "failed to read size")
+	logger.MaybeFatal(err, "failed to read size")
 
 	switch size {
 	case thumbnailSizeOption:
@@ -177,7 +178,7 @@ func selectSize(withQueue bool, onlyMeta bool) *uint {
 		result := uint(image.SizeOriginal)
 		return &result
 	default:
-		logext.Fatal("incorrect size: %v", size)
+		logger.Fatal("incorrect size: %v", size)
 		panic("unreachable")
 	}
 }
@@ -185,13 +186,13 @@ func selectSize(withQueue bool, onlyMeta bool) *uint {
 func promptPath(withInferId bool, withQueue bool) *string {
 	if withInferId {
 		_, pathChoice, err := pathSelect.Run()
-		logext.MaybeFatal(err, "failed to read path choice")
+		logger.MaybeFatal(err, "failed to read path choice")
 		if pathChoice == inferredPathOption {
 			return nil
 		}
 	}
 
 	path, err := pathPrompt(withQueue).Run()
-	logext.MaybeFatal(err, "failed to read path")
+	logger.MaybeFatal(err, "failed to read path")
 	return &path
 }
