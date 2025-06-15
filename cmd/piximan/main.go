@@ -23,7 +23,7 @@ func main() {
 
 	switch command {
 	case "app", "--", "":
-		app.Run()
+		app.Run(version)
 	case "config":
 		config.Run()
 	case "download":

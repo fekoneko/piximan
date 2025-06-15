@@ -1,23 +1,32 @@
 package app
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
+	"github.com/diamondburned/gotk4/pkg/gio/v2"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
 const APPLICATION_ID = "com.fekoneko.piximan"
-const WINDOW_TITLE = "piximan"
+const RESOURCE_PREFIX = "/com/fekoneko/piximan"
 
-func Run() {
+//go:embed piximan.gresource
+var resources []byte
+
+func Run(version string) {
 	if len(os.Args) > 1 {
 		// TODO: open collection with the path provided
 		fmt.Println("providing arguments to the viewer is not yet supported")
 	}
 
-	app := adw.NewApplication(APPLICATION_ID, 0)
+	registerResources()
+
+	app := adw.NewApplication(APPLICATION_ID, gio.ApplicationFlagsNone)
+	app.SetVersion(version)
 	app.ConnectActivate(func() { activate(&app.Application) })
 
 	if code := app.Run(os.Args); code > 0 {
@@ -25,14 +34,17 @@ func Run() {
 	}
 }
 
-func activate(app *gtk.Application) {
-	header := adw.NewHeaderBar()
-	box := gtk.NewBox(gtk.OrientationVertical, 0)
-	box.Append(header)
+func registerResources() {
+	bytes := glib.NewBytes(resources)
+	resource, err := gio.NewResourceFromData(bytes)
+	if err != nil {
+		panic(err)
+	}
+	gio.ResourcesRegister(resource)
+}
 
-	window := adw.NewApplicationWindow(app)
-	window.SetDefaultSize(600, 300)
-	window.SetTitle(WINDOW_TITLE)
-	window.SetContent(box)
-	window.SetVisible(true)
+func activate(app *gtk.Application) {
+	builder := gtk.NewBuilderFromResource(RESOURCE_PREFIX + "/window.ui")
+	window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
+	app.AddWindow(&window.Window)
 }

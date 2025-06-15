@@ -130,7 +130,6 @@ func RunDownload() {
 
 // TODO: download user's works ('my' or by id)
 
-// TODO: bookmarks --newer, --older than date
 // TODO: --log, -L option to log the output to a file (-L should be reserved for language actually)
 // TODO: choose language to download work metadata in (flag and config)
 

@@ -1,0 +1,15 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.ApplicationWindow window {
+  title: "piximan";
+  default-width: 600;
+  default-height: 300;
+  visible: true;
+
+  Gtk.Box {
+    orientation: vertical;
+
+    Adw.HeaderBar header-bar {}
+  }
+}
