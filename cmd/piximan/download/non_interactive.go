@@ -75,6 +75,12 @@ func nonInteractive() {
 			os.Exit(2)
 		}
 	}
+	if options.InferIdPath != nil {
+		if err := fsext.InferIdPathValid(*options.InferIdPath); err != nil {
+			fmt.Printf("invalid argument for flag `-I, --infer-id': %v\n", err)
+			os.Exit(2)
+		}
+	}
 
 	download(options)
 }

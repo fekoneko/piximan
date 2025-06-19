@@ -42,7 +42,8 @@ var userIdPrompt = promptui.Prompt{
 var inferIdPathPromptLabel = "Path pattern"
 
 var inferIdPathPrompt = promptui.Prompt{
-	Label: inferIdPathPromptLabel,
+	Label:    inferIdPathPromptLabel,
+	Validate: fsext.InferIdPathValid,
 }
 
 var queuePathPromptLabel = "Path to YAML list"
