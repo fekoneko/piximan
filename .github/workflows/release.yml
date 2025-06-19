@@ -72,8 +72,8 @@ jobs:
         run: |
           log="$(git log "${{ steps.previous-tag.outputs.tag }}..HEAD" --oneline --no-merges | \
             sed 's/#EOF#/EOF/' | tac)"
-          feats="$(printf '%s' "$log" | sed -ne 's/.* feat://p')"
-          fixes="$(printf '%s' "$log" | sed -ne 's/.* fix://p')"
+          feats="$(printf '%s' "$log" | sed -ne 's/.* feat: //p')"
+          fixes="$(printf '%s' "$log" | sed -ne 's/.* fix: //p')"
           changelog=''
 
           prev_ifs=$IFS
