@@ -92,6 +92,12 @@ func (l *Logger) AuthorizedRequest(url string) (removeBar func(), updateBar func
 	return removeBar, updateBar
 }
 
+func (l *Logger) ExpectWorks(count int) {
+	l.mutex.Lock()
+	l.numExpectedWorks += count
+	l.mutex.Unlock()
+}
+
 func (l *Logger) AddSuccessfulWork() {
 	l.mutex.Lock()
 	l.numSuccessfulWorks++
@@ -101,6 +107,12 @@ func (l *Logger) AddSuccessfulWork() {
 func (l *Logger) AddFailedWork(id uint64) {
 	l.mutex.Lock()
 	l.failedWorkIds = append(l.failedWorkIds, id)
+	l.mutex.Unlock()
+}
+
+func (l *Logger) ExpectCrawls(count int) {
+	l.mutex.Lock()
+	l.numExpectedCrawls += count
 	l.mutex.Unlock()
 }
 
@@ -136,10 +148,10 @@ func (l *Logger) Stats() {
 	builder := strings.Builder{}
 	builder.WriteString("\ndownloader stats:\n\n")
 
-	builder.WriteString(fmt.Sprintf("- tasks crawled: %-6v\n", l.numSuccessfulCrawls))
-	builder.WriteString(fmt.Sprintf("- works downloaded: %-6v\n", l.numSuccessfulWorks))
-	builder.WriteString(fmt.Sprintf("- unauthorized requests: %-6v\n", l.numRequests-l.numAuthorizedRequests))
-	builder.WriteString(fmt.Sprintf("- authorized requests: %-6v\n\n", l.numAuthorizedRequests))
+	builder.WriteString(fmt.Sprintf("- tasks crawled: %v\n", l.numSuccessfulCrawls))
+	builder.WriteString(fmt.Sprintf("- works downloaded: %v\n", l.numSuccessfulWorks))
+	builder.WriteString(fmt.Sprintf("- unauthorized requests: %v\n", l.numRequests-l.numAuthorizedRequests))
+	builder.WriteString(fmt.Sprintf("- authorized requests: %v\n\n", l.numAuthorizedRequests))
 
 	s := fmt.Sprintf("- warnings: %v\n", l.numWarnings)
 	if l.numWarnings > 0 {
@@ -177,7 +189,7 @@ func (l *Logger) Stats() {
 		}
 		builder.WriteString(red(idsBuilder.String()))
 	}
-	builder.WriteString("\n")
+	builder.WriteByte('\n')
 
 	l.mutex.Unlock()
 	l.printWithProgress("%v", builder.String())

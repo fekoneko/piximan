@@ -63,7 +63,7 @@ func (d *Downloader) String() string {
 	if len(d.downloadQueue) == 0 {
 		builder.WriteString(" empty\n")
 	} else {
-		builder.WriteString("\n")
+		builder.WriteByte('\n')
 		builder.WriteString(d.downloadQueue.String())
 	}
 	d.downloadQueueMutex.Unlock()
@@ -72,11 +72,11 @@ func (d *Downloader) String() string {
 	if d.numDownloading > 0 {
 		builder.WriteString("tasks in progress: ")
 		builder.WriteString(strconv.FormatInt(int64(d.numDownloading), 10))
-		builder.WriteString("\n")
+		builder.WriteByte('\n')
 	}
 	d.numDownloadingCond.L.Unlock()
 
-	builder.WriteString("\n")
+	builder.WriteByte('\n')
 
 	builder.WriteString("crawl queue: ")
 	d.crawlQueueMutex.Lock()
@@ -92,7 +92,7 @@ func (d *Downloader) String() string {
 	if d.numCrawling > 0 {
 		builder.WriteString("tasks in progress: ")
 		builder.WriteString(strconv.FormatInt(int64(d.numCrawling), 10))
-		builder.WriteString("\n")
+		builder.WriteByte('\n')
 	}
 	d.numCrawlingCond.L.Unlock()
 

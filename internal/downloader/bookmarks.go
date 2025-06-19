@@ -31,6 +31,7 @@ func (d *Downloader) ScheduleMyBookmarks(
 		return nil
 	})
 	d.logger.Info("created crawl task to fetch authorizeed user id")
+	d.logger.ExpectCrawls(1)
 }
 
 // Schedule bookmarks for download. Run() to start downloading.
@@ -76,11 +77,13 @@ func (d *Downloader) ScheduleBookmarks(
 				bookmarksLogMessage("created %v bookmarks crawl %v", userId, tag, nil),
 				numTasks, utils.If(numTasks == 1, "task", "tasks"),
 			)
+			d.logger.ExpectCrawls(numTasks)
 		}
 
 		return nil
 	})
 	d.logger.Info(bookmarksLogMessage("created bookmarks crawl task", userId, tag, &fromOffset))
+	d.logger.ExpectCrawls(1)
 }
 
 // Fetch bookmarks and then schedule the works for download, returns total count of bookmarks

@@ -40,8 +40,10 @@ type Logger struct {
 	prevProgressShown     bool
 	numRequests           int
 	numAuthorizedRequests int
+	numExpectedWorks      int
 	numSuccessfulWorks    int
 	failedWorkIds         []uint64
+	numExpectedCrawls     int
 	numSuccessfulCrawls   int
 	numFailedCrawls       int
 	numWarnings           int

@@ -16,8 +16,10 @@ func MaybeError(err error, prefix string, args ...any)       { l.MaybeError(err,
 func MaybeFatal(err error, prefix string, args ...any)       { l.MaybeFatal(err, prefix, args) }
 func MaybeWarnings(errs []error, prefix string, args ...any) { l.MaybeWarnings(errs, prefix, args) }
 func MaybeErrors(errs []error, prefix string, args ...any)   { l.MaybeErrors(errs, prefix, args) }
+func ExpectWorks(count int)                                  { l.ExpectWorks(count) }
 func AddSuccessfulWork()                                     { l.AddSuccessfulWork() }
 func AddFailedWork(id uint64)                                { l.AddFailedWork(id) }
+func ExpectCrawls(count int)                                 { l.ExpectCrawls(count) }
 func AddSuccessfulCrawl()                                    { l.AddSuccessfulCrawl() }
 func AddFailedCrawl()                                        { l.AddFailedCrawl() }
 func EnableProgress()                                        { l.ShowProgress() }

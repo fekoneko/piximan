@@ -96,7 +96,7 @@ func formatDescription(description *string) *string {
 			textStart = i + 1
 			tag := strings.ToLower((*description)[tagStart:i])
 			if strings.HasPrefix(tag, "br ") || tag == "br/" || tag == "br" {
-				builder.WriteString("\n")
+				builder.WriteByte('\n')
 			}
 		}
 	}
