@@ -36,23 +36,28 @@ type Logger struct {
 	writer                *io.Writer
 	progressMap           map[int]*progress
 	slots                 []int
-	statsShown            bool
-	prevStatsShown        bool
+	progressShown         bool
+	prevProgressShown     bool
 	numRequests           int
 	numAuthorizedRequests int
+	numExpectedWorks      int
+	numSuccessfulWorks    int
+	failedWorkIds         []uint64
+	numExpectedCrawls     int
+	numSuccessfulCrawls   int
+	numFailedCrawls       int
+	numWarnings           int
+	numErrors             int
 }
 
 func New(output *os.File) *Logger {
 	writer := colorable.NewColorable(output)
 
 	return &Logger{
-		mutex:                 &sync.Mutex{},
-		writer:                &writer,
-		progressMap:           map[int]*progress{},
-		slots:                 make([]int, NUM_SLOTS),
-		statsShown:            false,
-		prevStatsShown:        false,
-		numRequests:           0,
-		numAuthorizedRequests: 0,
+		mutex:         &sync.Mutex{},
+		writer:        &writer,
+		progressMap:   map[int]*progress{},
+		slots:         make([]int, NUM_SLOTS),
+		failedWorkIds: make([]uint64, 0),
 	}
 }

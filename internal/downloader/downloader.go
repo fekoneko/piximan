@@ -47,13 +47,10 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 		channel:            make(chan *work.Work, CHANNEL_SIZE),
 		downloadQueue:      make(queue.Queue, 0),
 		downloadQueueMutex: &sync.Mutex{},
-		numDownloading:     0,
 		numDownloadingCond: sync.NewCond(&sync.Mutex{}),
-		downloading:        false,
 		downloadingMutex:   &sync.Mutex{},
 		crawlQueue:         make([]func() error, 0),
 		crawlQueueMutex:    &sync.Mutex{},
-		numCrawling:        0,
 		numCrawlingCond:    sync.NewCond(&sync.Mutex{}),
 	}
 }
@@ -66,7 +63,7 @@ func (d *Downloader) String() string {
 	if len(d.downloadQueue) == 0 {
 		builder.WriteString(" empty\n")
 	} else {
-		builder.WriteString("\n")
+		builder.WriteByte('\n')
 		builder.WriteString(d.downloadQueue.String())
 	}
 	d.downloadQueueMutex.Unlock()
@@ -75,11 +72,11 @@ func (d *Downloader) String() string {
 	if d.numDownloading > 0 {
 		builder.WriteString("tasks in progress: ")
 		builder.WriteString(strconv.FormatInt(int64(d.numDownloading), 10))
-		builder.WriteString("\n")
+		builder.WriteByte('\n')
 	}
 	d.numDownloadingCond.L.Unlock()
 
-	builder.WriteString("\n")
+	builder.WriteByte('\n')
 
 	builder.WriteString("crawl queue: ")
 	d.crawlQueueMutex.Lock()
@@ -95,7 +92,7 @@ func (d *Downloader) String() string {
 	if d.numCrawling > 0 {
 		builder.WriteString("tasks in progress: ")
 		builder.WriteString(strconv.FormatInt(int64(d.numCrawling), 10))
-		builder.WriteString("\n")
+		builder.WriteByte('\n')
 	}
 	d.numCrawlingCond.L.Unlock()
 

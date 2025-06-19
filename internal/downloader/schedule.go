@@ -24,6 +24,7 @@ func (d *Downloader) Schedule(
 			Paths:    paths,
 		})
 	}
+	d.logger.ExpectWorks(len(ids))
 }
 
 // Schedule download with additional work metadata if available. Run() to start downloading.
@@ -46,6 +47,7 @@ func (d *Downloader) ScheduleWithKnown(
 			LowMeta:  lowMeta,
 		})
 	}
+	d.logger.ExpectWorks(len(ids))
 }
 
 // Merge queue to the downloader queue. Run() to start downloading.
@@ -54,6 +56,7 @@ func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	defer d.downloadQueueMutex.Unlock()
 
 	d.downloadQueue.Push(*q...)
+	d.logger.ExpectWorks(len(*q))
 }
 
 // Run the downloader. Need to WaitNext() or WaitDone() to get the results.
@@ -158,9 +161,11 @@ func (d *Downloader) superviseCrawl() {
 		d.numCrawling++
 
 		go func() {
-			crawl()
-			// TODO: count crawl errors as well as download errors
-			// TODO: log new download queue (don't forget mutex)
+			if err := crawl(); err == nil {
+				d.logger.AddSuccessfulCrawl()
+			} else {
+				d.logger.AddFailedCrawl()
+			}
 
 			d.numCrawlingCond.L.Lock()
 			d.numCrawling--
@@ -229,5 +234,8 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 
 	if err == nil {
 		d.channel <- w
+		d.logger.AddSuccessfulWork()
+	} else {
+		d.logger.AddFailedWork(item.Id)
 	}
 }

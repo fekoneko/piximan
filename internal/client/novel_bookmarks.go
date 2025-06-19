@@ -30,16 +30,15 @@ func (c *Client) NovelBookmarksAuthorized(
 
 	results = make([]BookmarkResult, 0, len(unmarshalled.Body.Works))
 	for _, work := range unmarshalled.Body.Works {
-		work, unlisted, bookmarkedTime, coverUrl := work.FromDto(time.Now())
+		work, unlisted, coverUrl := work.FromDto(time.Now())
 		if unlisted {
 			c.logger.Warning("bookmarked novel %v is unlisted", utils.FromPtr(work.Id, 0))
 			continue
 		}
 
 		results = append(results, BookmarkResult{
-			Work:           work,
-			BookmarkedTime: bookmarkedTime,
-			ImageUrl:       coverUrl,
+			Work:     work,
+			ImageUrl: coverUrl,
 		})
 	}
 
