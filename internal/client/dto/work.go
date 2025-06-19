@@ -23,7 +23,7 @@ type Work struct {
 	BookmarkCount *uint64 `json:"bookmarkCount"`
 	LikeCount     *uint64 `json:"likeCount"`
 	CommentCount  *uint64 `json:"commentCount"`
-	UploadDate    *string `json:"uploadDate"`
+	CreateDate    *string `json:"createDate"`
 	SeriesNavData struct {
 		SeriesId *uint64 `json:"seriesId"`
 		Order    *uint64 `json:"order"`
@@ -64,7 +64,7 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 		NumBookmarks: dto.BookmarkCount,
 		NumLikes:     dto.LikeCount,
 		NumComments:  dto.CommentCount,
-		UploadTime:   utils.ParseLocalTimePtr(dto.UploadDate),
+		UploadTime:   utils.ParseLocalTimePtr(dto.CreateDate),
 		DownloadTime: utils.ToPtr(downloadTime.Local()),
 		SeriesId:     dto.SeriesNavData.SeriesId,
 		SeriesTitle:  dto.SeriesNavData.Title,
