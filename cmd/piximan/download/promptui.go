@@ -1,9 +1,7 @@
 package download
 
 import (
-	"fmt"
-	"strings"
-
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/manifoldco/promptui"
 )
@@ -44,13 +42,8 @@ var userIdPrompt = promptui.Prompt{
 var inferIdPathPromptLabel = "Path pattern"
 
 var inferIdPathPrompt = promptui.Prompt{
-	Label: inferIdPathPromptLabel,
-	Validate: func(input string) error {
-		if !strings.Contains(input, "{id}") {
-			return fmt.Errorf("pattern must contain {id}")
-		}
-		return nil
-	},
+	Label:    inferIdPathPromptLabel,
+	Validate: fsext.InferIdPathValid,
 }
 
 var queuePathPromptLabel = "Path to YAML list"
@@ -137,7 +130,8 @@ var pathPromptWithQueueLabel = "Default saving path"
 
 func pathPrompt(withQueue bool) *promptui.Prompt {
 	return &promptui.Prompt{
-		Label: utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
+		Label:    utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
+		Validate: fsext.WorkPathValid,
 	}
 }
 

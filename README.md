@@ -18,7 +18,7 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 - Download different sizes (resolutions) of the illustrations / manga
 - Interactive mode for download and configuration with `piximan` CLI
 - Store work metadata with downloaded work in _YAML_ format
-- Use substitutions in download path: `{title}` / `{id}` / `{user}` / `{userid}` / `{restrict}`
+- Use substitutions in download path: `{title}` / `{id}` / `{user}` / `{user-id}` / etc.
 - Make requests concurrently when it's possible without bothering the Pixiv servers too much
 - Authorize requests with your session ID, `piximan` will try to use it as few as possible
 - Encrypt your session ID with a master password
@@ -68,7 +68,7 @@ You're ready to go! Try out `piximan` by downloading an artwork from pixiv:
 ```shell
 piximan download \
   --id 584231 \
-  --path './artworks/{user} ({userid})/{title} ({id})'
+  --path './artworks/{user} ({user-id})/{title} ({id})'
 ```
 
 Downloading a novel is as simple:
@@ -77,7 +77,7 @@ Downloading a novel is as simple:
 piximan download \
   --id 584231 \
   --type novel \
-  --path './novels/{user} ({userid})/{title} ({id})'
+  --path './novels/{user} ({user-id})/{title} ({id})'
 ```
 
 ### Downloading bookmarks
@@ -89,7 +89,7 @@ You can download your public artwork bookmarks like this:
 ```shell
 piximan download \
   --bookmarks my \
-  --path './bookmarks/{user} ({userid})/{title} ({id})'
+  --path './bookmarks/{user} ({user-id})/{title} ({id})'
 ```
 
 You can also specify `--type novel` to download novel bookmarks and `--private` to download
@@ -100,7 +100,7 @@ piximan download \
   --bookmarks my \
   --type novel \
   --private \
-  --path './bookmarks/{user} ({userid})/{title} ({id})'
+  --path './bookmarks/{user} ({user-id})/{title} ({id})'
 ```
 
 You can also specify a user-assigned tag or download only a specified chunk. This example
@@ -112,7 +112,7 @@ piximan download \
   --tag 'お気に入り' \
   --from 100 \
   --to 200 \
-  --path './bookmarks/{user} ({userid})/{title} ({id})'
+  --path './bookmarks/{user} ({user-id})/{title} ({id})'
 ```
 
 You can also download public bookmarks of any user knowing their ID.
@@ -122,7 +122,7 @@ For example, this will download novel bookmarks of user 12345:
 piximan download \
   --bookmarks 12345 \
   --type novel \
-  --path './bookmarks/{user} ({userid})/{title} ({id})'
+  --path './bookmarks/{user} ({user-id})/{title} ({id})'
 ```
 
 ### Downloading from list
@@ -153,7 +153,7 @@ Start downloading with the command:
 ```shell
 piximan download \
   --list './list.yaml' \
-  --path './artworks/{user} ({userid})/{title} ({id})'
+  --path './artworks/{user} ({user-id})/{title} ({id})'
 ```
 
 ### Inferring work IDs
