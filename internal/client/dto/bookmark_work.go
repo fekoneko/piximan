@@ -30,13 +30,13 @@ func (dto *BookmarkWork) FromDto(
 	if idType != nil {
 		switch idType.Kind() {
 		case reflect.String:
-			if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.Id).String(), 10, 64); err == nil {
+			s := reflect.ValueOf(dto.Id).String()
+			if parsed, err := strconv.ParseUint(s, 10, 64); err == nil {
 				id = &parsed
 			}
 		case reflect.Float64:
-			parsed := reflect.ValueOf(dto.Id).Float()
-			id := utils.ToPtr(uint64(parsed))
-			work := work.Work{Id: id}
+			f := reflect.ValueOf(dto.Id).Float()
+			work := work.Work{Id: utils.ToPtr(uint64(f))}
 			return &work, true
 		}
 	}
@@ -44,7 +44,8 @@ func (dto *BookmarkWork) FromDto(
 	var userId *uint64
 	userIdType := reflect.TypeOf(dto.UserId)
 	if userIdType != nil && userIdType.Kind() == reflect.String {
-		if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.UserId).String(), 10, 64); err == nil {
+		s := reflect.ValueOf(dto.UserId).String()
+		if parsed, err := strconv.ParseUint(s, 10, 64); err == nil {
 			userId = &parsed
 		}
 	}
