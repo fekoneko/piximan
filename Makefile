@@ -31,7 +31,7 @@ define BUILD
 	mkdir -p "$${BIN_DIR}"; \
 	BIN_NAME='piximan'; \
 	if [ "$${GOOS}" = 'windows' ]; then BIN_NAME="$${BIN_NAME}.exe"; fi; \
-	env GOOS="$${GOOS}" GOARCH="$${GOARCH}" \
+	env CGO_ENABLED=1 GOOS="$${GOOS}" GOARCH="$${GOARCH}" \
 		go build -ldflags='-X main.version=${VERSION}' -v -o "$${BIN_DIR}/$${BIN_NAME}" \
 		"cmd/piximan/main.go" ${ARGS}
 endef
@@ -42,6 +42,8 @@ prepare:
 
 run: prepare
 	@go run ${LDFLAGS_ARGS} 'cmd/piximan/main.go' ${ARGS}
+
+# TODO: test building GTK for all platforms and architectures
 
 build\:current: prepare
 	@echo "Building for current platform"
@@ -64,5 +66,4 @@ build\:windows: prepare
 	@GOOS=windows; GOARCH=amd64; $(call BUILD)
 	@GOOS=windows; GOARCH=arm64; $(call BUILD)
 
-# TODO: test building GTK for all platforms and architectures
 build: build\:linux build\:darwin build\:windows
