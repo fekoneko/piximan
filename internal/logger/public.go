@@ -134,33 +134,50 @@ func (l *Logger) Stats() {
 	l.mutex.Lock()
 
 	builder := strings.Builder{}
-	builder.WriteString("\ndownloader stats:\n")
+	builder.WriteString("\ndownloader stats:\n\n")
+
+	builder.WriteString(fmt.Sprintf("- tasks crawled: %-6v\n", l.numSuccessfulCrawls))
+	builder.WriteString(fmt.Sprintf("- works downloaded: %-6v\n", l.numSuccessfulWorks))
 	builder.WriteString(fmt.Sprintf("- unauthorized requests: %-6v\n", l.numRequests-l.numAuthorizedRequests))
-	builder.WriteString(fmt.Sprintf("- authorized requests: %-6v\n", l.numAuthorizedRequests))
-	builder.WriteString(fmt.Sprintf("- total requests: %-6v\n", l.numRequests))
-	s := fmt.Sprintf("- warnings: %-6v\n", l.numWarnings)
+	builder.WriteString(fmt.Sprintf("- authorized requests: %-6v\n\n", l.numAuthorizedRequests))
+
+	s := fmt.Sprintf("- warnings: %v\n", l.numWarnings)
 	if l.numWarnings > 0 {
 		s = yellow(s)
 	}
 	builder.WriteString(s)
-	s = fmt.Sprintf("- errors: %-6v\n", l.numErrors)
+	s = fmt.Sprintf("- errors: %v\n", l.numErrors)
 	if l.numErrors > 0 {
 		s = red(s)
 	}
 	builder.WriteString(s)
-	builder.WriteString(fmt.Sprintf("- works downloaded: %-6v\n", l.numSuccessfulWorks))
-	s = fmt.Sprintf("- failed works: %-6v\n", len(l.failedWorkIds))
-	if len(l.failedWorkIds) > 0 {
-		s = red(s)
-	}
-	builder.WriteString(s)
-	// TODO: show the failed work ids
-	builder.WriteString(fmt.Sprintf("- successful crawl tasks: %-6v\n", l.numSuccessfulCrawls))
-	s = fmt.Sprintf("- failed crawl tasks: %-6v\n", l.numFailedCrawls)
+	s = fmt.Sprintf("- failed crawl tasks: %v\n", l.numFailedCrawls)
 	if l.numFailedCrawls > 0 {
 		s = red(s)
 	}
 	builder.WriteString(s)
+	s = fmt.Sprintf("- failed works: %v", len(l.failedWorkIds))
+	if l.numFailedCrawls > 0 {
+		s += " (?)"
+	}
+	if len(l.failedWorkIds) > 0 {
+		s = red(s)
+	} else if l.numFailedCrawls > 0 {
+		s = yellow(s)
+	}
+	builder.WriteString(s)
+
+	if len(l.failedWorkIds) > 0 {
+		idsBuilder := strings.Builder{}
+		for i, id := range l.failedWorkIds {
+			if i%6 == 0 {
+				idsBuilder.WriteString("\n  | ")
+			}
+			idsBuilder.WriteString(fmt.Sprintf("%-11v", id))
+		}
+		builder.WriteString(red(idsBuilder.String()))
+	}
+	builder.WriteString("\n")
 
 	l.mutex.Unlock()
 	l.printWithProgress("%v", builder.String())
