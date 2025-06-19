@@ -62,9 +62,10 @@ func (d *Downloader) ScheduleBookmarks(
 
 		for offset < toOffset {
 			limit := min(100, toOffset-offset)
+			currentOffset := offset
 			d.crawlQueue = append(d.crawlQueue, func() error {
 				_, err := d.scheduleBookmarksPage(
-					userId, kind, tag, offset, limit, private, size, onlyMeta, lowMeta, paths,
+					userId, kind, tag, currentOffset, limit, private, size, onlyMeta, lowMeta, paths,
 				)
 				return err
 			})
