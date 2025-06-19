@@ -158,9 +158,11 @@ func (d *Downloader) superviseCrawl() {
 		d.numCrawling++
 
 		go func() {
-			crawl()
-			// TODO: count crawl errors as well as download errors
-			// TODO: log new download queue (don't forget mutex)
+			if err := crawl(); err == nil {
+				d.logger.AddSuccessfulCrawl()
+			} else {
+				d.logger.AddFailedCrawl()
+			}
 
 			d.numCrawlingCond.L.Lock()
 			d.numCrawling--
@@ -229,5 +231,8 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 
 	if err == nil {
 		d.channel <- w
+		d.logger.AddSuccessfulWork()
+	} else {
+		d.logger.AddFailedWork(item.Id)
 	}
 }

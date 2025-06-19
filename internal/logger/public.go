@@ -1,7 +1,9 @@
 package logger
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fekoneko/piximan/internal/termext"
 )
@@ -19,17 +21,26 @@ func (l *Logger) Success(message string, args ...any) {
 }
 
 func (l *Logger) Warning(message string, args ...any) {
+	l.mutex.Lock()
+	l.numWarnings++
+	l.mutex.Unlock()
 	l.log(warningPrefix+message, args...)
 }
 
 func (l *Logger) Error(message string, args ...any) {
+	l.mutex.Lock()
+	l.numErrors++
+	l.mutex.Unlock()
 	l.log(errorPrefix+message, args...)
 }
 
 func (l *Logger) Fatal(message string, args ...any) {
+	l.mutex.Lock()
+	l.numErrors++
+	l.mutex.Unlock()
 	l.log(errorPrefix+message, args...)
 	termext.RestoreInputEcho()
-	l.DisableProgress()
+	l.HideProgress()
 	os.Exit(1)
 }
 
@@ -81,16 +92,76 @@ func (l *Logger) AuthorizedRequest(url string) (removeBar func(), updateBar func
 	return removeBar, updateBar
 }
 
-func (l *Logger) EnableProgress() {
+func (l *Logger) AddSuccessfulWork() {
 	l.mutex.Lock()
-	l.statsShown = true
+	l.numSuccessfulWorks++
 	l.mutex.Unlock()
-	l.refreshStats()
 }
 
-func (l *Logger) DisableProgress() {
+func (l *Logger) AddFailedWork(id uint64) {
 	l.mutex.Lock()
-	l.statsShown = false
+	l.failedWorkIds = append(l.failedWorkIds, id)
 	l.mutex.Unlock()
-	l.refreshStats()
+}
+
+func (l *Logger) AddSuccessfulCrawl() {
+	l.mutex.Lock()
+	l.numSuccessfulCrawls++
+	l.mutex.Unlock()
+}
+
+func (l *Logger) AddFailedCrawl() {
+	l.mutex.Lock()
+	l.numFailedCrawls++
+	l.mutex.Unlock()
+}
+
+func (l *Logger) ShowProgress() {
+	l.mutex.Lock()
+	l.progressShown = true
+	l.mutex.Unlock()
+	l.refreshProgress()
+}
+
+func (l *Logger) HideProgress() {
+	l.mutex.Lock()
+	l.progressShown = false
+	l.mutex.Unlock()
+	l.refreshProgress()
+}
+
+func (l *Logger) Stats() {
+	l.mutex.Lock()
+
+	builder := strings.Builder{}
+	builder.WriteString("\ndownloader stats:\n")
+	builder.WriteString(fmt.Sprintf("- unauthorized requests: %-6v\n", l.numRequests-l.numAuthorizedRequests))
+	builder.WriteString(fmt.Sprintf("- authorized requests: %-6v\n", l.numAuthorizedRequests))
+	builder.WriteString(fmt.Sprintf("- total requests: %-6v\n", l.numRequests))
+	s := fmt.Sprintf("- warnings: %-6v\n", l.numWarnings)
+	if l.numWarnings > 0 {
+		s = yellow(s)
+	}
+	builder.WriteString(s)
+	s = fmt.Sprintf("- errors: %-6v\n", l.numErrors)
+	if l.numErrors > 0 {
+		s = red(s)
+	}
+	builder.WriteString(s)
+	builder.WriteString(fmt.Sprintf("- works downloaded: %-6v\n", l.numSuccessfulWorks))
+	s = fmt.Sprintf("- failed works: %-6v\n", len(l.failedWorkIds))
+	if len(l.failedWorkIds) > 0 {
+		s = red(s)
+	}
+	builder.WriteString(s)
+	// TODO: show the failed work ids
+	builder.WriteString(fmt.Sprintf("- successful crawl tasks: %-6v\n", l.numSuccessfulCrawls))
+	s = fmt.Sprintf("- failed crawl tasks: %-6v\n", l.numFailedCrawls)
+	if l.numFailedCrawls > 0 {
+		s = red(s)
+	}
+	builder.WriteString(s)
+
+	l.mutex.Unlock()
+	l.printWithProgress("%v", builder.String())
 }

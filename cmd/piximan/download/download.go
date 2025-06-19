@@ -97,6 +97,7 @@ func download(options *options) {
 	d.Run() // TODO: confirmation by user (or -y flag)
 	d.WaitDone()
 	logger.Info("download finished")
+	logger.Stats()
 }
 
 func configAndSession(password *string) (storage *config.Storage, sessionId *string) {

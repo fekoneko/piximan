@@ -47,13 +47,10 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 		channel:            make(chan *work.Work, CHANNEL_SIZE),
 		downloadQueue:      make(queue.Queue, 0),
 		downloadQueueMutex: &sync.Mutex{},
-		numDownloading:     0,
 		numDownloadingCond: sync.NewCond(&sync.Mutex{}),
-		downloading:        false,
 		downloadingMutex:   &sync.Mutex{},
 		crawlQueue:         make([]func() error, 0),
 		crawlQueueMutex:    &sync.Mutex{},
-		numCrawling:        0,
 		numCrawlingCond:    sync.NewCond(&sync.Mutex{}),
 	}
 }

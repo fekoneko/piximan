@@ -11,7 +11,7 @@ import (
 
 func (l *Logger) log(message string, args ...any) {
 	timePrefix := subtleGray(time.Now().Format(time.DateTime)) + " "
-	l.printWithStats(timePrefix+message+"\n", args...)
+	l.printWithProgress(timePrefix+message+"\n", args...)
 }
 
 // track request internally and return handlers to update its state
@@ -29,7 +29,7 @@ func (l *Logger) registerRequest(url string, authorized bool) (removeBar func(),
 		l.mutex.Lock()
 		delete(l.progressMap, mapIndex)
 		l.mutex.Unlock()
-		l.refreshStats()
+		l.refreshProgress()
 	}
 
 	updateBar = func(current int, total int) {
@@ -37,26 +37,26 @@ func (l *Logger) registerRequest(url string, authorized bool) (removeBar func(),
 		l.progressMap[mapIndex].current = current
 		l.progressMap[mapIndex].total = total
 		l.mutex.Unlock()
-		l.refreshStats()
+		l.refreshProgress()
 	}
 
 	return removeBar, updateBar
 }
 
-func (l *Logger) printWithStats(s string, args ...any) {
+func (l *Logger) printWithProgress(s string, args ...any) {
 	builder := strings.Builder{}
 
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
-	if l.prevStatsShown {
+	if l.prevProgressShown {
 		for range NUM_SLOTS + 2 {
 			builder.WriteString("\033[2K\033[A\033[2K\r")
 		}
 	}
 
-	if !l.statsShown {
-		l.prevStatsShown = false
+	if !l.progressShown {
+		l.prevProgressShown = false
 		builder.WriteString(fmt.Sprintf(s, args...))
 		fmt.Fprint(color.Output, builder.String())
 		return
@@ -88,16 +88,16 @@ func (l *Logger) printWithStats(s string, args ...any) {
 
 	builder.WriteString(fmt.Sprintf(
 		"pending: %-6v unauthorized: %-6v authorized: %-6v total: %v\n",
-		len(l.progressMap), l.numRequests-l.numAuthorizedRequests, l.numAuthorizedRequests, l.numRequests),
-	)
+		len(l.progressMap), l.numRequests-l.numAuthorizedRequests, l.numAuthorizedRequests, l.numRequests,
+	))
 
-	l.prevStatsShown = true
+	l.prevProgressShown = true
 
 	fmt.Fprint(*l.writer, builder.String())
 }
 
-func (l *Logger) refreshStats() {
-	l.printWithStats("")
+func (l *Logger) refreshProgress() {
+	l.printWithProgress("")
 }
 
 func addSlot(builder *strings.Builder, request *progress) {
