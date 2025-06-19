@@ -30,16 +30,15 @@ func (c *Client) ArtworkBookmarksAuthorized(
 
 	results = make([]BookmarkResult, 0, len(unmarshalled.Body.Works))
 	for _, work := range unmarshalled.Body.Works {
-		work, unlisted, bookmarkedTime, thumbnailUrl := work.FromDto(time.Now())
+		work, unlisted, thumbnailUrl := work.FromDto(time.Now())
 		if unlisted {
 			c.logger.Warning("bookmarked artwork %v is unlisted", utils.FromPtr(work.Id, 0))
 			continue
 		}
 
 		results = append(results, BookmarkResult{
-			Work:           work,
-			BookmarkedTime: bookmarkedTime,
-			ImageUrl:       thumbnailUrl,
+			Work:     work,
+			ImageUrl: thumbnailUrl,
 		})
 	}
 

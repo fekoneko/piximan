@@ -2,6 +2,8 @@ package dto
 
 import (
 	"html"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,9 +25,9 @@ type Work struct {
 	BookmarkCount *uint64 `json:"bookmarkCount"`
 	LikeCount     *uint64 `json:"likeCount"`
 	CommentCount  *uint64 `json:"commentCount"`
-	UploadDate    *string `json:"uploadDate"`
+	CreateDate    *string `json:"createDate"`
 	SeriesNavData struct {
-		SeriesId *uint64 `json:"seriesId"`
+		SeriesId any     `json:"seriesId"`
 		Order    *uint64 `json:"order"`
 		Title    *string `json:"title"`
 	} `json:"seriesNavData"`
@@ -49,6 +51,20 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 		}
 	}
 
+	var seriesId *uint64
+	seriesIdType := reflect.TypeOf(dto.SeriesNavData.SeriesId)
+	if seriesIdType != nil {
+		switch seriesIdType.Kind() {
+		case reflect.String:
+			if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.Id).String(), 10, 64); err == nil {
+				seriesId = &parsed
+			}
+		case reflect.Float64:
+			parsed := reflect.ValueOf(dto.Id).Float()
+			seriesId = utils.ToPtr(uint64(parsed))
+		}
+	}
+
 	return &work.Work{
 		Id:           utils.ParseUint64Ptr(dto.Id),
 		Title:        dto.Title,
@@ -64,9 +80,9 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 		NumBookmarks: dto.BookmarkCount,
 		NumLikes:     dto.LikeCount,
 		NumComments:  dto.CommentCount,
-		UploadTime:   utils.ParseLocalTimePtr(dto.UploadDate),
+		UploadTime:   utils.ParseLocalTimePtr(dto.CreateDate),
 		DownloadTime: utils.ToPtr(downloadTime.Local()),
-		SeriesId:     dto.SeriesNavData.SeriesId,
+		SeriesId:     seriesId,
 		SeriesTitle:  dto.SeriesNavData.Title,
 		SeriesOrder:  dto.SeriesNavData.Order,
 		Tags:         tags,
@@ -96,7 +112,7 @@ func formatDescription(description *string) *string {
 			textStart = i + 1
 			tag := strings.ToLower((*description)[tagStart:i])
 			if strings.HasPrefix(tag, "br ") || tag == "br/" || tag == "br" {
-				builder.WriteString("\n")
+				builder.WriteByte('\n')
 			}
 		}
 	}

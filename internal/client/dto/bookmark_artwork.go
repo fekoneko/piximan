@@ -16,9 +16,9 @@ type BookmarkArtwork struct {
 
 func (dto *BookmarkArtwork) FromDto(
 	downloadTime time.Time,
-) (w *work.Work, unlisted bool, bookmarkedTime *time.Time, thumbnailUrl *string) {
+) (w *work.Work, unlisted bool, thumbnailUrl *string) {
 	kind := utils.MapPtr(dto.IllustType, work.KindFromUint)
-	w, unlisted, bookmarkedTime = dto.BookmarkWork.FromDto(kind, downloadTime)
+	w, unlisted = dto.BookmarkWork.FromDto(kind, downloadTime)
 
-	return w, unlisted, bookmarkedTime, dto.Url
+	return w, unlisted, dto.Url
 }
