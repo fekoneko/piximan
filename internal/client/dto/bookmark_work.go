@@ -24,18 +24,19 @@ type BookmarkWork struct {
 
 func (dto *BookmarkWork) FromDto(
 	kind *work.Kind, downloadTime time.Time,
-) (*work.Work, bool, *time.Time) {
+) (w *work.Work, unlisted bool) {
 	var id *uint64
 	idTypeKind := reflect.TypeOf(dto.Id).Kind()
-	if idTypeKind == reflect.String {
+	switch idTypeKind {
+	case reflect.String:
 		if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.Id).String(), 10, 64); err == nil {
 			id = &parsed
 		}
-	} else if idTypeKind == reflect.Float64 {
+	case reflect.Float64:
 		parsed := reflect.ValueOf(dto.Id).Float()
 		id := utils.ToPtr(uint64(parsed))
 		work := work.Work{Id: id}
-		return &work, true, nil
+		return &work, true
 	}
 
 	var userId *uint64
@@ -45,8 +46,6 @@ func (dto *BookmarkWork) FromDto(
 			userId = &parsed
 		}
 	}
-
-	bookmarkedTime := utils.ParseLocalTimePtr(dto.CreateDate)
 
 	work := &work.Work{
 		Id:           id,
@@ -58,9 +57,10 @@ func (dto *BookmarkWork) FromDto(
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
 		AiKind:       utils.MapPtr(dto.XRestrict, work.AiKindFromUint),
 		NumPages:     dto.PageCount,
+		UploadTime:   utils.ParseLocalTimePtr(dto.CreateDate),
 		DownloadTime: utils.ToPtr(downloadTime.Local()),
 		Tags:         dto.Tags,
 	}
 
-	return work, false, bookmarkedTime
+	return work, false
 }
