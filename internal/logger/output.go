@@ -138,8 +138,8 @@ func (l *Logger) addStats(builder *strings.Builder) {
 }
 
 func barString(current int, total int, length int) string {
-	fraction := float64(0)
-	if total > 0 && current > 0 {
+	fraction := float64(1)
+	if total > 0 {
 		fraction = float64(current) / float64(total)
 	}
 	percent := int(math.Round(fraction * 100))
