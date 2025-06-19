@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/jessevdk/go-flags"
 )
@@ -67,6 +68,12 @@ func nonInteractive() {
 	if options.Private != nil && options.Bookmarks == nil {
 		fmt.Println("`-R, --private' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
+	}
+	if options.Path != nil {
+		if err := fsext.WorkPathValid(*options.Path); err != nil {
+			fmt.Printf("invalid argument for flag `-p, --path': %v\n", err)
+			os.Exit(2)
+		}
 	}
 
 	download(options)

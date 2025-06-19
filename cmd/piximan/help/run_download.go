@@ -136,8 +136,6 @@ func RunDownload() {
 // TODO: choose language to download work metadata in (flag and config)
 
 // TODO: piximan sort - sort based on metadata
-// TODO: warn if {substitution} is invalid
-// TODO: replace unused patterns like {title} in --infer-id with *
 
 // TODO: test if session ID is valid after configuring by sending a request
 // TODO: check if session ID is set in interractive download mode and prompt user if they want to set it
