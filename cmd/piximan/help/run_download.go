@@ -129,15 +129,15 @@ func RunDownload() {
 }
 
 // TODO: download user's works ('my' or by id)
+// TODO: --save-list option to only save crawl results as a yaml list
 
 // TODO: bookmarks --newer, --older than date
 // TODO: --log, -L option to log the output to a file (-L should be reserved for language actually)
 // TODO: choose language to download work metadata in (flag and config)
 
-// TODO: piximan dedupe --newer --path './* ({userid})/* ({id})' + interactive mode
-//       utility for merging authors and / or works with duplicate IDs
-// TODO: --dedupe option for piximan download as well
-// TODO: replace unused patterns like {title} in --infer-id with *, do the same with piximan dedupe
+// TODO: piximan sort - sort based on metadata
+// TODO: warn if {substitution} is invalid
+// TODO: replace unused patterns like {title} in --infer-id with *
 
 // TODO: test if session ID is valid after configuring by sending a request
 // TODO: check if session ID is set in interractive download mode and prompt user if they want to set it
