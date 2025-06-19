@@ -74,7 +74,7 @@ var workPathSubstitutions = map[string]func(w *work.Work) string{
 	"{user}": func(w *work.Work) string {
 		return utils.FromPtr(w.UserName, "Unknown")
 	},
-	"{userid}": func(w *work.Work) string {
+	"{user-id}": func(w *work.Work) string {
 		return utils.FromPtrTransform(w.UserId, utils.FormatUint64, "Unknown")
 	},
 	"{type}": func(w *work.Work) string {
@@ -126,7 +126,7 @@ var workPathSubstitutions = map[string]func(w *work.Work) string{
 	"{series}": func(w *work.Work) string {
 		return utils.FromPtr(w.SeriesTitle, "Unknown")
 	},
-	"{seriesid}": func(w *work.Work) string {
+	"{series-id}": func(w *work.Work) string {
 		return utils.FromPtrTransform(w.SeriesId, utils.FormatUint64, "Unknown")
 	},
 }

@@ -5,10 +5,10 @@ import "fmt"
 const DOWNLOAD_HELP = //
 `Run without arguments to enter interactive mode.
 
-> piximan download [--id        ...] [--type ...] [--tag  ...] [--path     ...]
-                      [--bookmarks ...] [--size ...] [--from ...] [--password ...]
-                      [--list      ...] [--only-meta] [--to   ...]
-                      [--infer-id   ...]              [--low-meta ]
+> piximan download [--id        ...] [--type  ...] [--tag   ...] [--path     ...]
+                   [--bookmarks ...] [--size  ...] [--from  ...] [--password ...]
+                   [--list      ...] [--only-meta] [--to    ...]
+                   [--infer-id  ...]               [--low-meta ]
 
                               Download sources
                               ----------------
@@ -24,19 +24,20 @@ const DOWNLOAD_HELP = //
 
 --list       Path to a file with information about which works to download.
  -l          The file must contain a list in YAML format, for example:
-             - id: 12345                  # required
-               type: artwork              # defaults to the --type argument
-               size: 1                    # defaults to the --size argument
+             - id: 12345                   # required
+               type: artwork               # defaults to the --type argument
+               size: 1                     # defaults to the --size argument
                only-meta: true             # defaults to the --only-meta argument
-               paths: ['./{userid}/{id}'] # defaults to the --path argument
+               paths: ['./{user-id}/{id}'] # defaults to the --path argument
              - id: 23456
                type: novel
 
---infer-id    Infer the IDs of works from the given path. Useful for updating
+--infer-id   Infer the IDs of works from the given path. Useful for updating
  -I          the metadata in existing collection when coupled with -only-meta flag.
              The path may contain the following patterns:
              - {id}         : the ID of the work - required.
              - *            : matches any sequence of non-separator characters.
+             - {<anything>} : will be treated as *.
 
                               Download options
                               ----------------
@@ -50,7 +51,7 @@ const DOWNLOAD_HELP = //
              - 0 thumbnail  - 2 medium
              - 1 small      - 3 original
 
---only-meta   Only download the metadata.yaml file for the work. Useful for
+--only-meta  Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.
 
                          Bookmarks-specific options
@@ -68,7 +69,7 @@ const DOWNLOAD_HELP = //
  -R          of the authorized user so you probably want to use it with --bookmarks my.
              If not provided, public bookmarks will be downloaded instead.
 
---low-meta    Specify to skip fetching the full metadata for each work. This will
+--low-meta   Specify to skip fetching the full metadata for each work. This will
  -M          significantly reduce the number of pixiv.net API calls.
              These options will be missing in the metadata.yaml files:
              - original, views , bookmarks, likes, comments, uploaded,
@@ -81,16 +82,16 @@ const DOWNLOAD_HELP = //
 --path       Directory to save the files into. Defaults to the current directory
  -p          or the one found with -infer-id flag.
              You can use these substitutions in the pathname:
-             - {title}      : the title of the work
-             - {id}         : the ID of the work
-             - {user}       : the username of the work author
-             - {userid}     : the ID of the work author
-             - {type}       : the type of the work (Illustrations, Manga, Ugoira, Novels)
-             - {restrict}   : age restriction of the work (All Ages, R-18, R-18G)
-             - {ai}         : whether the work is worth your attention (Human, AI)
-             - {original}   : whether the work is original (Original, Not Original)
-             - {series}     : the title of the series the work belongs to
-             - {seriesid}   : the ID of the series the work belongs to
+             - {title}       : the title of the work
+             - {id}          : the ID of the work
+             - {user}        : the username of the work author
+             - {user-id}     : the ID of the work author
+             - {type}        : the type of the work (Illustrations, Manga, Ugoira, Novels)
+             - {restriction} : age restriction of the work (All Ages, R-18, R-18G)
+             - {ai}          : the humanity is doomed (Human, AI)
+             - {original}    : whether the work is original (Original, Not Original)
+             - {series}      : the title of the series the work belongs to
+             - {series-id}   : the ID of the series the work belongs to
              Be aware that any Windows / NTFS reserved names will be automaticaly
              padded with underscores, reserved characters - replaced and any dots
              or spaces in front or end of the filenames will be trimmed.
@@ -103,10 +104,10 @@ const DOWNLOAD_HELP = //
                                   Examples
                                   --------
 # Download artwork with ID 10000 to your possible collection directory
-> piximan download --id 10000 --path "$HOME/My Collection/{userid}/{id}"
+> piximan download --id 10000 --path "$HOME/My Collection/{user-id}/{id}"
 
 # Download novels with ID 10000 and 20000
-> piximan download --id 10000 --id 20000 --type novel --path "./{userid}/{id}"
+> piximan download --id 10000 --id 20000 --type novel --path "./{user-id}/{id}"
 
 # Download 101th to 200th of your latest public artwork bookmarks with full metadata
 > piximan download --bookmarks my --from 100 --to 200 --path "./{id}"
@@ -118,7 +119,7 @@ const DOWNLOAD_HELP = //
 > piximan download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
 
 # Download works from list.yaml to the current directory with fallback path
-> piximan download --list "./list.yaml" --path "./{userid}/{id}"
+> piximan download --list "./list.yaml" --path "./{user-id}/{id}"
 
 # Update metadata in the collection saved earlier
 > piximan download --infer-id --only-meta "$HOME/My Collection/*/{id}"
