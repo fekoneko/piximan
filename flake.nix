@@ -3,11 +3,9 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    build-go-cache.url = "github:numtide/build-go-cache";
-    build-go-cache.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, build-go-cache }:
+  outputs = { self, nixpkgs }:
     let
       src = self;
       vendorHash = "sha256-2aoU7xoumrq+0rQ0aIHoVLTWpJka8Q3XWuELkKAO4fc=";
@@ -22,37 +20,48 @@
 
       forAllSystems = f: nixpkgs.lib.genAttrs allSystems (system: f {
         pkgs = import nixpkgs { inherit system; };
-        build-go-cache = build-go-cache.legacyPackages.${system};
       });
     in
     {
-      packages = forAllSystems ({ pkgs, build-go-cache }:
+      packages = forAllSystems ({ pkgs }:
         let
-          goCache = build-go-cache.buildGoCache {
-            inherit src vendorHash proxyVendor;
-            importPackagesFile = ./imported-packages;
+          version = ''git describe --always --tags --dirty'';
+
+          resources = pkgs.stdenv.mkDerivation {
+            inherit src;
+            name = "piximan-resources";
+
+            # TODO: use native system package
+            nativeBuildInputs = with pkgs; [
+              blueprint-compiler
+            ];
+
+            buildPhase = ''bash ./compile-resources.sh'';
+            installPhase = ''
+              mkdir -p $out/cmd/piximan/app
+              cp ./cmd/piximan/app/piximan.gresource $out/
+            '';
           };
         in
         {
           default = pkgs.buildGoModule {
-            inherit src vendorHash proxyVendor;
+            inherit src vendorHash;
             name = "piximan";
-            # TODO: version
-            goSum = ./go.sum;
-            subPackages = [ "cmd/piximan" ];
 
             buildInputs = with pkgs; [
-              goCache
               gtk4
               gobject-introspection
               libadwaita
-            ];
-            nativeBuildInputs = with pkgs; [
-              pkg-config
-              blueprint-compiler
+              resources
             ];
 
-            preBuild = ''bash ./compile-resources.sh'';
+            # TODO: use native system package
+            nativeBuildInputs = with pkgs; [
+              pkg-config
+            ];
+
+            ldflags = [ "-X main.version=${version}" ];
+            preBuild = ''cp ${resources}/piximan.gresource ./cmd/piximan/app/'';
           };
         }
       );
