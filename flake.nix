@@ -2,11 +2,17 @@
   description = "piximan";
 
   inputs = {
-    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    build-go-cache.url = "github:numtide/build-go-cache";
+    build-go-cache.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, build-go-cache }:
     let
+      src = self;
+      vendorHash = "sha256-2aoU7xoumrq+0rQ0aIHoVLTWpJka8Q3XWuELkKAO4fc=";
+      proxyVendor = true;
+
       allSystems = [
         "x86_64-linux" # 64-bit Intel/AMD Linux
         "aarch64-linux" # 64-bit ARM Linux
@@ -16,50 +22,39 @@
 
       forAllSystems = f: nixpkgs.lib.genAttrs allSystems (system: f {
         pkgs = import nixpkgs { inherit system; };
+        buildGoCache = import build-go-cache { inherit system; };
       });
     in
     {
-      packages = forAllSystems ({ pkgs }: {
-        default = pkgs.buildGoModule {
-          name = "piximan";
-          src = self;
-          goSum = ./go.sum;
-          subPackages = [ "cmd/piximan" ];
-          vendorHash = "sha256-2aoU7xoumrq+0rQ0aIHoVLTWpJka8Q3XWuELkKAO4fc=";
+      packages = forAllSystems ({ pkgs, buildGoCache }:
+        let
+          goCache = buildGoCache {
+            inherit src vendorHash proxyVendor;
+            importPackagesFile = ./external-packages.txt;
+          };
+        in
+        {
+          default = pkgs.buildGoModule {
+            inherit src vendorHash proxyVendor;
+            name = "piximan";
+            # TODO: version
+            goSum = ./go.sum;
+            subPackages = [ "cmd/piximan" ];
 
-          buildInputs = with pkgs; [
-            gtk4
-            gobject-introspection
-            libadwaita
-          ];
-          nativeBuildInputs = with pkgs; [
-            pkg-config
-            blueprint-compiler
-          ];
+            buildInputs = with pkgs; [
+              goCache
+              gtk4
+              gobject-introspection
+              libadwaita
+            ];
+            nativeBuildInputs = with pkgs; [
+              pkg-config
+              blueprint-compiler
+            ];
 
-          # Compile the resources
-          preBuild = ''
-            resources_path='resources'
-            gresource_xml_path="$resources_path/piximan.gresource.xml"
-            gresource_path="cmd/piximan/app/piximan.gresource"
-            mkdir -p "$resources_path"
-
-            printf '<?xml version="1.0" encoding="UTF-8"?>\n<gresources>\n  <gresource prefix="/com/fekoneko/piximan">\n' \
-              > "$gresource_xml_path"
-            for input_path in blueprints/*.blp; do
-              output_name="$(basename "$input_path" .blp).ui"
-              echo "Compiling $input_path to $resources_path/$output_name"
-              printf '    <file preprocess="xml-stripblanks">%s</file>\n' "$output_name" >> "$gresource_xml_path"
-              blueprint-compiler compile --output "$resources_path/$output_name" "$input_path"
-            done
-            printf '  </gresource>\n</gresources>\n' >> "$gresource_xml_path"
-
-            glib-compile-resources \
-              --sourcedir="$resources_path" \
-              --target="$gresource_path" \
-              "$gresource_xml_path"
-          '';
-        };
-      });
+            preBuild = ./compile-resources.sh;
+          };
+        }
+      );
     };
 }

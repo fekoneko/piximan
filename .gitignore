@@ -2,3 +2,4 @@
 bin/
 resources/
 cmd/piximan/app/piximan.gresource
+external-packages.txt
