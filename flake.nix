@@ -43,7 +43,7 @@
           ];
 
           # TODO: ldflags = [ "-X main.version=${version}" ];
-          preBuild = "echo ${self.rev}; bash ./compile-resources.sh";
+          preBuild = "bash ./compile-resources.sh";
         };
       }
     );
