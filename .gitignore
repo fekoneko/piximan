@@ -1,3 +1,4 @@
 .vscode/
 bin/
 resources/
+cmd/piximan/app/piximan.gresource
