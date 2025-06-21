@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-external_packages_path="external-packages.txt"
+external_imports_path="external-imports"
 module_name=$(awk '/^module / {print $2; exit}' go.mod)
 
 go list -f '{{ join .Imports "\n" }}{{ if .TestImports}}
@@ -10,4 +10,6 @@ go list -f '{{ join .Imports "\n" }}{{ if .TestImports}}
   | LC_ALL=C sort -u \
   | grep -v "$module_name" \
   | grep -Ev '^C$' \
-  > "$external_packages_path"
+  > "$external_imports_path"
+
+echo "$external_imports_path"

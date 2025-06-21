@@ -1,4 +1,5 @@
-# TODO: rewrite this thing to be more ideomatic to Makefile
+# TODO: remove this file after migrating to Nix
+# TODO: change CI to use Nix
 
 VERSION := $(shell git describe --always --tags --dirty)
 MAKEFLAGS += --no-print-directory

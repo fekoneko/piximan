@@ -11,7 +11,7 @@
     let
       src = self;
       vendorHash = "sha256-2aoU7xoumrq+0rQ0aIHoVLTWpJka8Q3XWuELkKAO4fc=";
-      proxyVendor = true;
+      proxyVendor = false;
 
       allSystems = [
         "x86_64-linux" # 64-bit Intel/AMD Linux
@@ -22,15 +22,15 @@
 
       forAllSystems = f: nixpkgs.lib.genAttrs allSystems (system: f {
         pkgs = import nixpkgs { inherit system; };
-        buildGoCache = import build-go-cache { inherit system; };
+        build-go-cache = build-go-cache.legacyPackages.${system};
       });
     in
     {
-      packages = forAllSystems ({ pkgs, buildGoCache }:
+      packages = forAllSystems ({ pkgs, build-go-cache }:
         let
-          goCache = buildGoCache {
+          goCache = build-go-cache.buildGoCache {
             inherit src vendorHash proxyVendor;
-            importPackagesFile = ./external-packages.txt;
+            importPackagesFile = ./external-imports;
           };
         in
         {
@@ -52,7 +52,7 @@
               blueprint-compiler
             ];
 
-            preBuild = ./compile-resources.sh;
+            preBuild = ''bash ./compile-resources.sh'';
           };
         }
       );
