@@ -30,7 +30,7 @@
         let
           goCache = build-go-cache.buildGoCache {
             inherit src vendorHash proxyVendor;
-            importPackagesFile = ./external-imports;
+            importPackagesFile = ./imported-packages;
           };
         in
         {
