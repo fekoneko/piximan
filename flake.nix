@@ -23,47 +23,29 @@
       });
     in
     {
-      packages = forAllSystems ({ pkgs }:
-        let
-          version = ''git describe --always --tags --dirty'';
+      packages = forAllSystems ({ pkgs }: {
+        default = pkgs.buildGoModule {
+          inherit src vendorHash;
+          name = "piximan";
 
-          resources = pkgs.stdenv.mkDerivation {
-            inherit src;
-            name = "piximan-resources";
+          buildInputs = with pkgs; [
+            gtk4
+            gobject-introspection
+            libadwaita
+            resources
+          ];
 
-            # TODO: use native system package
-            nativeBuildInputs = with pkgs; [
-              blueprint-compiler
-            ];
+          # TODO: use native system package
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            libxml2
+            blueprint-compiler
+          ];
 
-            buildPhase = ''bash ./compile-resources.sh'';
-            installPhase = ''
-              mkdir -p $out/cmd/piximan/app
-              cp ./cmd/piximan/app/piximan.gresource $out/
-            '';
-          };
-        in
-        {
-          default = pkgs.buildGoModule {
-            inherit src vendorHash;
-            name = "piximan";
-
-            buildInputs = with pkgs; [
-              gtk4
-              gobject-introspection
-              libadwaita
-              resources
-            ];
-
-            # TODO: use native system package
-            nativeBuildInputs = with pkgs; [
-              pkg-config
-            ];
-
-            ldflags = [ "-X main.version=${version}" ];
-            preBuild = ''cp ${resources}/piximan.gresource ./cmd/piximan/app/'';
-          };
-        }
-      );
-    };
+          # TODO: ldflags = [ "-X main.version=${version}" ];
+          preBuild = "echo ${self.rev}; bash ./compile-resources.sh";
+        };
+      }
+    );
+  };
 }
