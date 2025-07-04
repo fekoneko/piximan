@@ -191,14 +191,13 @@ piximan help config
 
 ## Development
 
-Use `make` to run and build the project:
+Use these Bash scripts to run and build the project:
 
 ```shell
-make run                 # Run piximan GUI
-make run ARGS='download' # Run piximan CLI tool with the arguments
-make build               # Build for all platforms
-make build:current       # Build for current platform
-make build:$PLATFORM     # Build for $PLATFORM
+./run.sh                    # Run piximan
+./run.sh download -i 10000  # Run piximan with the args
+./build.sh                  # Build for the current platform
+./build.sh $os $arch        # Build for specified OS and architecture
 ```
 
 ## Related projects
