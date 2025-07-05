@@ -3,10 +3,10 @@ package downloader
 import (
 	"fmt"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Download only artwork metadata and store it in paths. Blocks until done.

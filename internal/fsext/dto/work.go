@@ -1,8 +1,8 @@
 package dto
 
 import (
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/utils"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 const VERSION = uint64(1)

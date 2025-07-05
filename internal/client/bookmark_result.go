@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/fekoneko/piximan/internal/work"
+	"github.com/fekoneko/piximan/internal/collection/work"
 )
 
 type BookmarkResult struct {

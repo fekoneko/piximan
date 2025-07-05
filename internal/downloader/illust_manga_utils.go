@@ -5,9 +5,9 @@ import (
 	"path"
 	"strings"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/fsext"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 func urlFromMap(id uint64, urls map[uint64]string) *string {

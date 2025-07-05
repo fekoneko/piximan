@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/internal/client/dto"
-	"github.com/fekoneko/piximan/internal/work"
+	"github.com/fekoneko/piximan/internal/collection/work"
 )
 
 func (c *Client) ArtworkMeta(
