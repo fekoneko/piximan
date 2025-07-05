@@ -18,13 +18,17 @@ func (c *Collection) Parse() {
 		collectionPath := c.Path()
 		cancelled := false
 
-		fsext.FindWorkPaths(collectionPath, func(path *string, err error) (proceed bool) {
+		fsext.WalkWorks(collectionPath, func(path *string, err error) (proceed bool) {
 			if signal.Cancelled() {
 				cancelled = true
 				return false
+			} else if err != nil || path == nil {
+				c.logger.Error("error while parsing collection at %v: %v", collectionPath, err)
+			} else if w, err := fsext.ReadWork(*path); err == nil {
+				c.channel <- w
+			} else {
+				c.logger.Error("error while parsing work at %v: %v", *path, err)
 			}
-			c.logger.MaybeFatal(err, "error while parsing collection at %v", collectionPath)
-			// TODO: parse
 			return true
 		})
 
@@ -36,7 +40,7 @@ func (c *Collection) Parse() {
 	}()
 }
 
-// Block until next work is parsed. Returns nil if there are no more works to parse or parsing is
+// Block until next work is parsed. Returns nil if there are no more works to parse or parsing was
 // cancelled. Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (c *Collection) WaitNext() *work.Work {
 	return <-c.channel

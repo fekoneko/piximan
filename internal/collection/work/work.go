@@ -25,7 +25,7 @@ type Work struct {
 	Tags         *[]string
 }
 
-// Check if all fields are filled. The function doesn't report if series data or ai kind is missing
+// Check if all fields are filled. The function doesn't report missing ai kind or series data.
 func (w *Work) Full() bool {
 	return w.Id != nil &&
 		w.Title != nil &&

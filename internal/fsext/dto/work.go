@@ -31,7 +31,7 @@ type Work struct {
 	Tags        *[]string `yaml:"tags,omitempty"`
 }
 
-func ToDto(w *work.Work) *Work {
+func WorkToDto(w *work.Work) *Work {
 	return &Work{
 		Version:     utils.ToPtr(VERSION),
 		Id:          w.Id,
@@ -54,5 +54,30 @@ func ToDto(w *work.Work) *Work {
 		SeriesTitle: w.SeriesTitle,
 		SeriesOrder: w.SeriesOrder,
 		Tags:        w.Tags,
+	}
+}
+
+func (dto *Work) FromDto() *work.Work {
+	return &work.Work{
+		Id:           dto.Id,
+		Title:        dto.Title,
+		Kind:         utils.MapPtr(dto.Kind, work.KindFromString),
+		Description:  dto.Description,
+		UserId:       dto.UserId,
+		UserName:     dto.UserName,
+		Restriction:  utils.MapPtr(dto.Restriction, work.RestrictionFromString),
+		Ai:           dto.Ai,
+		Original:     dto.Original,
+		NumPages:     dto.Pages,
+		NumViews:     dto.Views,
+		NumBookmarks: dto.Bookmarks,
+		NumLikes:     dto.Likes,
+		NumComments:  dto.Comments,
+		UploadTime:   utils.ParseLocalTimePtr(dto.Uploaded),
+		DownloadTime: utils.ParseLocalTimePtr(dto.Downloaded),
+		SeriesId:     dto.SeriesId,
+		SeriesTitle:  dto.SeriesTitle,
+		SeriesOrder:  dto.SeriesOrder,
+		Tags:         dto.Tags,
 	}
 }

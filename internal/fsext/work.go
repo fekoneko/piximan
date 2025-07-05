@@ -19,7 +19,7 @@ type Asset struct {
 }
 
 func WriteWork(work *work.Work, assets []Asset, paths []string) error {
-	dto := dto.ToDto(work)
+	dto := dto.WorkToDto(work)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {
 		return err
@@ -29,8 +29,8 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 		if err := os.MkdirAll(path, 0775); err != nil {
 			return err
 		}
-		metadataPath := filepath.Join(path, "metadata.yaml")
-		if err := os.WriteFile(metadataPath, marshalled, 0664); err != nil {
+		metaPath := filepath.Join(path, "metadata.yaml")
+		if err := os.WriteFile(metaPath, marshalled, 0664); err != nil {
 			return err
 		}
 
@@ -50,4 +50,19 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 	}
 
 	return nil
+}
+
+func ReadWork(path string) (*work.Work, error) {
+	metaPath := filepath.Join(path, "metadata.yaml")
+	bytes, err := os.ReadFile(metaPath)
+	if err != nil {
+		return nil, err
+	}
+
+	unmarshalled := &dto.Work{}
+	if err := yaml.Unmarshal(bytes, unmarshalled); err != nil {
+		return nil, err
+	}
+
+	return unmarshalled.FromDto(), nil
 }

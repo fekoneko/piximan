@@ -63,6 +63,7 @@ func ParseUint64Ptr(s *string) *uint64 {
 	return &value
 }
 
+// Parse time from RFC3339 string and return it in local time zone.
 func ParseLocalTimePtr(s *string) *time.Time {
 	if s == nil {
 		return nil
@@ -75,6 +76,7 @@ func ParseLocalTimePtr(s *string) *time.Time {
 	return &localTime
 }
 
+// Convert time to UTC and format it as RFC3339.
 func FormatUTCTimePtr(t *time.Time) *string {
 	if t == nil {
 		return nil

@@ -20,8 +20,6 @@ type Collection struct {
 	signalMutex *sync.Mutex
 	path        string
 	pathMutex   *sync.Mutex
-	works       []work.Work
-	worksMutex  *sync.Mutex
 }
 
 func New(path string, logger *logger.Logger) *Collection {
@@ -31,8 +29,6 @@ func New(path string, logger *logger.Logger) *Collection {
 		signalMutex: &sync.Mutex{},
 		path:        path,
 		pathMutex:   &sync.Mutex{},
-		works:       make([]work.Work, 0),
-		worksMutex:  &sync.Mutex{},
 	}
 }
 

@@ -6,9 +6,17 @@ import (
 	"strings"
 )
 
-type FindWorkPathsFunc func(path *string, err error) (proceed bool)
+// The functioon to be called for each work path found by WalkWorks().
+// Return true to continue or false to stop walking entierly.
+type WalkWorksFunc func(path *string, err error) (proceed bool)
 
-func FindWorkPaths(path string, fn FindWorkPathsFunc) (proceed bool) {
+// Finds valid work paths in the specified directory and calls fn for each of them.
+// The order of search is deterministic.
+func WalkWorks(path string, fn WalkWorksFunc) {
+	walkWorks(path, fn)
+}
+
+func walkWorks(path string, fn WalkWorksFunc) (proceed bool) {
 	subEntries, err := os.ReadDir(path)
 	if err != nil && !fn(nil, err) {
 		return false
@@ -20,7 +28,7 @@ func FindWorkPaths(path string, fn FindWorkPathsFunc) (proceed bool) {
 		subPath := filepath.Join(path, subName)
 
 		if subEntry.IsDir() {
-			if !FindWorkPaths(subPath, fn) {
+			if !walkWorks(subPath, fn) {
 				return false
 			}
 
@@ -29,7 +37,7 @@ func FindWorkPaths(path string, fn FindWorkPathsFunc) (proceed bool) {
 			if ext == ".jpg" || ext == ".png" || ext == ".gif" ||
 				ext == ".jpeg" || subName == "metadata.yaml" {
 
-				if !fn(&subPath, nil) {
+				if !fn(&path, nil) {
 					return false
 				}
 				found = true
