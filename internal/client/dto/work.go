@@ -74,7 +74,7 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 		UserId:       utils.ParseUint64Ptr(dto.UserId),
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
-		AiKind:       utils.MapPtr(dto.XRestrict, work.AiKindFromUint),
+		AiKind:       utils.MapPtr(dto.AiType, work.AiKindFromUint),
 		Original:     dto.IsOriginal,
 		NumPages:     dto.PageCount,
 		NumViews:     dto.ViewCount,

@@ -58,7 +58,7 @@ func (dto *BookmarkWork) FromDto(
 		UserId:       userId,
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
-		AiKind:       utils.MapPtr(dto.XRestrict, work.AiKindFromUint),
+		AiKind:       utils.MapPtr(dto.AiType, work.AiKindFromUint),
 		NumPages:     dto.PageCount,
 		UploadTime:   utils.ParseLocalTimePtr(dto.CreateDate),
 		DownloadTime: utils.ToPtr(downloadTime.Local()),
