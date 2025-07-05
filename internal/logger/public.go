@@ -80,14 +80,14 @@ func (l *Logger) MaybeErrors(errs []error, prefix string, args ...any) {
 	}
 }
 
-func (l *Logger) Request(url string) (removeBar func(), updateBar func(int, int)) {
-	removeBar, updateBar = l.registerRequest(url, false)
+func (l *Logger) Request(url string) (RemoveBarFunc, UpdateBarFunc) {
+	removeBar, updateBar := l.registerRequest(url, false)
 	l.log(requestPrefix + url)
 	return removeBar, updateBar
 }
 
-func (l *Logger) AuthorizedRequest(url string) (removeBar func(), updateBar func(int, int)) {
-	removeBar, updateBar = l.registerRequest(url, true)
+func (l *Logger) AuthorizedRequest(url string) (RemoveBarFunc, UpdateBarFunc) {
+	removeBar, updateBar := l.registerRequest(url, true)
 	l.log(authRequestPrefix + url)
 	return removeBar, updateBar
 }

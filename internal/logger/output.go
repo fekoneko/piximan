@@ -15,8 +15,11 @@ func (l *Logger) log(message string, args ...any) {
 	l.printWithProgress(timePrefix+message+"\n", args...)
 }
 
+type RemoveBarFunc func()
+type UpdateBarFunc func(int, int)
+
 // track request internally and return handlers to update its state
-func (l *Logger) registerRequest(url string, authorized bool) (removeBar func(), updateBar func(int, int)) {
+func (l *Logger) registerRequest(url string, authorized bool) (RemoveBarFunc, UpdateBarFunc) {
 	l.mutex.Lock()
 	l.numRequests++
 	mapIndex := l.numRequests
@@ -26,14 +29,14 @@ func (l *Logger) registerRequest(url string, authorized bool) (removeBar func(),
 	}
 	l.mutex.Unlock()
 
-	removeBar = func() {
+	removeBar := func() {
 		l.mutex.Lock()
 		delete(l.progressMap, mapIndex)
 		l.mutex.Unlock()
 		l.refreshProgress()
 	}
 
-	updateBar = func(current int, total int) {
+	updateBar := func(current int, total int) {
 		l.mutex.Lock()
 		l.progressMap[mapIndex].current = current
 		l.progressMap[mapIndex].total = total

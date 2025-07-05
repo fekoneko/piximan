@@ -41,7 +41,7 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 			}
 			builder.WriteString(utils.FromPtr(work.Title, "unknown"))
 			builder.WriteString(asset.Extension)
-			filename := ToValidFilename(builder.String())
+			filename := FormatFilename(builder.String())
 			path := filepath.Join(path, filename)
 			if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
 				return err

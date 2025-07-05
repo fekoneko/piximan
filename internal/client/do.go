@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/fekoneko/piximan/internal/logger"
 )
 
 const BUFFER_SIZE = 4096
@@ -47,8 +49,10 @@ func newRequest(url string) (*http.Request, error) {
 	return request, nil
 }
 
+type logFunc func(url string) (logger.RemoveBarFunc, logger.UpdateBarFunc)
+
 func (c *Client) doWithRequest(
-	request *http.Request, log func(url string) (func(), func(int, int)), onProgress func(int, int),
+	request *http.Request, log logFunc, onProgress func(int, int),
 ) (body []byte, headers http.Header, err error) {
 	c.startRequest(request)
 	defer c.requestDone(request)

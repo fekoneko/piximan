@@ -101,7 +101,7 @@ func download(options *options) {
 }
 
 func configAndSession(password *string) (storage *config.Storage, sessionId *string) {
-	storage, err := config.Open(password)
+	storage, err := config.New(password)
 	if err != nil && password != nil {
 		logger.Fatal("cannot open config storage: %v", err)
 		panic("unreachable")
@@ -140,7 +140,7 @@ func promptPassword() (storage *config.Storage, sessionId *string) {
 			return nil, nil
 		}
 
-		storage, err := config.Open(&password)
+		storage, err := config.New(&password)
 		if err != nil {
 			logger.Warning("cannot open config storage: %v", err)
 			promptNoAuthorization()

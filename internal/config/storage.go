@@ -20,7 +20,7 @@ var homePath, _ = os.UserHomeDir()
 var sessionIdPath = filepath.Join(homePath, ".piximan", "sessionid")
 var configPath = filepath.Join(homePath, ".piximan", "config.yaml")
 
-// Stores and reads configuration. You can directly access and change public fields and then
+// Stores and reads configuration. You can directly access and modify public fields and then
 // call Write() to save the changes on the disk.
 // SessionId() is decrypted lazily and cached in the Storage. WriteSessionId() writes the
 // encrypted session id to the disk separately from other fields.
@@ -34,7 +34,7 @@ type Storage struct {
 	DefaultDelay      time.Duration
 }
 
-func Open(password *string) (*Storage, error) {
+func New(password *string) (*Storage, error) {
 	// TODO: maybe make the salt not empty and store it as well
 	key, err := pbkdf2.Key(sha256.New, utils.FromPtr(password, ""), []byte{}, 4096, 32)
 	if err != nil {

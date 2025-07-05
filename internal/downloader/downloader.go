@@ -16,6 +16,8 @@ const CHANNEL_SIZE = 10
 const DOWNLOAD_PENDING_LIMIT = 10
 const CRAWL_PENDING_LIMIT = 1
 
+type CrawlFunc func() error
+
 // Used to queue and download works. Has two internal queues:
 // - downloadQueue - list of works to fetch and store
 // - crawlQueue - list of pages to crawl works from, modifies downloadQueue
@@ -34,7 +36,7 @@ type Downloader struct {
 	downloading        bool
 	downloadingMutex   *sync.Mutex
 
-	crawlQueue      []func() error // TODO: make custom struct with Push and Pop?
+	crawlQueue      []CrawlFunc // TODO: make custom struct with Push and Pop?
 	crawlQueueMutex *sync.Mutex
 	numCrawling     int
 	numCrawlingCond *sync.Cond
@@ -49,7 +51,7 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 		downloadQueueMutex: &sync.Mutex{},
 		numDownloadingCond: sync.NewCond(&sync.Mutex{}),
 		downloadingMutex:   &sync.Mutex{},
-		crawlQueue:         make([]func() error, 0),
+		crawlQueue:         make([]CrawlFunc, 0),
 		crawlQueueMutex:    &sync.Mutex{},
 		numCrawlingCond:    sync.NewCond(&sync.Mutex{}),
 	}

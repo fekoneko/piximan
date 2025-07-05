@@ -1,6 +1,8 @@
 package app
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const MESSAGE = //
 `GUI for this application is not yet implemented.

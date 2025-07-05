@@ -50,7 +50,7 @@ func (d *Downloader) ScheduleWithKnown(
 	d.logger.ExpectWorks(len(ids))
 }
 
-// Merge queue to the downloader queue. Run() to start downloading.
+// Append specified queue to the downloader queue. Run() to start downloading.
 func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
@@ -59,7 +59,8 @@ func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	d.logger.ExpectWorks(len(*q))
 }
 
-// Run the downloader. Need to WaitNext() or WaitDone() to get the results.
+// Run the downloader.
+// The operation must be waited for with WaitNext() or WaitDone() after this method.
 func (d *Downloader) Run() {
 	d.downloadingMutex.Lock()
 	downloading := d.downloading
@@ -86,7 +87,7 @@ func (d *Downloader) WaitDone() {
 
 // TODO: make supervisers prettier
 
-// Meant to be run in a separate goroutine. Spawns download goroutines from downloadQueu
+// Meant to be run in a separate goroutine. Spawns download goroutines from downloadQueue
 // until it is empty and no crawling is happening. Sets d.downloading to false when done.
 func (d *Downloader) superviseDownload() {
 	d.downloadingMutex.Lock()
