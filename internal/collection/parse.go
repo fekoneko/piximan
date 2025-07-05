@@ -5,33 +5,44 @@ import (
 
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/syncext"
 )
 
 // Start reading the works in the collection. Cancels previous parsing if pending.
 // The operation must be waited for with WaitNext() or WaitDone() after this method.
 func (c *Collection) Parse() {
-	if c.Parsing() {
-		c.Cancel()
-	}
+	signal := c.newSignal()
 
 	go func() {
 		startTime := time.Now()
 		collectionPath := c.Path()
-		fsext.FindWorkPaths(collectionPath, func(path *string, err error) {
+		cancelled := false
+
+		fsext.FindWorkPaths(collectionPath, func(path *string, err error) (proceed bool) {
+			if signal.Cancelled() {
+				cancelled = true
+				return false
+			}
 			c.logger.MaybeFatal(err, "error while parsing collection at %v", collectionPath)
 			// TODO: parse
+			return true
 		})
-		c.logger.Info("parsed collection at %v in %v", collectionPath, time.Since(startTime))
+
+		if !cancelled {
+			c.logger.Info("parsed collection at %v in %v", collectionPath, time.Since(startTime))
+			c.channel <- nil
+		}
+		c.removeSignal(signal)
 	}()
 }
 
-// Block until next work is parsed. Returns nil if there are no more works to parse.
-// Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
+// Block until next work is parsed. Returns nil if there are no more works to parse or parsing is
+// cancelled. Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (c *Collection) WaitNext() *work.Work {
 	return <-c.channel
 }
 
-// Block until all works are parsed.
+// Block until all works are parsed or parsing is cancelled.
 // Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (c *Collection) WaitDone() {
 	for c.WaitNext() != nil {
@@ -40,5 +51,38 @@ func (c *Collection) WaitDone() {
 
 // Cancel parsing of the collection. Does nothing if no parsing is pending.
 func (c *Collection) Cancel() {
-	// TODO: cancel
+	c.signalMutex.Lock()
+	defer c.signalMutex.Unlock()
+
+	c.cancelNoLock()
+}
+
+func (c *Collection) cancelNoLock() {
+	if c.signal != nil && !c.signal.Cancelled() {
+		c.logger.Info("cancelled parsing collection at %v", c.Path())
+		c.signal.Cancel()
+		c.channel <- nil
+	}
+}
+
+// Cancel previous signal if parsing is pending and get a new one.
+func (c *Collection) newSignal() syncext.Signal {
+	c.signalMutex.Lock()
+	defer c.signalMutex.Unlock()
+
+	c.cancelNoLock()
+	signal := make(syncext.Signal)
+	c.signal = signal
+
+	return signal
+}
+
+// Assing c.signal to nil if it is the same as the specified one.
+func (c *Collection) removeSignal(signal syncext.Signal) {
+	c.signalMutex.Lock()
+	defer c.signalMutex.Unlock()
+
+	if c.signal == signal {
+		c.signal = nil
+	}
 }

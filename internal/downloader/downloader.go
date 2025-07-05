@@ -18,6 +18,8 @@ const CRAWL_PENDING_LIMIT = 1
 
 type CrawlFunc func() error
 
+// TODO: download / crawl cancellation with syncext.Signal
+
 // Used to queue and download works. Has two internal queues:
 // - downloadQueue - list of works to fetch and store
 // - crawlQueue - list of pages to crawl works from, modifies downloadQueue
