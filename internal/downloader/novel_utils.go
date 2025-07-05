@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fsext"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Fetch novel metadata, cover url and content asset.

@@ -1,5 +1,7 @@
 package work
 
+import "github.com/fekoneko/piximan/internal/utils"
+
 type AiKind uint8
 
 const (
@@ -31,11 +33,9 @@ func (aiKind AiKind) Bool() *bool {
 	case AiKindUnknown:
 		return nil
 	case AiKindNotAi:
-		return new(bool)
+		return utils.ToPtr(false)
 	case AiKindIsAi:
-		result := new(bool)
-		*result = true
-		return result
+		return utils.ToPtr(true)
 	default:
 		return AiKindDefault.Bool()
 	}

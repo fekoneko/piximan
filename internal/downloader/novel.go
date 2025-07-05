@@ -1,9 +1,9 @@
 package downloader
 
 import (
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Download only novel metadata and store it in paths. Blocks until done.

@@ -1,7 +1,7 @@
 package downloader
 
 import (
-	"github.com/fekoneko/piximan/internal/work"
+	"github.com/fekoneko/piximan/internal/collection/work"
 )
 
 // Fetch artwork metadata, map with urls to the first page and thumbnail urls
