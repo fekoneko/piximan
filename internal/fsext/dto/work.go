@@ -41,7 +41,7 @@ func ToDto(w *work.Work) *Work {
 		UserId:      w.UserId,
 		UserName:    w.UserName,
 		Restriction: utils.MapPtr(w.Restriction, work.Restriction.String),
-		Ai:          w.AiKind.Bool(),
+		Ai:          w.Ai,
 		Original:    w.Original,
 		Pages:       w.NumPages,
 		Views:       w.NumViews,

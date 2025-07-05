@@ -104,20 +104,18 @@ var workPathSubstitutions = map[string]func(w *work.Work) string{
 		}
 	},
 	"{ai}": func(w *work.Work) string {
-		switch utils.FromPtr(w.AiKind, 255) {
-		case work.AiKindNotAi:
-			return "Human"
-		case work.AiKindIsAi:
-			return "AI"
-		default:
+		if w.Ai == nil {
 			return "Unknown"
+		} else if *w.Ai {
+			return "AI"
+		} else {
+			return "Human"
 		}
 	},
 	"{original}": func(w *work.Work) string {
 		if w.Original == nil {
 			return "Unknown"
-		}
-		if *w.Original {
+		} else if *w.Original {
 			return "Original"
 		} else {
 			return "Not Original"

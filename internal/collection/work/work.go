@@ -10,7 +10,7 @@ type Work struct {
 	UserId       *uint64
 	UserName     *string
 	Restriction  *Restriction
-	AiKind       *AiKind
+	Ai           *bool
 	Original     *bool
 	NumPages     *uint64
 	NumViews     *uint64
@@ -25,15 +25,15 @@ type Work struct {
 	Tags         *[]string
 }
 
-// Check if all fields are filled. The function doesn't report if series data is missing
+// Check if all fields are filled. The function doesn't report if series data or ai kind is missing
 func (w *Work) Full() bool {
-	return w.Id != nil && w.Title != nil &&
+	return w.Id != nil &&
+		w.Title != nil &&
 		w.Kind != nil &&
 		w.Description != nil &&
 		w.UserId != nil &&
 		w.UserName != nil &&
 		w.Restriction != nil &&
-		w.AiKind != nil &&
 		w.Original != nil &&
 		w.NumPages != nil &&
 		w.NumViews != nil &&
