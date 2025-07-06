@@ -1,6 +1,7 @@
 package fsext
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -52,18 +53,21 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 	return nil
 }
 
-func ReadWork(path string) (w *work.Work, err error, warning error) {
+func ReadWork(path string) (w *work.Work, warning error, err error) {
 	metaPath := filepath.Join(path, "metadata.yaml")
 	bytes, err := os.ReadFile(metaPath)
-	if err != nil {
-		return nil, err, nil
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		warning = fmt.Errorf("metadata is missing")
+		return &work.Work{}, warning, nil
+	} else if err != nil {
+		return nil, nil, err
 	}
 
 	unmarshalled := &dto.Work{}
 	if err := yaml.Unmarshal(bytes, unmarshalled); err != nil {
-		return nil, err, nil
+		return nil, nil, err
 	}
 
 	w, warning = unmarshalled.FromDto()
-	return w, nil, warning
+	return w, warning, nil
 }
