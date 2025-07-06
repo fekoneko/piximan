@@ -59,6 +59,8 @@ func WorkToDto(w *work.Work) *Work {
 	}
 }
 
+// TODO: check parsing with incorrect types
+
 func (dto *Work) FromDto() (w *work.Work, warning error) {
 	if dto.Version == nil {
 		warning = fmt.Errorf("metadata version is missing")

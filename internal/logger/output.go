@@ -141,20 +141,24 @@ func (l *Logger) addStats(builder *strings.Builder) {
 }
 
 func barString(current int, total int, length int) string {
-	fraction := float64(1)
+	fraction := float64(0)
 	if total > 0 {
 		fraction = float64(current) / float64(total)
 	}
-	percent := int(math.Round(fraction * 100))
-	chars := int(math.Round(fraction * float64(length)))
+	numChars := int(math.Round(fraction * float64(length)))
 	builder := strings.Builder{}
 
-	builder.WriteString(fmt.Sprintf(subtleGray("%3v%% "), percent))
+	if total > 0 {
+		percent := int(math.Round(fraction * 100))
+		builder.WriteString(fmt.Sprintf(subtleGray("%3v%% "), percent))
+	} else {
+		builder.WriteString(subtleGray("---- "))
+	}
 
 	for i := 0; i < length; i++ {
-		if i < chars {
+		if i < numChars {
 			builder.WriteString(white("━"))
-		} else if i == chars && i != 0 {
+		} else if i == numChars && i != 0 {
 			builder.WriteString(subtleGray("╶"))
 		} else {
 			builder.WriteString(subtleGray("─"))

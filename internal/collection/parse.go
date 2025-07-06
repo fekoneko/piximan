@@ -24,7 +24,7 @@ func (c *Collection) Parse() {
 				return false
 			} else if err != nil || path == nil {
 				c.logger.Error("error while parsing collection at %v: %v", collectionPath, err)
-			} else if w, warning, err := fsext.ReadWork(*path); err == nil {
+			} else if w, warning, err := fsext.ReadWork(*path); err == nil { // TODO: delegate to goroutines?
 				if warning != nil {
 					c.logger.Warning("warning while parsing work at %v: %v", *path, warning)
 				}
