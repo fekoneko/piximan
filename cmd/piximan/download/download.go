@@ -58,11 +58,11 @@ func download(options *options) {
 		)
 		fmt.Println()
 
-	} else if options.InferIdPath != nil {
-		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.InferIdPath)
-		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferIdPath)
+	} else if options.InferId != nil {
+		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.InferId)
+		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferId)
 		if len(*idPathMap) == 0 {
-			logger.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
+			logger.Warning("no ids could be inferred from pattern %v", *options.InferId)
 			return
 		}
 
@@ -75,13 +75,13 @@ func download(options *options) {
 			d.ScheduleQueue(q)
 		}
 
-	} else if options.QueuePath != nil {
+	} else if options.DownloadList != nil {
 		paths := []string{path}
-		q, warnings, err := fsext.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
-		logger.MaybeWarnings(warnings, "while reading the list from %v", *options.QueuePath)
-		logger.MaybeFatal(err, "cannot read the list from %v", *options.QueuePath)
+		q, warnings, err := fsext.ReadDownloadList(*options.DownloadList, kind, size, onlyMeta, paths)
+		logger.MaybeWarnings(warnings, "while reading the list from %v", *options.DownloadList)
+		logger.MaybeFatal(err, "cannot read the list from %v", *options.DownloadList)
 		if len(*q) == 0 {
-			logger.Warning("no works found in the list %v", *options.QueuePath)
+			logger.Warning("no works found in the list %v", *options.DownloadList)
 			return
 		}
 

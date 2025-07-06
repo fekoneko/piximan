@@ -152,7 +152,7 @@ func barString(current int, total int, length int) string {
 		percent := int(math.Round(fraction * 100))
 		builder.WriteString(fmt.Sprintf(subtleGray("%3v%% "), percent))
 	} else {
-		builder.WriteString(subtleGray("---- "))
+		builder.WriteString(subtleGray(" ??? "))
 	}
 
 	for i := 0; i < length; i++ {

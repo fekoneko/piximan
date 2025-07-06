@@ -10,9 +10,9 @@ import (
 )
 
 func interactive() {
-	ids, bookmarks, private, inferIdPath, queuePath := selectSource()
-	withQueue := queuePath != nil
-	withInferId := inferIdPath != nil
+	ids, bookmarks, private, inferId, downloadList := selectSource()
+	withQueue := downloadList != nil
+	withInferId := inferId != nil
 	withBookmarks := bookmarks != nil
 
 	kind := selectKind(withQueue)
@@ -25,23 +25,23 @@ func interactive() {
 
 	fmt.Println()
 	download(&options{
-		Ids:         ids,
-		Bookmarks:   bookmarks,
-		QueuePath:   queuePath,
-		InferIdPath: inferIdPath,
-		Kind:        &kind,
-		Size:        size,
-		OnlyMeta:    &onlyMeta,
-		Tag:         tag,
-		FromOffset:  fromOffset,
-		ToOffset:    toOffset,
-		Private:     private,
-		LowMeta:     lowMeta,
-		Path:        path,
+		Ids:          ids,
+		Bookmarks:    bookmarks,
+		DownloadList: downloadList,
+		InferId:      inferId,
+		Kind:         &kind,
+		Size:         size,
+		OnlyMeta:     &onlyMeta,
+		Tag:          tag,
+		FromOffset:   fromOffset,
+		ToOffset:     toOffset,
+		Private:      private,
+		LowMeta:      lowMeta,
+		Path:         path,
 	})
 }
 
-func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIdPath *string, queuePath *string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *string, downloadList *string) {
 	_, mode, err := sourceSelect.Run()
 	logger.MaybeFatal(err, "failed to read mode")
 
@@ -67,14 +67,14 @@ func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIdPat
 		bookmarks = utils.ToPtr(userId)
 
 	case inferIdOption:
-		result, err := inferIdPathPrompt.Run()
+		result, err := inferIdPrompt.Run()
 		logger.MaybeFatal(err, "failed to read pattern")
-		inferIdPath = &result
+		inferId = &result
 
 	case queueOption:
-		result, err := queuePathPrompt.Run()
+		result, err := downloadListPrompt.Run()
 		logger.MaybeFatal(err, "failed to read list path")
-		queuePath = &result
+		downloadList = &result
 
 	default:
 		logger.Fatal("incorrect download mode: %v", mode)

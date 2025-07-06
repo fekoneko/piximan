@@ -17,7 +17,7 @@ func nonInteractive() {
 	}
 
 	if !utils.ExactlyOneDefined(
-		options.Ids, options.Bookmarks, options.InferIdPath, options.QueuePath,
+		options.Ids, options.Bookmarks, options.InferId, options.DownloadList,
 	) {
 		fmt.Println("provide exactly one download source: `-i, --id', `-b, --bookmarks' `-I, --infer-id' or `-l, --list'")
 		os.Exit(2)
@@ -75,8 +75,8 @@ func nonInteractive() {
 			os.Exit(2)
 		}
 	}
-	if options.InferIdPath != nil {
-		if err := fsext.InferIdPathValid(*options.InferIdPath); err != nil {
+	if options.InferId != nil {
+		if err := fsext.InferIdPathValid(*options.InferId); err != nil {
 			fmt.Printf("invalid argument for flag `-I, --infer-id': %v\n", err)
 			os.Exit(2)
 		}

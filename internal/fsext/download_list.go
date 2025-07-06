@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func ReadQueue(
+func ReadDownloadList(
 	path string,
 	defaultKind queue.ItemKind,
 	defaultSize image.Size,
@@ -21,7 +21,7 @@ func ReadQueue(
 		return nil, nil, err
 	}
 
-	unmarshalled := dto.Queue{}
+	unmarshalled := dto.DownloadList{}
 	if err := yaml.Unmarshal(b, &unmarshalled); err != nil {
 		return nil, nil, err
 	}

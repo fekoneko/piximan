@@ -39,17 +39,17 @@ var userIdPrompt = promptui.Prompt{
 	Validate: utils.ValidateNumber("user ID must be a number"),
 }
 
-var inferIdPathPromptLabel = "Path pattern"
+var inferIdPromptLabel = "Path pattern"
 
-var inferIdPathPrompt = promptui.Prompt{
-	Label:    inferIdPathPromptLabel,
+var inferIdPrompt = promptui.Prompt{
+	Label:    inferIdPromptLabel,
 	Validate: fsext.InferIdPathValid,
 }
 
-var queuePathPromptLabel = "Path to YAML list"
+var downloadListPromptLabel = "Path to YAML list"
 
-var queuePathPrompt = promptui.Prompt{
-	Label: queuePathPromptLabel,
+var downloadListPrompt = promptui.Prompt{
+	Label: downloadListPromptLabel,
 }
 
 var kindSelectLabel = "Type of work to download"

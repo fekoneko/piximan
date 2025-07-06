@@ -8,7 +8,7 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-type Queue []struct {
+type DownloadList []struct {
 	Id       *uint64   `yaml:"id"`
 	Kind     *string   `yaml:"type"`
 	Size     *uint     `yaml:"size"`
@@ -16,7 +16,7 @@ type Queue []struct {
 	Paths    *[]string `yaml:"paths"`
 }
 
-func (dto *Queue) FromDto(
+func (dto *DownloadList) FromDto(
 	defaultKind queue.ItemKind,
 	defaultSize image.Size,
 	defaultOnlyMeta bool,
