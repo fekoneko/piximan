@@ -15,7 +15,7 @@ type options struct {
 	ToOffset   *uint64   `short:"T" long:"to"`
 	Private    *bool     `short:"R" long:"private"`
 	LowMeta    *bool     `short:"M" long:"low-meta"`
-	Ignore     *string   `short:"n" long:"ignore"` // TODO: interactive mode + validation
+	Rules      *string   `short:"r" long:"rules"`
 	Path       *string   `short:"p" long:"path"`
 	Password   *string   `short:"P" long:"password"`
 }

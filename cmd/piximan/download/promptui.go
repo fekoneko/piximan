@@ -46,7 +46,7 @@ var inferIdPrompt = promptui.Prompt{
 	Validate: fsext.InferIdPathValid,
 }
 
-var listPromptLabel = "Path to YAML list"
+var listPromptLabel = "Path to download list file"
 
 var listPrompt = promptui.Prompt{
 	Label: listPromptLabel,
@@ -133,6 +133,12 @@ func pathPrompt(withQueue bool) *promptui.Prompt {
 		Label:    utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
 		Validate: fsext.WorkPathValid,
 	}
+}
+
+var rulesPromptLabel = "Path to download rules file (leave empty to download all)"
+
+var rulesPrompt = promptui.Prompt{
+	Label: rulesPromptLabel,
 }
 
 var passwordPrompt = promptui.Prompt{

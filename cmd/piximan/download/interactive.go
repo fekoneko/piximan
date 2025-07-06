@@ -22,6 +22,7 @@ func interactive() {
 	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
 	size := selectSize(withQueue, onlyMeta)
 	path := promptPath(withInferId, withQueue)
+	rules := promptRules()
 
 	fmt.Println()
 	download(&options{
@@ -37,6 +38,7 @@ func interactive() {
 		ToOffset:   toOffset,
 		Private:    private,
 		LowMeta:    lowMeta,
+		Rules:      rules,
 		Path:       path,
 	})
 }
@@ -195,4 +197,13 @@ func promptPath(withInferId bool, withQueue bool) *string {
 	path, err := pathPrompt(withQueue).Run()
 	logger.MaybeFatal(err, "failed to read path")
 	return &path
+}
+
+func promptRules() *string {
+	rules, err := rulesPrompt.Run()
+	logger.MaybeFatal(err, "failed to read rules path")
+	if rules == "" {
+		return nil
+	}
+	return &rules
 }

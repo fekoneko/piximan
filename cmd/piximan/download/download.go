@@ -78,13 +78,19 @@ func download(options *options) {
 	} else if options.List != nil {
 		paths := []string{path}
 		q, err := fsext.ReadList(*options.List, kind, size, onlyMeta, paths)
-		logger.MaybeFatal(err, "cannot read the list from %v", *options.List)
+		logger.MaybeFatal(err, "cannot read download list from %v", *options.List)
 		if len(*q) == 0 {
 			logger.Warning("no works found in the list %v", *options.List)
 			return
 		}
 
 		d.ScheduleQueue(q)
+	}
+
+	if options.Rules != nil {
+		rules, err := fsext.ReadRules(*options.Rules)
+		logger.MaybeFatal(err, "cannot read download rules from %v", *options.Rules)
+		d.SetRules(rules)
 	}
 
 	fmt.Println(d)
