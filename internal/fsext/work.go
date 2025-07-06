@@ -52,17 +52,18 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 	return nil
 }
 
-func ReadWork(path string) (*work.Work, error) {
+func ReadWork(path string) (w *work.Work, err error, warning error) {
 	metaPath := filepath.Join(path, "metadata.yaml")
 	bytes, err := os.ReadFile(metaPath)
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
 	unmarshalled := &dto.Work{}
 	if err := yaml.Unmarshal(bytes, unmarshalled); err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
-	return unmarshalled.FromDto(), nil
+	w, warning = unmarshalled.FromDto()
+	return w, nil, warning
 }

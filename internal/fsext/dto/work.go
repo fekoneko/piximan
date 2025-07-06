@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"fmt"
+
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/utils"
 )
@@ -57,8 +59,14 @@ func WorkToDto(w *work.Work) *Work {
 	}
 }
 
-func (dto *Work) FromDto() *work.Work {
-	return &work.Work{
+func (dto *Work) FromDto() (w *work.Work, warning error) {
+	if dto.Version == nil {
+		warning = fmt.Errorf("metadata version is missing")
+	} else if *dto.Version != VERSION {
+		warning = fmt.Errorf("metadata version mismatch: expected %v, got %v", VERSION, *dto.Version)
+	}
+
+	w = &work.Work{
 		Id:           dto.Id,
 		Title:        dto.Title,
 		Kind:         utils.MapPtr(dto.Kind, work.KindFromString),
@@ -80,4 +88,6 @@ func (dto *Work) FromDto() *work.Work {
 		SeriesOrder:  dto.SeriesOrder,
 		Tags:         dto.Tags,
 	}
+
+	return w, warning
 }
