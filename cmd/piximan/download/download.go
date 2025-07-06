@@ -75,13 +75,12 @@ func download(options *options) {
 			d.ScheduleQueue(q)
 		}
 
-	} else if options.DownloadList != nil {
+	} else if options.List != nil {
 		paths := []string{path}
-		q, warnings, err := fsext.ReadDownloadList(*options.DownloadList, kind, size, onlyMeta, paths)
-		logger.MaybeWarnings(warnings, "while reading the list from %v", *options.DownloadList)
-		logger.MaybeFatal(err, "cannot read the list from %v", *options.DownloadList)
+		q, err := fsext.ReadList(*options.List, kind, size, onlyMeta, paths)
+		logger.MaybeFatal(err, "cannot read the list from %v", *options.List)
 		if len(*q) == 0 {
-			logger.Warning("no works found in the list %v", *options.DownloadList)
+			logger.Warning("no works found in the list %v", *options.List)
 			return
 		}
 

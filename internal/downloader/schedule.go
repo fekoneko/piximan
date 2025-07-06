@@ -233,10 +233,12 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 		d.logger.Error("failed to pick work %v for download: %v", item.Id, err)
 	}
 
-	if err == nil {
+	if err == nil && w != nil {
 		d.channel <- w
 		d.logger.AddSuccessfulWork()
-	} else {
+	} else if err == nil && w == nil {
+		d.logger.AddSkippedWork()
+	} else if err != nil {
 		d.logger.AddFailedWork(item.Id)
 	}
 }

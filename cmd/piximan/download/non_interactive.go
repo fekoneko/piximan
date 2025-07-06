@@ -17,7 +17,7 @@ func nonInteractive() {
 	}
 
 	if !utils.ExactlyOneDefined(
-		options.Ids, options.Bookmarks, options.InferId, options.DownloadList,
+		options.Ids, options.Bookmarks, options.InferId, options.List,
 	) {
 		fmt.Println("provide exactly one download source: `-i, --id', `-b, --bookmarks' `-I, --infer-id' or `-l, --list'")
 		os.Exit(2)

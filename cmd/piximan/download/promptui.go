@@ -46,10 +46,10 @@ var inferIdPrompt = promptui.Prompt{
 	Validate: fsext.InferIdPathValid,
 }
 
-var downloadListPromptLabel = "Path to YAML list"
+var listPromptLabel = "Path to YAML list"
 
-var downloadListPrompt = promptui.Prompt{
-	Label: downloadListPromptLabel,
+var listPrompt = promptui.Prompt{
+	Label: listPromptLabel,
 }
 
 var kindSelectLabel = "Type of work to download"

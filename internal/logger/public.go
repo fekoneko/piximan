@@ -104,6 +104,12 @@ func (l *Logger) AddSuccessfulWork() {
 	l.mutex.Unlock()
 }
 
+func (l *Logger) AddSkippedWork() {
+	l.mutex.Lock()
+	l.numSkippedWorks++
+	l.mutex.Unlock()
+}
+
 func (l *Logger) AddFailedWork(id uint64) {
 	l.mutex.Lock()
 	l.failedWorkIds = append(l.failedWorkIds, id)
@@ -148,8 +154,11 @@ func (l *Logger) Stats() {
 	builder := strings.Builder{}
 	builder.WriteString("\ndownloader stats:\n\n")
 
-	builder.WriteString(fmt.Sprintf("- tasks crawled: %v\n", l.numSuccessfulCrawls))
-	builder.WriteString(fmt.Sprintf("- works downloaded: %v\n", l.numSuccessfulWorks))
+	builder.WriteString(fmt.Sprintf("- tasks crawled: %v / %v\n", l.numSuccessfulCrawls, l.numExpectedCrawls))
+	builder.WriteString(fmt.Sprintf(
+		"- works downloaded: %v / %v + %v skipped\n", l.numSuccessfulWorks,
+		l.numExpectedWorks-l.numSkippedWorks, l.numSkippedWorks,
+	))
 	builder.WriteString(fmt.Sprintf("- unauthorized requests: %v\n", l.numRequests-l.numAuthorizedRequests))
 	builder.WriteString(fmt.Sprintf("- authorized requests: %v\n\n", l.numAuthorizedRequests))
 

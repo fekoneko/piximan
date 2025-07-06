@@ -128,7 +128,7 @@ func (l *Logger) addStats(builder *strings.Builder) {
 	builder.WriteByte('\n')
 
 	numSettledWorks := l.numSuccessfulWorks + len(l.failedWorkIds)
-	s = fmt.Sprintf("downloading (%v / %v): ", numSettledWorks, l.numExpectedWorks)
+	s = fmt.Sprintf("downloading (%v / %v): ", numSettledWorks, l.numExpectedWorks-l.numSkippedWorks)
 	builder.WriteString(fmt.Sprintf(gray("%-*v "), captionsLength, s))
 	bar = barString(numSettledWorks, l.numExpectedWorks, length)
 	builder.WriteString(bar)

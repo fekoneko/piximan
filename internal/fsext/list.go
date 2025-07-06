@@ -9,23 +9,22 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func ReadDownloadList(
+func ReadList(
 	path string,
 	defaultKind queue.ItemKind,
 	defaultSize image.Size,
 	defaultOnlyMeta bool,
 	defaultPaths []string,
-) (q *queue.Queue, warnings []error, err error) {
+) (*queue.Queue, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	unmarshalled := dto.DownloadList{}
-	if err := yaml.Unmarshal(b, &unmarshalled); err != nil {
-		return nil, nil, err
+	unmarshalled := dto.List{}
+	if err := yaml.UnmarshalStrict(b, &unmarshalled); err != nil {
+		return nil, err
 	}
 
-	q, warnings = unmarshalled.FromDto(defaultKind, defaultSize, defaultOnlyMeta, defaultPaths)
-	return q, warnings, nil
+	return unmarshalled.FromDto(defaultKind, defaultSize, defaultOnlyMeta, defaultPaths)
 }

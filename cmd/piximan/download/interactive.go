@@ -10,8 +10,8 @@ import (
 )
 
 func interactive() {
-	ids, bookmarks, private, inferId, downloadList := selectSource()
-	withQueue := downloadList != nil
+	ids, bookmarks, private, inferId, list := selectSource()
+	withQueue := list != nil
 	withInferId := inferId != nil
 	withBookmarks := bookmarks != nil
 
@@ -25,23 +25,23 @@ func interactive() {
 
 	fmt.Println()
 	download(&options{
-		Ids:          ids,
-		Bookmarks:    bookmarks,
-		DownloadList: downloadList,
-		InferId:      inferId,
-		Kind:         &kind,
-		Size:         size,
-		OnlyMeta:     &onlyMeta,
-		Tag:          tag,
-		FromOffset:   fromOffset,
-		ToOffset:     toOffset,
-		Private:      private,
-		LowMeta:      lowMeta,
-		Path:         path,
+		Ids:        ids,
+		Bookmarks:  bookmarks,
+		List:       list,
+		InferId:    inferId,
+		Kind:       &kind,
+		Size:       size,
+		OnlyMeta:   &onlyMeta,
+		Tag:        tag,
+		FromOffset: fromOffset,
+		ToOffset:   toOffset,
+		Private:    private,
+		LowMeta:    lowMeta,
+		Path:       path,
 	})
 }
 
-func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *string, downloadList *string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *string, list *string) {
 	_, mode, err := sourceSelect.Run()
 	logger.MaybeFatal(err, "failed to read mode")
 
@@ -72,9 +72,9 @@ func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *s
 		inferId = &result
 
 	case queueOption:
-		result, err := downloadListPrompt.Run()
+		result, err := listPrompt.Run()
 		logger.MaybeFatal(err, "failed to read list path")
-		downloadList = &result
+		list = &result
 
 	default:
 		logger.Fatal("incorrect download mode: %v", mode)

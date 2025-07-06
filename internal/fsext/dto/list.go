@@ -8,7 +8,7 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-type DownloadList []struct {
+type List []struct {
 	Id       *uint64   `yaml:"id"`
 	Kind     *string   `yaml:"type"`
 	Size     *uint     `yaml:"size"`
@@ -16,21 +16,20 @@ type DownloadList []struct {
 	Paths    *[]string `yaml:"paths"`
 }
 
-func (dto *DownloadList) FromDto(
+func (dto *List) FromDto(
 	defaultKind queue.ItemKind,
 	defaultSize image.Size,
 	defaultOnlyMeta bool,
 	defaultPaths []string,
-) (q *queue.Queue, warnings []error) {
-	q = utils.ToPtr(make(queue.Queue, len(*dto)))
+) (*queue.Queue, error) {
+	q := make(queue.Queue, len(*dto))
 
 	for i, itemDto := range *dto {
 		if itemDto.Id == nil {
-			warnings = append(warnings, fmt.Errorf("item %v has no ID", i))
-			continue
+			return nil, fmt.Errorf("item %v has no id", i)
 		}
 
-		(*q)[i] = queue.Item{
+		q[i] = queue.Item{
 			Id:       *itemDto.Id,
 			Kind:     utils.FromPtrTransform(itemDto.Kind, queue.ItemKindFromString, defaultKind),
 			Size:     utils.FromPtrTransform(itemDto.Size, image.SizeFromUint, defaultSize),
@@ -39,5 +38,5 @@ func (dto *DownloadList) FromDto(
 		}
 	}
 
-	return q, warnings
+	return &q, nil
 }

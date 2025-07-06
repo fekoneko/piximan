@@ -10,18 +10,19 @@ import (
 )
 
 // Download only artwork metadata and store it in paths. Blocks until done.
+// Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) {
+	if !d.matchArtworkId(id) {
+		return nil, nil
+	}
 	d.logger.Info("started downloading metadata for artwork %v", id)
 
-	w, _, _, err := d.client.ArtworkMeta(id)
-	d.logger.MaybeSuccess(err, "fetched metadata for artwork %v", id)
-	d.logger.MaybeError(err, "failed to fetch metadata for artwork %v", id)
+	w, _, _, err := d.artworkMeta(id)
 	if err != nil {
 		return nil, err
-	}
-	if !w.Full() {
-		d.logger.Warning("metadata for artwork %v is incomplete", id)
+	} else if !d.matchArtwork(id, w, false) {
+		return nil, nil
 	}
 
 	assets := []fsext.Asset{}
@@ -29,20 +30,30 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 }
 
 // Doesn't actually make additional requests, but stores incomplete metadata, received earlier.
+// Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []string) (*work.Work, error) {
+	if !d.matchArtwork(id, w, true) {
+		return nil, nil
+	}
 	assets := []fsext.Asset{}
 	return w, d.writeWork(id, queue.ItemKindArtwork, w, assets, true, paths)
 }
 
 // Download artwork with all assets and metadata and store it in paths. Blocks until done.
+// Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
+	if !d.matchArtworkId(id) {
+		return nil, nil
+	}
 	d.logger.Info("started downloading artwork %v", id)
 
 	w, firstPageUrls, thumbnailUrls, err := d.artworkMeta(id)
 	if err != nil {
 		return nil, err
+	} else if !d.matchArtwork(id, w, false) {
+		return nil, nil
 	}
 
 	if w.Kind == nil {
@@ -66,10 +77,18 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 }
 
 // Download artwork with partial metadata known in advance and store it in paths. Blocks until done.
+// Skips downloading if the work doesn't match download rules.
+// Tries to start downloading assets as soon as possible, but if some rules dependent on full
+// metadata are defined, it will wait until full metadata is received.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) ArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
+	if matches, needFull := d.matchArtworkNeedFull(id, w); !matches {
+		return nil, nil
+	} else if needFull {
+		return d.Artwork(id, size, paths)
+	}
 	d.logger.Info("started downloading artwork %v", id)
 
 	workChannel := make(chan *work.Work)
@@ -109,12 +128,14 @@ func (d *Downloader) ArtworkWithKnown(
 
 // Download artwork using already available incomplete metadata and store it in paths.
 // Doesn't fetch full metadata. Blocks until done.
+// Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
-	d.logger.Info("started downloading artwork %v", id)
-
+	if !d.matchArtwork(id, w, true) {
+		return nil, nil
+	}
 	if w.Kind == nil {
 		err := fmt.Errorf("work kind is missing in %v", w)
 		d.logger.Error("failed to download artwork %v: %v", id, err)

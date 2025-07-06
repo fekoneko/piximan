@@ -65,15 +65,21 @@ func ParseUint64Ptr(s *string) *uint64 {
 
 // Parse time from RFC3339 string and return it in local time zone.
 func ParseLocalTimePtr(s *string) *time.Time {
+	time, _ := ParseLocalTimePtrStrict(s)
+	return time
+}
+
+// Parse time from RFC3339 string and return it in local time zone. Return error if parsing fails.
+func ParseLocalTimePtrStrict(s *string) (*time.Time, error) {
 	if s == nil {
-		return nil
+		return nil, nil
 	}
 	time, err := time.Parse(time.RFC3339, *s)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	localTime := time.Local()
-	return &localTime
+	return &localTime, nil
 }
 
 // Convert time to UTC and format it as RFC3339.

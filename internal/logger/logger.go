@@ -42,6 +42,7 @@ type Logger struct {
 	numAuthorizedRequests int
 	numExpectedWorks      int
 	numSuccessfulWorks    int
+	numSkippedWorks       int
 	failedWorkIds         []uint64
 	numExpectedCrawls     int
 	numSuccessfulCrawls   int
