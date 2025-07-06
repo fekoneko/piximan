@@ -59,8 +59,8 @@ func download(options *options) {
 		fmt.Println()
 
 	} else if options.InferIdPath != nil {
-		idPathMap, err := fsext.InferIdsFromWorkPath(*options.InferIdPath)
-		logger.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
+		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.InferIdPath)
+		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferIdPath)
 		if len(*idPathMap) == 0 {
 			logger.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
 			return
