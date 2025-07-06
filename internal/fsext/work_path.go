@@ -44,10 +44,8 @@ func FormatWorkPaths(patterns []string, w *work.Work) ([]string, error) {
 	return paths, nil
 }
 
-var patternRegex = regexp.MustCompile(`{[^}]*}`)
-
 func WorkPathValid(pattern string) error {
-	for _, match := range patternRegex.FindAllString(pattern, -1) {
+	for _, match := range pathSubstitutionRegexp.FindAllString(pattern, -1) {
 		if _, ok := workPathSubstitutions[match]; !ok {
 			return fmt.Errorf("pattern contains unknown substitution %q", match)
 		}
@@ -60,9 +58,10 @@ func workPathReplacer(w *work.Work) *strings.Replacer {
 	for substitution, value := range workPathSubstitutions {
 		oldNew = append(oldNew, substitution, value(w))
 	}
-
 	return strings.NewReplacer(oldNew...)
 }
+
+var pathSubstitutionRegexp = regexp.MustCompile(`{[^}]*}`)
 
 var workPathSubstitutions = map[string]func(w *work.Work) string{
 	"{title}": func(w *work.Work) string {

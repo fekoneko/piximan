@@ -10,6 +10,7 @@ import (
 
 // Fetch novel metadata, cover url and content asset.
 // Retry authorized if the content or cover url is missing.
+// If err != nil, content and coverUrl are guaranteed to be present.
 func (d *Downloader) novelMeta(id uint64) (w *work.Work, content *string, coverUrl *fsext.Asset, err error) {
 	authorized := d.client.Authorized()
 
@@ -68,8 +69,13 @@ func (d *Downloader) novelMetaWith(
 	if !w.Full() {
 		d.logger.Warning("metadata for novel %v is incomplete", id)
 	}
-	contentAsset := fsext.Asset{Bytes: []byte(*content), Extension: ".txt"}
-	return w, coverUrl, &contentAsset, nil
+
+	if content != nil {
+		contentAsset := fsext.Asset{Bytes: []byte(*content), Extension: ".txt"}
+		return w, coverUrl, &contentAsset, nil
+	} else {
+		return w, coverUrl, nil, nil
+	}
 }
 
 // fetch novel cover asset
