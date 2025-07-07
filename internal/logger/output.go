@@ -11,12 +11,17 @@ import (
 )
 
 func (l *Logger) log(message string, args ...any) {
-	timePrefix := subtleGray(time.Now().Format(time.DateTime)) + " "
-	l.printWithProgress(timePrefix+message+"\n", args...)
+	timePrefix := time.Now().Format("15:04 ")
+	message = fmt.Sprintf(message, args...)
+	message = strings.ReplaceAll(message, "\n", "\n              ")
+	l.printWithProgress(subtleGray(timePrefix) + message + "\n")
 }
 
+type RemoveBarFunc func()
+type UpdateBarFunc func(int, int)
+
 // track request internally and return handlers to update its state
-func (l *Logger) registerRequest(url string, authorized bool) (removeBar func(), updateBar func(int, int)) {
+func (l *Logger) registerRequest(url string, authorized bool) (RemoveBarFunc, UpdateBarFunc) {
 	l.mutex.Lock()
 	l.numRequests++
 	mapIndex := l.numRequests
@@ -26,14 +31,14 @@ func (l *Logger) registerRequest(url string, authorized bool) (removeBar func(),
 	}
 	l.mutex.Unlock()
 
-	removeBar = func() {
+	removeBar := func() {
 		l.mutex.Lock()
 		delete(l.progressMap, mapIndex)
 		l.mutex.Unlock()
 		l.refreshProgress()
 	}
 
-	updateBar = func(current int, total int) {
+	updateBar := func(current int, total int) {
 		l.mutex.Lock()
 		l.progressMap[mapIndex].current = current
 		l.progressMap[mapIndex].total = total
@@ -44,7 +49,7 @@ func (l *Logger) registerRequest(url string, authorized bool) (removeBar func(),
 	return removeBar, updateBar
 }
 
-func (l *Logger) printWithProgress(s string, args ...any) {
+func (l *Logger) printWithProgress(s string) {
 	builder := strings.Builder{}
 
 	l.mutex.Lock()
@@ -55,10 +60,10 @@ func (l *Logger) printWithProgress(s string, args ...any) {
 	}
 	if !l.progressShown {
 		l.prevProgressShown = false
-		builder.WriteString(fmt.Sprintf(s, args...))
+		builder.WriteString(s)
 		fmt.Fprint(color.Output, builder.String())
 	} else {
-		builder.WriteString(fmt.Sprintf(s, args...))
+		builder.WriteString(s)
 		builder.WriteByte('\n')
 
 		l.addSlots(&builder)
@@ -96,14 +101,14 @@ func (l *Logger) addSlots(builder *strings.Builder) {
 }
 
 func eraseProgress(builder *strings.Builder) {
-	for range NUM_SLOTS + 4 {
+	for range numSlots + 4 {
 		builder.WriteString("\033[2K\033[A\033[2K\r")
 	}
 }
 
 func addSlot(builder *strings.Builder, progress *progress) {
 	if progress == nil {
-		for range URL_LENGTH + BAR_LENGTH + 6 {
+		for range urlLength + barLength + 6 {
 			builder.WriteString(subtleGray("╶"))
 		}
 		builder.WriteByte('\n')
@@ -115,17 +120,17 @@ func addSlot(builder *strings.Builder, progress *progress) {
 
 func (l *Logger) addStats(builder *strings.Builder) {
 	const captionsLength = 26
-	const length = BAR_LENGTH + URL_LENGTH - captionsLength
+	const length = barLength + urlLength - captionsLength
 
 	numSettledCrawls := l.numSuccessfulCrawls + l.numFailedCrawls
-	s := fmt.Sprintf("crawling (%v / %v): ", numSettledCrawls, l.numExpectedCrawls)
+	s := fmt.Sprintf("crawling (%v / %v): ", numSettledCrawls, l.numExpectedCrawls-l.numSkippedCrawls)
 	builder.WriteString(fmt.Sprintf(gray("%-*v "), captionsLength, s))
 	bar := barString(numSettledCrawls, l.numExpectedCrawls, length)
 	builder.WriteString(bar)
 	builder.WriteByte('\n')
 
 	numSettledWorks := l.numSuccessfulWorks + len(l.failedWorkIds)
-	s = fmt.Sprintf("downloading (%v / %v): ", numSettledWorks, l.numExpectedWorks)
+	s = fmt.Sprintf("downloading (%v / %v): ", numSettledWorks, l.numExpectedWorks-l.numSkippedWorks)
 	builder.WriteString(fmt.Sprintf(gray("%-*v "), captionsLength, s))
 	bar = barString(numSettledWorks, l.numExpectedWorks, length)
 	builder.WriteString(bar)
@@ -138,20 +143,24 @@ func (l *Logger) addStats(builder *strings.Builder) {
 }
 
 func barString(current int, total int, length int) string {
-	fraction := float64(1)
+	fraction := float64(0)
 	if total > 0 {
 		fraction = float64(current) / float64(total)
 	}
-	percent := int(math.Round(fraction * 100))
-	chars := int(math.Round(fraction * float64(length)))
+	numChars := int(math.Round(fraction * float64(length)))
 	builder := strings.Builder{}
 
-	builder.WriteString(fmt.Sprintf(subtleGray("%3v%% "), percent))
+	if total > 0 {
+		percent := int(math.Round(fraction * 100))
+		builder.WriteString(fmt.Sprintf(subtleGray("%3v%% "), percent))
+	} else {
+		builder.WriteString(subtleGray(" ??? "))
+	}
 
 	for i := 0; i < length; i++ {
-		if i < chars {
+		if i < numChars {
 			builder.WriteString(white("━"))
-		} else if i == chars && i != 0 {
+		} else if i == numChars && i != 0 {
 			builder.WriteString(subtleGray("╶"))
 		} else {
 			builder.WriteString(subtleGray("─"))
@@ -179,7 +188,7 @@ func (r *progress) String() string {
 	} else {
 		domainEnd += domainStart
 		domain := r.url[domainStart:domainEnd]
-		suffixStart := len(r.url) - (URL_LENGTH - 4 - len(domain))
+		suffixStart := len(r.url) - (urlLength - 4 - len(domain))
 		if suffixStart-domainEnd <= 4 {
 			url = r.url[domainStart:]
 		} else {
@@ -187,6 +196,6 @@ func (r *progress) String() string {
 		}
 	}
 
-	bar := barString(r.current, r.total, BAR_LENGTH)
-	return fmt.Sprintf(gray("%-*v "), URL_LENGTH, url) + bar
+	bar := barString(r.current, r.total, barLength)
+	return fmt.Sprintf(gray("%-*v "), urlLength, url) + bar
 }

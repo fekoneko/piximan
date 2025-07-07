@@ -1,8 +1,8 @@
 package queue
 
 import (
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 type Item struct {
@@ -18,6 +18,6 @@ type Item struct {
 	// Thumbnail / cover url if available, may be used to reduce the number of requests
 	ImageUrl *string
 
-	// Whether or not to download full metadata or store partial metadata available in Work
+	// Whether to download full metadata or store partial metadata available in Work
 	LowMeta bool
 }

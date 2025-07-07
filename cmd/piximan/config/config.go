@@ -13,7 +13,7 @@ func config(options *options) {
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
 
-	storage, err := appconfig.Open(options.Password)
+	storage, err := appconfig.New(options.Password)
 	logger.MaybeFatal(err, "failed to open config storage")
 
 	if utils.FromPtr(options.ResetSession, false) {

@@ -14,12 +14,14 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 ## Downloader features
 
 - Download illustrations / manga / ugoira / novels
-- Download user bookmarks by ID
-- Download by ID or from list
-- Infer work IDs from existing collection paths
 - Download different sizes (resolutions) of the illustrations / manga
-- Interactive mode for download and configuration with `piximan` CLI
-- Store work metadata with downloaded work in _YAML_ format
+- Download your bookmarks or bookmarks of another user
+- Download by work ID
+- Download from list
+- Filter downloaded works with download rules
+- Avoid downloading duplicate works by providing path to your collection
+- Infer work IDs from existing collection paths for easy migration to piximan metadata
+- Interactive mode for download and configuration CLI
 - Use substitutions in download path: `{title}` / `{id}` / `{user}` / `{user-id}` / etc.
 - Make requests concurrently when it's possible without bothering the Pixiv servers too much
 - Authorize requests with your session ID, `piximan` will try to use it as few as possible
@@ -169,7 +171,7 @@ piximan download \
   --path './artworks/{user} ({user-id})/{title} ({id})'
 ```
 
-### Inferring work IDs
+### Inferring work IDs from path
 
 You can infer the IDs of works from the given path. For example, this is useful for updating
 the metadata in the existing collection when coupled with the `--only-meta` flag:
@@ -178,6 +180,87 @@ the metadata in the existing collection when coupled with the `--only-meta` flag
 piximan download \
   --infer-id './artworks/*/* ({id})' \
   --only-meta
+```
+
+### Downloading rules
+
+Rules are used to filter wich works should be downloaded and defined in YAML format.
+All rules are optional, and if multiple rules are defined, the work should match all of
+them to be downloaded (AND). Any array matches any of its elements (OR).
+
+Here's an example of all available rules:
+
+```yaml
+ids: [12345, 23456]
+not_ids: [34567, 45678]
+title_contains: ['cute', 'cat']
+title_not_contains: ['ugly', 'dog']
+title_regexp: '^.*[0-9]+$'
+kinds: ['illust', 'manga', 'ugoira', 'novel']
+description_contains: ['hello', 'world']
+description_not_contains: ['goodbye', 'universe']
+description_regexp: '^.*[0-9]+$'
+user_ids: [12345, 23456]
+not_user_ids: [34567, 45678]
+user_names: ['fekoneko', 'somecoolartist']
+not_user_names: ['notsocoolartist', 'notme']
+restrictions: ['none', 'R-18', 'R-18G']
+ai: false
+original: true
+pages_less_than: 50
+pages_more_than: 3
+views_less_than: 10000
+views_more_than: 1000
+bookmarks_less_than: 1000
+bookmarks_more_than: 100
+likes_less_than: 500
+likes_more_than: 50
+comments_less_than: 10
+comments_more_than: 2
+uploaded_before: 2022-01-01T00:00:00Z00:00
+uploaded_after: 2010-01-01T00:00:00Z00:00
+series: true
+series_ids: [12345, 23456]
+not_series_ids: [34567, 45678]
+series_title_contains: ['cute', 'cat']
+series_title_not_contains: ['ugly', 'dog']
+series_title_regexp: '^.*[0-9]+$'
+tags: ['お気に入り', '東方']
+not_tags: ['おっぱい', 'AI生成']
+```
+
+When downloading, specify the rules with `--rules` flag:
+
+```shell
+piximan download --id 12345 --rules './rules.yaml'
+```
+
+### Syncing bookmarks with existing collection
+
+You can skip works already present in the collection with `--collection` flag:
+
+```shell
+piximan download --bookmarks my --collection '.' --path './{user-id}/{id}'
+```
+
+Infer ID pattern can be provided here as well (see `--infer-id` flag). Note tat in this case
+all matched work IDs will be assumed to be of type provided with `--type` flag:
+
+```shell
+piximan download --bookmarks my --collection './*/{id}' --path './{user-id}/{id}'
+```
+
+While the above commands will skip already downloaded works, it will need to fetch
+the list of all your bookmarks to ensure there isn't some older one that isn't present
+in the collection.
+
+Flag `--fresh` will tell the downloader to stop crawling new bookmark pages once it encounters
+a fully ignored one. This may greatly reduce the number of authorized requests to pixiv.net.
+
+So for syncing your new bookmarks once in a while you can use the downloader like this:
+
+```shell
+piximan download --bookmarks my --collection '.' --fresh --path './{user-id}/{id}'
 ```
 
 ### Help

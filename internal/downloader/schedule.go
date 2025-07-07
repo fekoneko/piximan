@@ -3,9 +3,9 @@ package downloader
 import (
 	"fmt"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Schedule download. Run() to start downloading.
@@ -50,7 +50,7 @@ func (d *Downloader) ScheduleWithKnown(
 	d.logger.ExpectWorks(len(ids))
 }
 
-// Merge queue to the downloader queue. Run() to start downloading.
+// Append specified queue to the downloader queue. Run() to start downloading.
 func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
@@ -59,7 +59,8 @@ func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	d.logger.ExpectWorks(len(*q))
 }
 
-// Run the downloader. Need to WaitNext() or WaitDone() to get the results.
+// Run the downloader.
+// The operation must be waited for with WaitNext() or WaitDone() after this method.
 func (d *Downloader) Run() {
 	d.downloadingMutex.Lock()
 	downloading := d.downloading
@@ -74,19 +75,21 @@ func (d *Downloader) Run() {
 // Block until next work is downloaded. Returns nil if there are no more works to download.
 // Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (d *Downloader) WaitNext() *work.Work {
+	// TODO: return errors as well
 	return <-d.channel
 }
 
 // Block until all works are downloaded.
 // Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (d *Downloader) WaitDone() {
+	// TODO: return errors as well
 	for d.WaitNext() != nil {
 	}
 }
 
 // TODO: make supervisers prettier
 
-// Meant to be run in a separate goroutine. Spawns download goroutines from downloadQueu
+// Meant to be run in a separate goroutine. Spawns download goroutines from downloadQueue
 // until it is empty and no crawling is happening. Sets d.downloading to false when done.
 func (d *Downloader) superviseDownload() {
 	d.downloadingMutex.Lock()
@@ -95,7 +98,7 @@ func (d *Downloader) superviseDownload() {
 
 	for {
 		d.numDownloadingCond.L.Lock()
-		for d.numDownloading >= DOWNLOAD_PENDING_LIMIT {
+		for d.numDownloading >= downloadPendingLimit {
 			d.numDownloadingCond.Wait()
 		}
 
@@ -142,12 +145,12 @@ func (d *Downloader) superviseDownload() {
 // Meant to be run in a separate goroutine.
 // Spawns crawl goroutines from crawlQueue until it is empty
 func (d *Downloader) superviseCrawl() {
-	d.numCrawlingCond.L.Lock()
-	defer d.numCrawlingCond.L.Unlock()
+	d.crawlingCond.L.Lock()
+	defer d.crawlingCond.L.Unlock()
 
 	for {
-		for d.numCrawling >= CRAWL_PENDING_LIMIT {
-			d.numCrawlingCond.Wait()
+		for d.crawling {
+			d.crawlingCond.Wait()
 		}
 
 		d.crawlQueueMutex.Lock()
@@ -158,36 +161,38 @@ func (d *Downloader) superviseCrawl() {
 		crawl := d.crawlQueue[0]
 		d.crawlQueue = d.crawlQueue[1:]
 		d.crawlQueueMutex.Unlock()
-		d.numCrawling++
+		d.crawling = true
 
 		go func() {
 			if err := crawl(); err == nil {
 				d.logger.AddSuccessfulCrawl()
+			} else if err == ErrSkipped {
+				d.logger.AddSkippedCrawl()
 			} else {
 				d.logger.AddFailedCrawl()
 			}
 
-			d.numCrawlingCond.L.Lock()
-			d.numCrawling--
-			d.numCrawlingCond.Broadcast()
-			d.numCrawlingCond.L.Unlock()
+			d.crawlingCond.L.Lock()
+			d.crawling = false
+			d.crawlingCond.Broadcast()
+			d.crawlingCond.L.Unlock()
 		}()
 	}
 }
 
 // Returns false if already crawled, otherwise waits for next crawl task to finish and returns true.
 func (d *Downloader) waitNextCrawled() bool {
-	d.numCrawlingCond.L.Lock()
-	defer d.numCrawlingCond.L.Unlock()
+	d.crawlingCond.L.Lock()
+	defer d.crawlingCond.L.Unlock()
 
 	d.crawlQueueMutex.Lock()
 	numCrawlTasks := len(d.crawlQueue)
 	d.crawlQueueMutex.Unlock()
 
-	if d.numCrawling <= 0 && numCrawlTasks == 0 {
+	if !d.crawling && numCrawlTasks == 0 {
 		return false
 	}
-	d.numCrawlingCond.Wait()
+	d.crawlingCond.Wait()
 
 	return true
 }
@@ -232,9 +237,14 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 		d.logger.Error("failed to pick work %v for download: %v", item.Id, err)
 	}
 
-	if err == nil {
+	if err == nil && w != nil {
 		d.channel <- w
 		d.logger.AddSuccessfulWork()
+	} else if err == ErrSkipped {
+		d.logger.AddSkippedWork()
+	} else if w == nil {
+		d.logger.Error("received empty work %v from the task", item.Id)
+		d.logger.AddFailedWork(item.Id)
 	} else {
 		d.logger.AddFailedWork(item.Id)
 	}

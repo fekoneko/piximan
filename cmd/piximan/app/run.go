@@ -11,8 +11,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
-const APPLICATION_ID = "com.fekoneko.piximan"
-const RESOURCE_PREFIX = "/com/fekoneko/piximan"
+const applicationId = "com.fekoneko.piximan"
+const resourcePrefix = "/com/fekoneko/piximan"
 
 //go:embed piximan.gresource
 var resources []byte
@@ -25,7 +25,7 @@ func Run(version string) {
 
 	registerResources()
 
-	app := adw.NewApplication(APPLICATION_ID, gio.ApplicationFlagsNone)
+	app := adw.NewApplication(applicationId, gio.ApplicationFlagsNone)
 	app.SetVersion(version)
 	app.ConnectActivate(func() { activate(&app.Application) })
 
@@ -44,7 +44,7 @@ func registerResources() {
 }
 
 func activate(app *gtk.Application) {
-	builder := gtk.NewBuilderFromResource(RESOURCE_PREFIX + "/window.ui")
+	builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
 	window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
 	app.AddWindow(&window.Window)
 }

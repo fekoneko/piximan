@@ -39,17 +39,17 @@ var userIdPrompt = promptui.Prompt{
 	Validate: utils.ValidateNumber("user ID must be a number"),
 }
 
-var inferIdPathPromptLabel = "Path pattern"
+var inferIdPromptLabel = "Path pattern"
 
-var inferIdPathPrompt = promptui.Prompt{
-	Label:    inferIdPathPromptLabel,
+var inferIdPrompt = promptui.Prompt{
+	Label:    inferIdPromptLabel,
 	Validate: fsext.InferIdPathValid,
 }
 
-var queuePathPromptLabel = "Path to YAML list"
+var listPromptLabel = "Path to download list file"
 
-var queuePathPrompt = promptui.Prompt{
-	Label: queuePathPromptLabel,
+var listPrompt = promptui.Prompt{
+	Label: listPromptLabel,
 }
 
 var kindSelectLabel = "Type of work to download"
@@ -101,6 +101,27 @@ var lowMetaSelect = promptui.Select{
 	Items: []string{lowMetaOption, fullMetaOption},
 }
 
+var collectionPromptLabel = "Ignore works present in the collection (path, infer id pattern or nothing)"
+
+var collectionPrompt = promptui.Prompt{
+	Label: collectionPromptLabel,
+	Validate: func(input string) error {
+		if fsext.CanBeInferIdPath(input) {
+			return fsext.InferIdPathValid(input)
+		}
+		return nil
+	},
+}
+
+var freshSelectLabel = "Pick bookmark pages fetching strategy"
+var freshPagesOption = "Fetch new bookmarks until fully downloaded bookmark page is reached"
+var allPagesOption = "Fetch and check all bookmarks"
+
+var freshSelect = promptui.Select{
+	Label: freshSelectLabel,
+	Items: []string{freshPagesOption, allPagesOption},
+}
+
 var sizeSelectLabel = "Size of downloaded images"
 var sizeSelectWithQueueLabel = "Default size of downloaded images"
 var thumbnailSizeOption = "Thumbnail"
@@ -133,6 +154,12 @@ func pathPrompt(withQueue bool) *promptui.Prompt {
 		Label:    utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
 		Validate: fsext.WorkPathValid,
 	}
+}
+
+var rulesPromptLabel = "Path to download rules file (leave empty to download all)"
+
+var rulesPrompt = promptui.Prompt{
+	Label: rulesPromptLabel,
 }
 
 var passwordPrompt = promptui.Prompt{

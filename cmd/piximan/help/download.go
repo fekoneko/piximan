@@ -1,14 +1,21 @@
 package help
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
-const DOWNLOAD_HELP = //
+// TODO: split download help into multiple categories same as `piximan download rules`
+//       make `piximan download` only give quick overview and link to the categories
+
+const downloadHelp = //
 `Run without arguments to enter interactive mode.
 
-> piximan download [--id        ...] [--type  ...] [--tag   ...] [--path     ...]
-                   [--bookmarks ...] [--size  ...] [--from  ...] [--password ...]
-                   [--list      ...] [--only-meta] [--to    ...]
-                   [--infer-id  ...]               [--low-meta ]
+> piximan download [--id        ...] [--type  ...]      [--tag   ...] [--path     ...]
+                   [--bookmarks ...] [--size  ...]      [--from  ...] [--password ...]
+                   [--list      ...] [--only-meta]      [--to    ...]
+                   [--infer-id  ...] [--rules ...]      [--low-meta ]
+                                     [--collection ...] [--fresh    ]
 
                               Download sources
                               ----------------
@@ -54,6 +61,15 @@ const DOWNLOAD_HELP = //
 --only-meta  Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.
 
+--rules      Path to YAML file with download rules. The download rules are used to
+ -r          filter wich works should be downloaded. Run 'piximan help rules' for more info.
+
+--collection If provided, all works already present in the collection directory will
+ -c          be skipped when downloading.
+             If you don't use metadata.yaml files in your collection, you can also provide
+             infer ID pattern here (see --infer-id). Note that this way, the type of the ignored
+             works will be assumed to be the same as provided with --type flag.
+
                          Bookmarks-specific options
                          --------------------------
 --tag        User-assigned tag to filter the bookmarks by. You can see those on the
@@ -76,6 +92,11 @@ const DOWNLOAD_HELP = //
              - series_id, series_title, series_order
              When downloading novels without --low-meta flag, the full metadata will be
              downloaded without any request overhead, so --low-meta should be omitted.
+
+--fresh      Useful if you already have all of your bookmarks downloaded in the collection and
+ -f          only want to sync the new ones. This option tells the downloader to stop crawling
+             new bookmark pages once it encounters a fully ignored one. This may greatly reduce
+             the number of authorized requests to pixiv.net.
 
                               Other parameters
                               ----------------
@@ -107,27 +128,87 @@ const DOWNLOAD_HELP = //
 > piximan download --id 10000 --path "$HOME/My Collection/{user-id}/{id}"
 
 # Download novels with ID 10000 and 20000
-> piximan download --id 10000 --id 20000 --type novel --path "./{user-id}/{id}"
+> piximan download --id 10000 --id 20000 --type novel --path './{user-id}/{id}'
 
 # Download 101th to 200th of your latest public artwork bookmarks with full metadata
-> piximan download --bookmarks my --from 100 --to 200 --path "./{id}"
+> piximan download --bookmarks my --from 100 --to 200 --path './{id}'
 
 # Download all of your private artwork bookmarks with partial metadata saving requests
-> piximan download --bookmarks my --private --low-meta --path "./{id}"
+> piximan download --bookmarks my --private --low-meta --path './{id}'
 
 # Download all novel bookmarks from user 10000 with tag 'お気に入り'
-> piximan download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
+> piximan download --bookmarks 10000 --type novel --tag 'お気に入り' --path './{id}'
 
 # Download works from list.yaml to the current directory with fallback path
-> piximan download --list "./list.yaml" --path "./{user-id}/{id}"
+> piximan download --list './list.yaml' --path './{user-id}/{id}'
 
-# Update metadata in the collection saved earlier
+# Update metadata for artworks in the collection saved earlier
 > piximan download --infer-id --only-meta "$HOME/My Collection/*/{id}"
+
+# Use download rulesto filter user's bookmarks
+> piximan download --bookmarks 12345 --rules './rules.yaml' --path './{user-id}/{id}'
+
+# Sync your bookmarks with the existing collection
+> piximan download --bookmarks my --collection '.' --fresh --path './{user-id}/{id}'
+`
+
+const downloadRulesHelp = //
+`Rules are used to filter wich works should be downloaded and defined in YAML format.
+All rules are optional, and if multiple rules are defined, the work should match all of
+them to be downloaded (AND). Any array matches any of its elements (OR).
+
+If you download bookmarks with --low-meta flag, be aware that rules, related to the
+missing metadata fields will be ignored. You need to download full metadata to match them.
+
+Here's an example of all available rules:
+
+  ids:                       [12345, 23456]
+  not_ids:                   [34567, 45678]
+  title_contains:            ['cute', 'cat']
+  title_not_contains:        ['ugly', 'dog']
+  title_regexp:              '^.*[0-9]+$'
+  kinds:                     ['illust', 'manga', 'ugoira', 'novel']
+  description_contains:      ['hello', 'world']
+  description_not_contains:  ['goodbye', 'universe']
+  description_regexp:        '^.*[0-9]+$'
+  user_ids:                  [12345, 23456]
+  not_user_ids:              [34567, 45678]
+  user_names:                ['fekoneko', 'somecoolartist']
+  not_user_names:            ['notsocoolartist', 'notme']
+  restrictions:              ['none', 'R-18', 'R-18G']
+  ai:                        false
+  original:                  true
+  pages_less_than:           50
+  pages_more_than:           3
+  views_less_than:           10000
+  views_more_than:           1000
+  bookmarks_less_than:       1000
+  bookmarks_more_than:       100
+  likes_less_than:           500
+  likes_more_than:           50
+  comments_less_than:        10
+  comments_more_than:        2
+  uploaded_before:           2022-01-01T00:00:00Z00:00
+  uploaded_after:            2010-01-01T00:00:00Z00:00
+  series:                    true
+  series_ids:                [12345, 23456]
+  not_series_ids:            [34567, 45678]
+  series_title_contains:     ['cute', 'cat']
+  series_title_not_contains: ['ugly', 'dog']
+  series_title_regexp:       '^.*[0-9]+$'
+  tags:                      ['お気に入り', '東方']
+  not_tags:                  ['おっぱい', 'AI生成']
 `
 
 func RunDownload() {
-	fmt.Print(DOWNLOAD_HELP)
+	if len(os.Args) > 2 && os.Args[2] == "rules" {
+		fmt.Print(downloadRulesHelp)
+	} else {
+		fmt.Print(downloadHelp)
+	}
 }
+
+// TODO: ability to pass collection path to --infer-id like you can pattern to --collection
 
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list

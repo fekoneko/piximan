@@ -3,9 +3,9 @@ package downloader
 import (
 	"fmt"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/imageext"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 // Fetch and encode gif asset for ugoira

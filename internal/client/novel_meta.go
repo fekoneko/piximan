@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/internal/client/dto"
-	"github.com/fekoneko/piximan/internal/work"
+	"github.com/fekoneko/piximan/internal/collection/work"
 )
 
 func (c *Client) NovelMeta(id uint64) (w *work.Work, content *string, coverUrl *string, err error) {

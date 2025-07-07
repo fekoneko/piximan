@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/utils"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 type Work struct {
@@ -56,12 +56,13 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 	if seriesIdType != nil {
 		switch seriesIdType.Kind() {
 		case reflect.String:
-			if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.Id).String(), 10, 64); err == nil {
+			s := reflect.ValueOf(dto.SeriesNavData.SeriesId).String()
+			if parsed, err := strconv.ParseUint(s, 10, 64); err == nil {
 				seriesId = &parsed
 			}
 		case reflect.Float64:
-			parsed := reflect.ValueOf(dto.Id).Float()
-			seriesId = utils.ToPtr(uint64(parsed))
+			f := reflect.ValueOf(dto.SeriesNavData.SeriesId).Float()
+			seriesId = utils.ToPtr(uint64(f))
 		}
 	}
 
@@ -73,7 +74,7 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 		UserId:       utils.ParseUint64Ptr(dto.UserId),
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
-		AiKind:       utils.MapPtr(dto.XRestrict, work.AiKindFromUint),
+		Ai:           work.AiFromUint(utils.FromPtr(dto.AiType, work.AiDefaultUint)),
 		Original:     dto.IsOriginal,
 		NumPages:     dto.PageCount,
 		NumViews:     dto.ViewCount,

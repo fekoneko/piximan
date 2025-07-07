@@ -2,7 +2,7 @@ package help
 
 import "fmt"
 
-const GENERAL_HELP = //
+const generalHelp = //
 `Viewer GUI:     > piximan                # Run piximan collection viewer
                 > piximan help app       # More information
 
@@ -14,5 +14,5 @@ Config CLI:     > piximan config         # Run in interactive mode
 `
 
 func RunGeneral() {
-	fmt.Print(GENERAL_HELP)
+	fmt.Print(generalHelp)
 }

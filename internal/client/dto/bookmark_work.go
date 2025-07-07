@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/utils"
-	"github.com/fekoneko/piximan/internal/work"
 )
 
 type BookmarkWork struct {
@@ -30,13 +30,13 @@ func (dto *BookmarkWork) FromDto(
 	if idType != nil {
 		switch idType.Kind() {
 		case reflect.String:
-			if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.Id).String(), 10, 64); err == nil {
+			s := reflect.ValueOf(dto.Id).String()
+			if parsed, err := strconv.ParseUint(s, 10, 64); err == nil {
 				id = &parsed
 			}
 		case reflect.Float64:
-			parsed := reflect.ValueOf(dto.Id).Float()
-			id := utils.ToPtr(uint64(parsed))
-			work := work.Work{Id: id}
+			f := reflect.ValueOf(dto.Id).Float()
+			work := work.Work{Id: utils.ToPtr(uint64(f))}
 			return &work, true
 		}
 	}
@@ -44,7 +44,8 @@ func (dto *BookmarkWork) FromDto(
 	var userId *uint64
 	userIdType := reflect.TypeOf(dto.UserId)
 	if userIdType != nil && userIdType.Kind() == reflect.String {
-		if parsed, err := strconv.ParseUint(reflect.ValueOf(dto.UserId).String(), 10, 64); err == nil {
+		s := reflect.ValueOf(dto.UserId).String()
+		if parsed, err := strconv.ParseUint(s, 10, 64); err == nil {
 			userId = &parsed
 		}
 	}
@@ -57,7 +58,7 @@ func (dto *BookmarkWork) FromDto(
 		UserId:       userId,
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
-		AiKind:       utils.MapPtr(dto.XRestrict, work.AiKindFromUint),
+		Ai:           work.AiFromUint(utils.FromPtr(dto.AiType, work.AiDefaultUint)),
 		NumPages:     dto.PageCount,
 		UploadTime:   utils.ParseLocalTimePtr(dto.CreateDate),
 		DownloadTime: utils.ToPtr(downloadTime.Local()),

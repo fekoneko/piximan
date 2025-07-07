@@ -9,9 +9,9 @@ import (
 	"github.com/mattn/go-colorable"
 )
 
-const NUM_SLOTS = 6
-const URL_LENGTH = 36
-const BAR_LENGTH = 36
+const numSlots = 6
+const urlLength = 36
+const barLength = 36
 
 var cyan = color.New(color.FgHiCyan, color.Bold).SprintFunc()
 var green = color.New(color.FgHiGreen, color.Bold).SprintFunc()
@@ -22,12 +22,12 @@ var white = color.New(color.FgHiWhite, color.Bold).SprintFunc()
 var gray = color.New(color.FgHiBlack, color.Bold).SprintFunc()
 var subtleGray = color.New(color.FgHiBlack).SprintFunc()
 
-var infoPrefix = cyan("[INFO]") + "    "
-var successPrefix = green("[SUCCESS]") + " "
-var warningPrefix = yellow("[WARNING]") + " "
-var errorPrefix = red("[ERROR]") + "   "
-var requestPrefix = magenta("[REQUEST]") + " " + white("(unauthorized)") + " "
-var authRequestPrefix = magenta("[REQUEST]") + " " + red("(authorized)") + " "
+var infoPrefix = cyan("   INFO ")
+var successPrefix = green("SUCCESS ")
+var warningPrefix = yellow("WARNING ")
+var errorPrefix = red("  ERROR ")
+var requestPrefix = magenta("REQUEST ") + white("(unauthorized) ")
+var authRequestPrefix = magenta("REQUEST ") + red("(authorized) ")
 
 // Used to log the messages and display request statuses.
 // Avoid using multiple loggers on the same output at the same time.
@@ -42,9 +42,11 @@ type Logger struct {
 	numAuthorizedRequests int
 	numExpectedWorks      int
 	numSuccessfulWorks    int
+	numSkippedWorks       int
 	failedWorkIds         []uint64
 	numExpectedCrawls     int
 	numSuccessfulCrawls   int
+	numSkippedCrawls      int
 	numFailedCrawls       int
 	numWarnings           int
 	numErrors             int
@@ -57,7 +59,7 @@ func New(output *os.File) *Logger {
 		mutex:         &sync.Mutex{},
 		writer:        &writer,
 		progressMap:   map[int]*progress{},
-		slots:         make([]int, NUM_SLOTS),
+		slots:         make([]int, numSlots),
 		failedWorkIds: make([]uint64, 0),
 	}
 }

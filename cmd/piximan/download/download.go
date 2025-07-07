@@ -1,11 +1,12 @@
 package download
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
 	"github.com/fekoneko/piximan/internal/client"
+	"github.com/fekoneko/piximan/internal/collection"
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/image"
@@ -22,6 +23,7 @@ func download(options *options) {
 	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
+	fresh := utils.FromPtr(options.Fresh, false)
 	path := utils.FromPtr(options.Path, "")
 
 	storage, sessionId := configAndSession(options.Password)
@@ -43,9 +45,8 @@ func download(options *options) {
 		paths := []string{path}
 		d.ScheduleMyBookmarks(
 			kind, options.Tag, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, paths,
+			size, onlyMeta, lowMeta, fresh, paths,
 		)
-		fmt.Println()
 
 	} else if options.Bookmarks != nil {
 		userId, err := strconv.ParseUint(*options.Bookmarks, 10, 64)
@@ -54,15 +55,14 @@ func download(options *options) {
 		paths := []string{path}
 		d.ScheduleBookmarks(
 			userId, kind, options.Tag, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, paths,
+			size, onlyMeta, lowMeta, fresh, paths,
 		)
-		fmt.Println()
 
-	} else if options.InferIdPath != nil {
-		idPathMap, err := fsext.InferIdsFromWorkPath(*options.InferIdPath)
-		logger.MaybeFatal(err, "cannot infer work id from pattern %v", *options.InferIdPath)
+	} else if options.InferId != nil {
+		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.InferId)
+		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferId)
 		if len(*idPathMap) == 0 {
-			logger.Warning("no ids could be inferred from pattern %v", *options.InferIdPath)
+			logger.Warning("no ids could be inferred from pattern %v", *options.InferId)
 			return
 		}
 
@@ -75,20 +75,48 @@ func download(options *options) {
 			d.ScheduleQueue(q)
 		}
 
-	} else if options.QueuePath != nil {
+	} else if options.List != nil {
 		paths := []string{path}
-		q, warnings, err := fsext.ReadQueue(*options.QueuePath, kind, size, onlyMeta, paths)
-		logger.MaybeWarnings(warnings, "while reading the list from %v", *options.QueuePath)
-		logger.MaybeFatal(err, "cannot read the list from %v", *options.QueuePath)
+		q, err := fsext.ReadList(*options.List, kind, size, onlyMeta, paths)
+		logger.MaybeFatal(err, "cannot read download list from %v", *options.List)
 		if len(*q) == 0 {
-			logger.Warning("no works found in the list %v", *options.QueuePath)
+			logger.Warning("no works found in the list %v", *options.List)
 			return
 		}
 
 		d.ScheduleQueue(q)
 	}
 
-	fmt.Println(d)
+	if options.Rules != nil {
+		rules, err := fsext.ReadRules(*options.Rules)
+		logger.MaybeFatal(err, "cannot read download rules from %v", *options.Rules)
+		d.SetRules(rules)
+	}
+
+	if options.Collection != nil && fsext.CanBeInferIdPath(*options.Collection) {
+		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.Collection)
+		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.Collection)
+		if len(*idPathMap) == 0 {
+			logger.Warning("no ids could be inferred from pattern %v", *options.Collection)
+			return
+		}
+		list := queue.IgnoreListFromMap(idPathMap, kind)
+		d.SetIgnoreList(list)
+	} else if options.Collection != nil {
+		c := collection.New(*options.Collection, logger.DefaultLogger)
+		works := make([]*work.Work, 0)
+		c.Parse()
+		for w := c.WaitNext(); w != nil; w = c.WaitNext() {
+			works = append(works, w)
+		}
+		if len(works) == 0 {
+			logger.Fatal("no works found in the collection")
+		}
+		list := queue.IgnoreListFromWorks(works)
+		d.SetIgnoreList(list)
+	}
+
+	logger.Info("created downloader:\n%v", d.String())
 
 	logger.EnableProgress()
 	defer logger.DisableProgress()
@@ -101,7 +129,7 @@ func download(options *options) {
 }
 
 func configAndSession(password *string) (storage *config.Storage, sessionId *string) {
-	storage, err := config.Open(password)
+	storage, err := config.New(password)
 	if err != nil && password != nil {
 		logger.Fatal("cannot open config storage: %v", err)
 		panic("unreachable")
@@ -140,7 +168,7 @@ func promptPassword() (storage *config.Storage, sessionId *string) {
 			return nil, nil
 		}
 
-		storage, err := config.Open(&password)
+		storage, err := config.New(&password)
 		if err != nil {
 			logger.Warning("cannot open config storage: %v", err)
 			promptNoAuthorization()
