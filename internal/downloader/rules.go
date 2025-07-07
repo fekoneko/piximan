@@ -98,7 +98,7 @@ func (d *Downloader) matchNovelNeedFull(id uint64, w *work.Work) (matches bool, 
 
 	matches, warnings := d.rules.MatchWork(w, true)
 	if !matches {
-		d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
+		d.logger.Info("skipping novel %v as it doesn't match download rules", id)
 	}
 	return matches, len(warnings) > 0
 }
