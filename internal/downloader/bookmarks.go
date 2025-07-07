@@ -67,7 +67,7 @@ func (d *Downloader) ScheduleBookmarks(
 		toOffset := min(utils.FromPtr(to, total), total)
 		offset := fromOffset + 100
 		numTasks := 0
-		signal := make(syncext.Signal)
+		signal := syncext.NewSignal()
 
 		for offset < toOffset {
 			limit := min(100, toOffset-offset)
@@ -107,8 +107,7 @@ func (d *Downloader) scheduleBookmarksPage(
 	size image.Size, onlyMeta bool, lowMeta bool, paths []string, signal *syncext.Signal,
 ) (total uint64, allIngored bool, err error) {
 	if signal != nil && signal.Cancelled() {
-		d.logger.AddSkippedCrawl()
-		return 0, false, nil
+		return 0, false, ErrSkipped
 	}
 
 	var successPrefix = fmt.Sprintf("fetched %v bookmarks page", kind)
@@ -145,23 +144,29 @@ func (d *Downloader) scheduleBookmarksPage(
 		return 0, false, nil
 	}
 
-	allIngored = true
+	numIgnored := 0
 	for _, result := range results {
 		if result.Work.Id == nil {
 			err := fmt.Errorf("work id is missing in %v", result.Work)
 			d.logger.Error(
 				"%v %v: %v", bookmarksLogMessage("failed to schedule", userId, tag, &offset), kind, err,
 			)
-			allIngored = false
-		} else if !d.ignored(*result.Work.Id, kind) {
+		} else if !d.ignored(*result.Work.Id, kind, true) {
 			d.ScheduleWithKnown(
 				[]uint64{*result.Work.Id}, kind, size, onlyMeta, paths,
 				result.Work, result.ImageUrl, lowMeta,
 			)
-			allIngored = false
+		} else {
+			numIgnored++
 		}
 	}
-	return total, allIngored, nil
+	if numIgnored > 0 {
+		d.logger.Info(
+			"skipping %v %v%v as %v already downloaded", numIgnored, kind.String(),
+			utils.If(numIgnored == 1, "", "s"), utils.If(numIgnored == 1, "it was", "they were"),
+		)
+	}
+	return total, numIgnored >= len(results), nil
 }
 
 func bookmarksLogMessage(prefix string, userId uint64, tag *string, offset *uint64) string {

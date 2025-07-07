@@ -75,12 +75,14 @@ func (d *Downloader) Run() {
 // Block until next work is downloaded. Returns nil if there are no more works to download.
 // Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (d *Downloader) WaitNext() *work.Work {
+	// TODO: return errors as well
 	return <-d.channel
 }
 
 // Block until all works are downloaded.
 // Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (d *Downloader) WaitDone() {
+	// TODO: return errors as well
 	for d.WaitNext() != nil {
 	}
 }
@@ -164,6 +166,8 @@ func (d *Downloader) superviseCrawl() {
 		go func() {
 			if err := crawl(); err == nil {
 				d.logger.AddSuccessfulCrawl()
+			} else if err == ErrSkipped {
+				d.logger.AddSkippedCrawl()
 			} else {
 				d.logger.AddFailedCrawl()
 			}
@@ -236,9 +240,12 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	if err == nil && w != nil {
 		d.channel <- w
 		d.logger.AddSuccessfulWork()
-	} else if err == nil && w == nil {
+	} else if err == ErrSkipped {
 		d.logger.AddSkippedWork()
-	} else if err != nil {
+	} else if w == nil {
+		d.logger.Error("received empty work %v from the task", item.Id)
+		d.logger.AddFailedWork(item.Id)
+	} else {
 		d.logger.AddFailedWork(item.Id)
 	}
 }

@@ -13,8 +13,8 @@ import (
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindArtwork) || !d.matchArtworkId(id) {
-		return nil, nil
+	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtworkId(id) {
+		return nil, ErrSkipped
 	}
 	d.logger.Info("started downloading metadata for artwork %v", id)
 
@@ -22,7 +22,7 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 	if err != nil {
 		return nil, err
 	} else if !d.matchArtwork(id, w, false) {
-		return nil, nil
+		return nil, ErrSkipped
 	}
 
 	assets := []fsext.Asset{}
@@ -33,8 +33,8 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []string) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindArtwork) || !d.matchArtwork(id, w, true) {
-		return nil, nil
+	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtwork(id, w, true) {
+		return nil, ErrSkipped
 	}
 	assets := []fsext.Asset{}
 	return w, d.writeWork(id, queue.ItemKindArtwork, w, assets, true, paths)
@@ -44,8 +44,8 @@ func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []st
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindArtwork) || !d.matchArtworkId(id) {
-		return nil, nil
+	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtworkId(id) {
+		return nil, ErrSkipped
 	}
 	d.logger.Info("started downloading artwork %v", id)
 
@@ -53,7 +53,7 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 	if err != nil {
 		return nil, err
 	} else if !d.matchArtwork(id, w, false) {
-		return nil, nil
+		return nil, ErrSkipped
 	}
 
 	if w.Kind == nil {
@@ -84,10 +84,10 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 func (d *Downloader) ArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindArtwork) {
-		return nil, nil
+	if d.ignored(id, queue.ItemKindArtwork, false) {
+		return nil, ErrSkipped
 	} else if matches, needFull := d.matchArtworkNeedFull(id, w); !matches {
-		return nil, nil
+		return nil, ErrSkipped
 	} else if needFull {
 		return d.Artwork(id, size, paths)
 	}
@@ -135,8 +135,8 @@ func (d *Downloader) ArtworkWithKnown(
 func (d *Downloader) LowArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindArtwork) || !d.matchArtwork(id, w, true) {
-		return nil, nil
+	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtwork(id, w, true) {
+		return nil, ErrSkipped
 	}
 	if w.Kind == nil {
 		err := fmt.Errorf("work kind is missing in %v", w)

@@ -97,8 +97,11 @@ func download(options *options) {
 		c := collection.New(*options.Collection, logger.DefaultLogger)
 		works := make([]*work.Work, 0)
 		c.Parse()
-		for c.WaitNext() != nil {
-			works = append(works, c.WaitNext())
+		for w := c.WaitNext(); w != nil; w = c.WaitNext() {
+			works = append(works, w)
+		}
+		if len(works) == 0 {
+			logger.Fatal("no works found in the collection")
 		}
 		list := queue.IgnoreListFromWorks(works)
 		d.SetIgnoreList(list)

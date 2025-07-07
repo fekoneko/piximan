@@ -47,12 +47,14 @@ func (c *Collection) Parse() {
 // Block until next work is parsed. Returns nil if there are no more works to parse or parsing was
 // cancelled. Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (c *Collection) WaitNext() *work.Work {
+	// TODO: return errors as well
 	return <-c.channel
 }
 
 // Block until all works are parsed or parsing is cancelled.
 // Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
 func (c *Collection) WaitDone() {
+	// TODO: return errors as well
 	for c.WaitNext() != nil {
 	}
 }
@@ -79,7 +81,7 @@ func (c *Collection) newSignal() syncext.Signal {
 	defer c.signalMutex.Unlock()
 
 	c.cancelNoLock()
-	signal := make(syncext.Signal)
+	signal := syncext.NewSignal()
 	c.signal = signal
 
 	return signal

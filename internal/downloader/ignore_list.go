@@ -9,7 +9,7 @@ func (d *Downloader) SetIgnoreList(list *queue.IgnoreList) {
 	d.ignoreList = list
 }
 
-func (d *Downloader) ignored(id uint64, kind queue.ItemKind) bool {
+func (d *Downloader) ignored(id uint64, kind queue.ItemKind, silent bool) bool {
 	d.ignoreListMutex.Lock()
 	defer d.ignoreListMutex.Unlock()
 
@@ -17,7 +17,9 @@ func (d *Downloader) ignored(id uint64, kind queue.ItemKind) bool {
 		return false
 	}
 	if d.ignoreList.Contains(id, kind) {
-		d.logger.Info("skipping %v %v as id was already downloaded", kind.String(), id)
+		if !silent {
+			d.logger.Info("skipping %v %v as it was already downloaded", kind.String(), id)
+		}
 		return true
 	}
 	return false
