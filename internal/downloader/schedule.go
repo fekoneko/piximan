@@ -143,12 +143,12 @@ func (d *Downloader) superviseDownload() {
 // Meant to be run in a separate goroutine.
 // Spawns crawl goroutines from crawlQueue until it is empty
 func (d *Downloader) superviseCrawl() {
-	d.numCrawlingCond.L.Lock()
-	defer d.numCrawlingCond.L.Unlock()
+	d.crawlingCond.L.Lock()
+	defer d.crawlingCond.L.Unlock()
 
 	for {
-		for d.numCrawling >= CRAWL_PENDING_LIMIT {
-			d.numCrawlingCond.Wait()
+		for d.crawling {
+			d.crawlingCond.Wait()
 		}
 
 		d.crawlQueueMutex.Lock()
@@ -159,7 +159,7 @@ func (d *Downloader) superviseCrawl() {
 		crawl := d.crawlQueue[0]
 		d.crawlQueue = d.crawlQueue[1:]
 		d.crawlQueueMutex.Unlock()
-		d.numCrawling++
+		d.crawling = true
 
 		go func() {
 			if err := crawl(); err == nil {
@@ -168,27 +168,27 @@ func (d *Downloader) superviseCrawl() {
 				d.logger.AddFailedCrawl()
 			}
 
-			d.numCrawlingCond.L.Lock()
-			d.numCrawling--
-			d.numCrawlingCond.Broadcast()
-			d.numCrawlingCond.L.Unlock()
+			d.crawlingCond.L.Lock()
+			d.crawling = false
+			d.crawlingCond.Broadcast()
+			d.crawlingCond.L.Unlock()
 		}()
 	}
 }
 
 // Returns false if already crawled, otherwise waits for next crawl task to finish and returns true.
 func (d *Downloader) waitNextCrawled() bool {
-	d.numCrawlingCond.L.Lock()
-	defer d.numCrawlingCond.L.Unlock()
+	d.crawlingCond.L.Lock()
+	defer d.crawlingCond.L.Unlock()
 
 	d.crawlQueueMutex.Lock()
 	numCrawlTasks := len(d.crawlQueue)
 	d.crawlQueueMutex.Unlock()
 
-	if d.numCrawling <= 0 && numCrawlTasks == 0 {
+	if !d.crawling && numCrawlTasks == 0 {
 		return false
 	}
-	d.numCrawlingCond.Wait()
+	d.crawlingCond.Wait()
 
 	return true
 }

@@ -40,8 +40,8 @@ type Downloader struct {
 
 	crawlQueue      []CrawlFunc // TODO: make custom struct with Push and Pop?
 	crawlQueueMutex *sync.Mutex
-	numCrawling     int
-	numCrawlingCond *sync.Cond
+	crawling        bool
+	crawlingCond    *sync.Cond
 
 	rules      *queue.Rules
 	rulesMutex *sync.Mutex
@@ -61,7 +61,7 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 		downloadingMutex:   &sync.Mutex{},
 		crawlQueue:         make([]CrawlFunc, 0),
 		crawlQueueMutex:    &sync.Mutex{},
-		numCrawlingCond:    sync.NewCond(&sync.Mutex{}),
+		crawlingCond:       sync.NewCond(&sync.Mutex{}),
 		rulesMutex:         &sync.Mutex{},
 		ignoreListMutex:    &sync.Mutex{},
 	}
@@ -100,13 +100,11 @@ func (d *Downloader) String() string {
 	}
 	d.crawlQueueMutex.Unlock()
 
-	d.numCrawlingCond.L.Lock()
-	if d.numCrawling > 0 {
-		builder.WriteString("tasks in progress: ")
-		builder.WriteString(strconv.FormatInt(int64(d.numCrawling), 10))
-		builder.WriteByte('\n')
+	d.crawlingCond.L.Lock()
+	if d.crawling {
+		builder.WriteString("task is in progress\n")
 	}
-	d.numCrawlingCond.L.Unlock()
+	d.crawlingCond.L.Unlock()
 
 	return builder.String()
 }

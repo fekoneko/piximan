@@ -134,6 +134,12 @@ func (l *Logger) AddFailedCrawl() {
 	l.mutex.Unlock()
 }
 
+func (l *Logger) AddSkippedCrawl() {
+	l.mutex.Lock()
+	l.numSkippedCrawls++
+	l.mutex.Unlock()
+}
+
 func (l *Logger) ShowProgress() {
 	l.mutex.Lock()
 	l.progressShown = true
@@ -154,12 +160,18 @@ func (l *Logger) Stats() {
 	builder := strings.Builder{}
 	builder.WriteString("\ndownloader stats:\n\n")
 
-	builder.WriteString(fmt.Sprintf("- tasks crawled: %v / %v\n", l.numSuccessfulCrawls, l.numExpectedCrawls))
+	numTotalCrawls := l.numExpectedCrawls - l.numSkippedCrawls
+	builder.WriteString(fmt.Sprintf("- tasks crawled: %v / %v", l.numSuccessfulCrawls, numTotalCrawls))
+	if l.numSkippedCrawls > 0 {
+		builder.WriteString(fmt.Sprintf(" + %v skipped", l.numSkippedCrawls))
+	}
+
 	numTotalWorks := l.numExpectedWorks - l.numSkippedWorks
-	builder.WriteString(fmt.Sprintf("- works downloaded: %v / %v", l.numSuccessfulWorks, numTotalWorks))
+	builder.WriteString(fmt.Sprintf("\n- works downloaded: %v / %v", l.numSuccessfulWorks, numTotalWorks))
 	if l.numSkippedWorks > 0 {
 		builder.WriteString(fmt.Sprintf(" + %v skipped", l.numSkippedWorks))
 	}
+
 	builder.WriteString(fmt.Sprintf("\n- unauthorized requests: %v\n", l.numRequests-l.numAuthorizedRequests))
 	builder.WriteString(fmt.Sprintf("- authorized requests: %v\n\n", l.numAuthorizedRequests))
 

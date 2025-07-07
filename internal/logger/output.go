@@ -121,7 +121,7 @@ func (l *Logger) addStats(builder *strings.Builder) {
 	const length = BAR_LENGTH + URL_LENGTH - captionsLength
 
 	numSettledCrawls := l.numSuccessfulCrawls + l.numFailedCrawls
-	s := fmt.Sprintf("crawling (%v / %v): ", numSettledCrawls, l.numExpectedCrawls)
+	s := fmt.Sprintf("crawling (%v / %v): ", numSettledCrawls, l.numExpectedCrawls-l.numSkippedCrawls)
 	builder.WriteString(fmt.Sprintf(gray("%-*v "), captionsLength, s))
 	bar := barString(numSettledCrawls, l.numExpectedCrawls, length)
 	builder.WriteString(bar)

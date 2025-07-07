@@ -46,6 +46,7 @@ type Logger struct {
 	failedWorkIds         []uint64
 	numExpectedCrawls     int
 	numSuccessfulCrawls   int
+	numSkippedCrawls      int
 	numFailedCrawls       int
 	numWarnings           int
 	numErrors             int

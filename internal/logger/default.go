@@ -23,6 +23,7 @@ func AddFailedWork(id uint64)                                { l.AddFailedWork(i
 func ExpectCrawls(count int)                                 { l.ExpectCrawls(count) }
 func AddSuccessfulCrawl()                                    { l.AddSuccessfulCrawl() }
 func AddFailedCrawl()                                        { l.AddFailedCrawl() }
+func AddSkippedCrawl()                                       { l.AddSkippedCrawl() }
 func EnableProgress()                                        { l.ShowProgress() }
 func DisableProgress()                                       { l.HideProgress() }
 func Stats()                                                 { l.Stats() }

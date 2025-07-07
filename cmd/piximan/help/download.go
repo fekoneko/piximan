@@ -5,6 +5,9 @@ import (
 	"os"
 )
 
+// TODO: split download help into multiple categories same as `piximan download rules`
+//       make `piximan download` only give quick overview and link to the categories
+
 const DOWNLOAD_HELP = //
 `Run without arguments to enter interactive mode.
 

@@ -13,7 +13,7 @@ import (
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) {
-	if d.artworkIgnored(id) || !d.matchArtworkId(id) {
+	if d.ignored(id, queue.ItemKindArtwork) || !d.matchArtworkId(id) {
 		return nil, nil
 	}
 	d.logger.Info("started downloading metadata for artwork %v", id)
@@ -33,7 +33,7 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []string) (*work.Work, error) {
-	if d.artworkIgnored(id) || !d.matchArtwork(id, w, true) {
+	if d.ignored(id, queue.ItemKindArtwork) || !d.matchArtwork(id, w, true) {
 		return nil, nil
 	}
 	assets := []fsext.Asset{}
@@ -44,7 +44,7 @@ func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []st
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
-	if d.artworkIgnored(id) || !d.matchArtworkId(id) {
+	if d.ignored(id, queue.ItemKindArtwork) || !d.matchArtworkId(id) {
 		return nil, nil
 	}
 	d.logger.Info("started downloading artwork %v", id)
@@ -84,7 +84,7 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 func (d *Downloader) ArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
-	if d.artworkIgnored(id) {
+	if d.ignored(id, queue.ItemKindArtwork) {
 		return nil, nil
 	} else if matches, needFull := d.matchArtworkNeedFull(id, w); !matches {
 		return nil, nil
@@ -135,7 +135,7 @@ func (d *Downloader) ArtworkWithKnown(
 func (d *Downloader) LowArtworkWithKnown(
 	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
-	if d.artworkIgnored(id) || !d.matchArtwork(id, w, true) {
+	if d.ignored(id, queue.ItemKindArtwork) || !d.matchArtwork(id, w, true) {
 		return nil, nil
 	}
 	if w.Kind == nil {
