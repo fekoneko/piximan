@@ -208,6 +208,8 @@ func RunDownload() {
 	}
 }
 
+// TODO: ability to pass collection path to --infer-id like you can pattern to --collection
+
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list
 // TODO: --log, -L option to log the output to a file (-L should be reserved for language actually)

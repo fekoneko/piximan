@@ -103,5 +103,33 @@ func (d *Downloader) String() string {
 	}
 	d.numDownloadingCond.L.Unlock()
 
+	d.rulesMutex.Lock()
+	builder.WriteString("- download rules: ")
+	numRules := 0
+	if d.rules != nil {
+		numRules = d.rules.Count()
+	}
+	if numRules <= 0 {
+		builder.WriteString("none\n")
+	} else {
+		builder.WriteString(strconv.FormatInt(int64(numRules), 10))
+		builder.WriteString(utils.If(numRules == 1, " rule\n", " rules\n"))
+	}
+	d.rulesMutex.Unlock()
+
+	d.ignoreListMutex.Lock()
+	builder.WriteString("- ignore list: ")
+	numIgnored := 0
+	if d.ignoreList != nil {
+		numIgnored = len(*d.ignoreList)
+	}
+	if numIgnored <= 0 {
+		builder.WriteString("none\n")
+	} else {
+		builder.WriteString(strconv.FormatInt(int64(numIgnored), 10))
+		builder.WriteString(utils.If(numIgnored == 1, " work\n", " works\n"))
+	}
+	d.ignoreListMutex.Unlock()
+
 	return builder.String()
 }

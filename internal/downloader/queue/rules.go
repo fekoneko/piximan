@@ -216,3 +216,52 @@ func skipped[R any, F any](r *R, f *F, rule string, field string, warnings *[]er
 	}
 	return false
 }
+
+func (r *Rules) Count() int {
+	count := 0
+
+	countRule(r.Ids, &count)
+	countRule(r.NotIds, &count)
+	countRule(r.TitleContains, &count)
+	countRule(r.TitleNotContains, &count)
+	countRule(r.TitleRegexp, &count)
+	countRule(r.Kinds, &count)
+	countRule(r.DescriptionContains, &count)
+	countRule(r.DescriptionNotContains, &count)
+	countRule(r.DescriptionRegexp, &count)
+	countRule(r.UserIds, &count)
+	countRule(r.NotUserIds, &count)
+	countRule(r.UserNames, &count)
+	countRule(r.NotUserNames, &count)
+	countRule(r.Restrictions, &count)
+	countRule(r.Ai, &count)
+	countRule(r.Original, &count)
+	countRule(r.PagesLessThan, &count)
+	countRule(r.PagesMoreThan, &count)
+	countRule(r.ViewsLessThan, &count)
+	countRule(r.ViewsMoreThan, &count)
+	countRule(r.BookmarksLessThan, &count)
+	countRule(r.BookmarksMoreThan, &count)
+	countRule(r.LikesLessThan, &count)
+	countRule(r.LikesMoreThan, &count)
+	countRule(r.CommentsLessThan, &count)
+	countRule(r.CommentsMoreThan, &count)
+	countRule(r.UploadedBefore, &count)
+	countRule(r.UploadedAfter, &count)
+	countRule(r.Series, &count)
+	countRule(r.SeriesIds, &count)
+	countRule(r.NotSeriesIds, &count)
+	countRule(r.SeriesTitleContains, &count)
+	countRule(r.SeriesTitleNotContains, &count)
+	countRule(r.SeriesTitleRegexp, &count)
+	countRule(r.Tags, &count)
+	countRule(r.NotTags, &count)
+
+	return count
+}
+
+func countRule[T any](r *T, count *int) {
+	if r != nil {
+		*count++
+	}
+}
