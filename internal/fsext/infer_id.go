@@ -37,6 +37,11 @@ func InferIdPathValid(pattern string) error {
 	return nil
 }
 
+// Returns weather the string could be an infer id pattern. This still doesn't mean it's valid.
+func CanBeInferIdPath(pattern string) bool {
+	return inferIdSubstitutionRegexp.MatchString(pattern)
+}
+
 var inferIdSubstitutionRegexp = regexp.MustCompile(`{[^}]*}|\*`)
 
 func inferIdRegexp(pattern string) *regexp.Regexp {

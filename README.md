@@ -224,13 +224,20 @@ piximan download --id 12345 --rules './rules.yaml'
 
 ### Syncing bookmarks with existing collection
 
-You can skip works already present in the collection with `-collection` flag:
+You can skip works already present in the collection with `--collection` flag:
 
 ```shell
 piximan download --bookmarks my --collection '.' --path './{user-id}/{id}'
 ```
 
-While the above command will skip already downloaded works, it will need to fetch
+Infer ID pattern can be provided here as well (see `--infer-id` flag). Note tat in this case
+all matched work IDs will be assumed to be of type provided with `--type` flag:
+
+```shell
+piximan download --bookmarks my --collection './*/{id}' --path './{user-id}/{id}'
+```
+
+While the above commands will skip already downloaded works, it will need to fetch
 the list of all your bookmarks to ensure there isn't some older one that isn't present
 in the collection.
 

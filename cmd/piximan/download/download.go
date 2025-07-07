@@ -93,7 +93,16 @@ func download(options *options) {
 		d.SetRules(rules)
 	}
 
-	if options.Collection != nil {
+	if options.Collection != nil && fsext.CanBeInferIdPath(*options.Collection) {
+		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.Collection)
+		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.Collection)
+		if len(*idPathMap) == 0 {
+			logger.Warning("no ids could be inferred from pattern %v", *options.Collection)
+			return
+		}
+		list := queue.IgnoreListFromMap(idPathMap, kind)
+		d.SetIgnoreList(list)
+	} else if options.Collection != nil {
 		c := collection.New(*options.Collection, logger.DefaultLogger)
 		works := make([]*work.Work, 0)
 		c.Parse()

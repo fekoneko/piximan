@@ -66,6 +66,9 @@ const downloadHelp = //
 
 --collection If provided, all works already present in the collection directory will
  -c          be skipped when downloading.
+             If you don't use metadata.yaml files in your collection, you can also provide
+             infer ID pattern here (see --infer-id). Note that this way, the type of the ignored
+             works will be assumed to be the same as provided with --type flag.
 
                          Bookmarks-specific options
                          --------------------------
@@ -204,8 +207,6 @@ func RunDownload() {
 		fmt.Print(downloadHelp)
 	}
 }
-
-// TODO: ability to provide infer id pattern to --collection
 
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list

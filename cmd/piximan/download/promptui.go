@@ -101,10 +101,16 @@ var lowMetaSelect = promptui.Select{
 	Items: []string{lowMetaOption, fullMetaOption},
 }
 
-var collectionPromptLabel = "Ignore works already present in the directory (leave empty to download all)"
+var collectionPromptLabel = "Ignore works present in the collection (path, infer id pattern or nothing)"
 
 var collectionPrompt = promptui.Prompt{
 	Label: collectionPromptLabel,
+	Validate: func(input string) error {
+		if fsext.CanBeInferIdPath(input) {
+			return fsext.InferIdPathValid(input)
+		}
+		return nil
+	},
 }
 
 var freshSelectLabel = "Pick bookmark pages fetching strategy"

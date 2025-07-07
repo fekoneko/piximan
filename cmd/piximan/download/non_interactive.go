@@ -77,6 +77,13 @@ func nonInteractive() {
 		fmt.Println("`-f, --fresh' flag can only be used when `-c, --collection' was provided")
 		os.Exit(2)
 	}
+	if options.Collection != nil && fsext.CanBeInferIdPath(*options.Collection) {
+		if err := fsext.InferIdPathValid(*options.Collection); err != nil {
+			fmt.Printf("invalid argument for flag `-c, --collection': "+
+				"infer id pattern found but it's invalid: %v\n", err)
+			os.Exit(2)
+		}
+	}
 	if options.Path != nil {
 		if err := fsext.WorkPathValid(*options.Path); err != nil {
 			fmt.Printf("invalid argument for flag `-p, --path': %v\n", err)

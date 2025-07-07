@@ -25,6 +25,14 @@ func IgnoreListFromWorks(works []*work.Work) *IgnoreList {
 	return &list
 }
 
+func IgnoreListFromMap[T any](m *map[uint64]T, kind ItemKind) *IgnoreList {
+	list := make(IgnoreList, len(*m))
+	for id := range *m {
+		list[id] = ignoreKind(kind)
+	}
+	return &list
+}
+
 func (list *IgnoreList) Contains(id uint64, kind ItemKind) bool {
 	found, ok := (*list)[id]
 	return ok && found.match(kind)
@@ -33,7 +41,7 @@ func (list *IgnoreList) Contains(id uint64, kind ItemKind) bool {
 type ignoreKind uint8
 
 const (
-	ignoreKindArtwork ignoreKind = iota // TODO: remove UPPER_CASE everywhere
+	ignoreKindArtwork ignoreKind = iota
 	ignoreKindNovel
 	ignoreKindBoth
 )
