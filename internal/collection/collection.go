@@ -8,8 +8,10 @@ import (
 	"github.com/fekoneko/piximan/internal/syncext"
 )
 
-const CHANNEL_SIZE = 10
-const PARSE_PENDING_LIMIT = 10
+const channelSize = 10
+
+// TODO: store works in the collection struct
+// TODO: store paths with the works
 
 // Used to access locally stored collection of works.
 // Use Parse() to start reading the collection.
@@ -25,7 +27,7 @@ type Collection struct {
 func New(path string, logger *logger.Logger) *Collection {
 	return &Collection{
 		logger:      logger,
-		channel:     make(chan *work.Work, CHANNEL_SIZE),
+		channel:     make(chan *work.Work, channelSize),
 		signalMutex: &sync.Mutex{},
 		path:        path,
 		pathMutex:   &sync.Mutex{},

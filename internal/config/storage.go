@@ -67,10 +67,10 @@ func New(password *string) (*Storage, error) {
 		cipher:            aesCipher,
 		gcm:               gcm,
 		sessionId:         nil,
-		PximgMaxPending:   utils.FromPtr(unmarshalled.PximgMaxPending, DEFAULT_PXIMG_MAX_PENDING),
-		PximgDelay:        utils.FromPtr(unmarshalled.PximgDelay, DEFAULT_PXIMG_DELAY),
-		DefaultMaxPending: utils.FromPtr(unmarshalled.DefaultMaxPending, DEFAULT_DEFAULT_MAX_PENDING),
-		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, DEFAULT_DEFAULT_DELAY),
+		PximgMaxPending:   utils.FromPtr(unmarshalled.PximgMaxPending, defaultPximgMaxPending),
+		PximgDelay:        utils.FromPtr(unmarshalled.PximgDelay, defaultPximgDelay),
+		DefaultMaxPending: utils.FromPtr(unmarshalled.DefaultMaxPending, defaultMaxPending),
+		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, defaultDelay),
 	}
 
 	return storage, nil

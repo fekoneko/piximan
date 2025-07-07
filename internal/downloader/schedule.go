@@ -98,7 +98,7 @@ func (d *Downloader) superviseDownload() {
 
 	for {
 		d.numDownloadingCond.L.Lock()
-		for d.numDownloading >= DOWNLOAD_PENDING_LIMIT {
+		for d.numDownloading >= downloadPendingLimit {
 			d.numDownloadingCond.Wait()
 		}
 

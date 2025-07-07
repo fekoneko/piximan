@@ -2,7 +2,7 @@ package help
 
 import "fmt"
 
-const CONFIG_HELP = //
+const configHelp = //
 `Run without arguments to enter interactive mode.
 
 > piximan config [--session-id ...] [--password ...]
@@ -58,5 +58,5 @@ const CONFIG_HELP = //
 `
 
 func RunConfig() {
-	fmt.Print(CONFIG_HELP)
+	fmt.Print(configHelp)
 }

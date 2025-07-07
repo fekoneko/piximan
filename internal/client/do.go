@@ -10,7 +10,7 @@ import (
 	"github.com/fekoneko/piximan/internal/logger"
 )
 
-const BUFFER_SIZE = 4096
+const bufferSize = 4096
 
 func (c *Client) Do(url string, onProgress func(int, int)) (body []byte, headers http.Header, err error) {
 	request, err := newRequest(url)
@@ -108,7 +108,7 @@ func (c *Client) tryRequest(
 		return body, response.Header, nil
 	} else {
 		body := make([]byte, 0, response.ContentLength)
-		buffer := make([]byte, BUFFER_SIZE)
+		buffer := make([]byte, bufferSize)
 
 		for {
 			readLength, err := response.Body.Read(buffer)

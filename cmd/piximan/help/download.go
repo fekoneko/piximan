@@ -8,7 +8,7 @@ import (
 // TODO: split download help into multiple categories same as `piximan download rules`
 //       make `piximan download` only give quick overview and link to the categories
 
-const DOWNLOAD_HELP = //
+const downloadHelp = //
 `Run without arguments to enter interactive mode.
 
 > piximan download [--id        ...] [--type  ...]      [--tag   ...] [--path     ...]
@@ -143,7 +143,7 @@ const DOWNLOAD_HELP = //
 > piximan download --infer-id --only-meta "$HOME/My Collection/*/{id}"
 `
 
-const DOWNLOAD_RULES_HELP = //
+const downloadRulesHelp = //
 `Rules are used to filter wich works should be downloaded and defined in YAML format.
 All rules are optional, and if multiple rules are defined, the work should match all of
 them to be downloaded (AND). Any array matches any of its elements (OR).
@@ -193,9 +193,9 @@ Here's an example of all available rules:
 
 func RunDownload() {
 	if len(os.Args) > 2 && os.Args[2] == "rules" {
-		fmt.Print(DOWNLOAD_RULES_HELP)
+		fmt.Print(downloadRulesHelp)
 	} else {
-		fmt.Print(DOWNLOAD_HELP)
+		fmt.Print(downloadHelp)
 	}
 }
 

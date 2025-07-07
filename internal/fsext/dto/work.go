@@ -7,7 +7,7 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-const VERSION = uint64(1)
+const WorkVersion = uint64(1)
 
 type Work struct {
 	Version     *uint64   `yaml:"_version,omitempty"`
@@ -35,7 +35,7 @@ type Work struct {
 
 func WorkToDto(w *work.Work) *Work {
 	return &Work{
-		Version:     utils.ToPtr(VERSION),
+		Version:     utils.ToPtr(WorkVersion),
 		Id:          w.Id,
 		Title:       w.Title,
 		Kind:        utils.MapPtr(w.Kind, work.Kind.String),
@@ -62,8 +62,8 @@ func WorkToDto(w *work.Work) *Work {
 func (dto *Work) FromDto() (w *work.Work, warning error) {
 	if dto.Version == nil {
 		warning = fmt.Errorf("metadata version is missing")
-	} else if *dto.Version != VERSION {
-		warning = fmt.Errorf("metadata version mismatch: expected %v, got %v", VERSION, *dto.Version)
+	} else if *dto.Version != WorkVersion {
+		warning = fmt.Errorf("metadata version mismatch: expected %v, got %v", WorkVersion, *dto.Version)
 	}
 
 	// TODO: warn if some fields are incorrect or there are extra fields

@@ -12,9 +12,8 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-const CHANNEL_SIZE = 10
-const DOWNLOAD_PENDING_LIMIT = 10
-const CRAWL_PENDING_LIMIT = 1
+const channelSize = 10
+const downloadPendingLimit = 10
 
 type CrawlFunc func() error
 
@@ -54,7 +53,7 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 	return &Downloader{
 		client:             client,
 		logger:             logger,
-		channel:            make(chan *work.Work, CHANNEL_SIZE),
+		channel:            make(chan *work.Work, channelSize),
 		downloadQueue:      make(queue.Queue, 0),
 		downloadQueueMutex: &sync.Mutex{},
 		numDownloadingCond: sync.NewCond(&sync.Mutex{}),

@@ -101,14 +101,14 @@ func (l *Logger) addSlots(builder *strings.Builder) {
 }
 
 func eraseProgress(builder *strings.Builder) {
-	for range NUM_SLOTS + 4 {
+	for range numSlots + 4 {
 		builder.WriteString("\033[2K\033[A\033[2K\r")
 	}
 }
 
 func addSlot(builder *strings.Builder, progress *progress) {
 	if progress == nil {
-		for range URL_LENGTH + BAR_LENGTH + 6 {
+		for range urlLength + barLength + 6 {
 			builder.WriteString(subtleGray("╶"))
 		}
 		builder.WriteByte('\n')
@@ -120,7 +120,7 @@ func addSlot(builder *strings.Builder, progress *progress) {
 
 func (l *Logger) addStats(builder *strings.Builder) {
 	const captionsLength = 26
-	const length = BAR_LENGTH + URL_LENGTH - captionsLength
+	const length = barLength + urlLength - captionsLength
 
 	numSettledCrawls := l.numSuccessfulCrawls + l.numFailedCrawls
 	s := fmt.Sprintf("crawling (%v / %v): ", numSettledCrawls, l.numExpectedCrawls-l.numSkippedCrawls)
@@ -188,7 +188,7 @@ func (r *progress) String() string {
 	} else {
 		domainEnd += domainStart
 		domain := r.url[domainStart:domainEnd]
-		suffixStart := len(r.url) - (URL_LENGTH - 4 - len(domain))
+		suffixStart := len(r.url) - (urlLength - 4 - len(domain))
 		if suffixStart-domainEnd <= 4 {
 			url = r.url[domainStart:]
 		} else {
@@ -196,6 +196,6 @@ func (r *progress) String() string {
 		}
 	}
 
-	bar := barString(r.current, r.total, BAR_LENGTH)
-	return fmt.Sprintf(gray("%-*v "), URL_LENGTH, url) + bar
+	bar := barString(r.current, r.total, barLength)
+	return fmt.Sprintf(gray("%-*v "), urlLength, url) + bar
 }

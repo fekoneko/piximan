@@ -9,9 +9,9 @@ import (
 	"github.com/mattn/go-colorable"
 )
 
-const NUM_SLOTS = 6
-const URL_LENGTH = 36
-const BAR_LENGTH = 36
+const numSlots = 6
+const urlLength = 36
+const barLength = 36
 
 var cyan = color.New(color.FgHiCyan, color.Bold).SprintFunc()
 var green = color.New(color.FgHiGreen, color.Bold).SprintFunc()
@@ -59,7 +59,7 @@ func New(output *os.File) *Logger {
 		mutex:         &sync.Mutex{},
 		writer:        &writer,
 		progressMap:   map[int]*progress{},
-		slots:         make([]int, NUM_SLOTS),
+		slots:         make([]int, numSlots),
 		failedWorkIds: make([]uint64, 0),
 	}
 }

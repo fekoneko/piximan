@@ -77,13 +77,13 @@ func inferPages(
 		return nil, false, fmt.Errorf("no thumbnail url to infer from")
 	}
 
-	const PREFIX_MASTER = "https://i.pximg.net/c/250x250_80_a2/img-master/img/"
-	const PREFIX_CUSTOM = "https://i.pximg.net/c/250x250_80_a2/custom-thumb/img/"
+	const prefixMaster = "https://i.pximg.net/c/250x250_80_a2/img-master/img/"
+	const prefixCustom = "https://i.pximg.net/c/250x250_80_a2/custom-thumb/img/"
 	var prefixLength int
-	if strings.HasPrefix(*thumbnailUrl, PREFIX_MASTER) {
-		prefixLength = len(PREFIX_MASTER)
-	} else if strings.HasPrefix(*thumbnailUrl, PREFIX_CUSTOM) {
-		prefixLength = len(PREFIX_CUSTOM)
+	if strings.HasPrefix(*thumbnailUrl, prefixMaster) {
+		prefixLength = len(prefixMaster)
+	} else if strings.HasPrefix(*thumbnailUrl, prefixCustom) {
+		prefixLength = len(prefixCustom)
 	} else {
 		return nil, false, fmt.Errorf("thumbnail url has incorrect prefix")
 	}
