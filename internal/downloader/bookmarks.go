@@ -12,11 +12,6 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-// TODO: make an option to skip fetching consequent bookmark pages if all found works
-//       on the current page were ignored
-
-// TODO: make a cli option to specify collection path and ignore all works there
-
 // Schedule bookmarks of authorized user for download. Run() to start downloading.
 // If untilIgnored is true, the crawler will stop fetching new bookmark pages once it encounters
 // a fully ignored one. Use this to conserve requests when synching freshly bookmarked works.

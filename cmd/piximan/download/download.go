@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/fekoneko/piximan/internal/client"
+	"github.com/fekoneko/piximan/internal/collection"
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/image"
@@ -22,6 +24,7 @@ func download(options *options) {
 	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
+	fresh := utils.FromPtr(options.Fresh, false)
 	path := utils.FromPtr(options.Path, "")
 
 	storage, sessionId := configAndSession(options.Password)
@@ -43,7 +46,7 @@ func download(options *options) {
 		paths := []string{path}
 		d.ScheduleMyBookmarks(
 			kind, options.Tag, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, paths,
+			size, onlyMeta, lowMeta, fresh, paths,
 		)
 		fmt.Println()
 
@@ -54,7 +57,7 @@ func download(options *options) {
 		paths := []string{path}
 		d.ScheduleBookmarks(
 			userId, kind, options.Tag, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, paths,
+			size, onlyMeta, lowMeta, fresh, paths,
 		)
 		fmt.Println()
 
@@ -91,6 +94,17 @@ func download(options *options) {
 		rules, err := fsext.ReadRules(*options.Rules)
 		logger.MaybeFatal(err, "cannot read download rules from %v", *options.Rules)
 		d.SetRules(rules)
+	}
+
+	if options.Collection != nil {
+		c := collection.New(*options.Collection, logger.DefaultLogger)
+		works := make([]*work.Work, 0)
+		c.Parse()
+		for c.WaitNext() != nil {
+			works = append(works, c.WaitNext())
+		}
+		list := queue.IgnoreListFromWorks(works)
+		d.SetIgnoreList(list)
 	}
 
 	fmt.Println(d)

@@ -11,10 +11,11 @@ import (
 const DOWNLOAD_HELP = //
 `Run without arguments to enter interactive mode.
 
-> piximan download [--id        ...] [--type  ...] [--tag   ...] [--path     ...]
-                   [--bookmarks ...] [--size  ...] [--from  ...] [--password ...]
-                   [--list      ...] [--only-meta] [--to    ...]
-                   [--infer-id  ...] [--rules ...] [--low-meta ]
+> piximan download [--id        ...] [--type  ...]      [--tag   ...] [--path     ...]
+                   [--bookmarks ...] [--size  ...]      [--from  ...] [--password ...]
+                   [--list      ...] [--only-meta]      [--to    ...]
+                   [--infer-id  ...] [--rules ...]      [--low-meta ]
+                                     [--collection ...] [--fresh    ]
 
                               Download sources
                               ----------------
@@ -63,6 +64,9 @@ const DOWNLOAD_HELP = //
 --rules      Path to YAML file with download rules. The download rules are used to
  -r          filter wich works should be downloaded. Run 'piximan help rules' for more info.
 
+--collection If provided, all works already present in the collection directory will
+ -c          be skipped when downloading.
+
                          Bookmarks-specific options
                          --------------------------
 --tag        User-assigned tag to filter the bookmarks by. You can see those on the
@@ -85,6 +89,11 @@ const DOWNLOAD_HELP = //
              - series_id, series_title, series_order
              When downloading novels without --low-meta flag, the full metadata will be
              downloaded without any request overhead, so --low-meta should be omitted.
+
+--fresh      Useful if you already have all of your bookmarks downloaded in the collection and
+ -f          only want to sync the new ones. This option tells the downloader to stop crawling
+             new bookmark pages once it encounters a fully ignored one. This may greatly reduce
+             the number of authorized requests to pixiv.net.
 
                               Other parameters
                               ----------------

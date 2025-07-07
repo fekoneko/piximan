@@ -20,6 +20,9 @@ func interactive() {
 	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withQueue)
 	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
+	collection := promptCollection(withBookmarks)
+	withCollection := collection != nil
+	fresh := selectFresh(withCollection)
 	size := selectSize(withQueue, onlyMeta)
 	path := promptPath(withInferId, withQueue)
 	rules := promptRules()
@@ -34,11 +37,13 @@ func interactive() {
 		Size:       size,
 		OnlyMeta:   &onlyMeta,
 		Rules:      rules,
+		Collection: collection,
 		Tag:        tag,
 		FromOffset: fromOffset,
 		ToOffset:   toOffset,
 		Private:    private,
 		LowMeta:    lowMeta,
+		Fresh:      fresh,
 		Path:       path,
 	})
 }
@@ -154,6 +159,36 @@ func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
 		return utils.ToPtr(false)
 	default:
 		logger.Fatal("incorrect low metadata choice: %v", option)
+		panic("unreachable")
+	}
+}
+
+func promptCollection(withBookmarks bool) *string {
+	if !withBookmarks {
+		return nil
+	}
+	collection, err := collectionPrompt.Run()
+	logger.MaybeFatal(err, "failed to read collection")
+	if collection == "" {
+		return nil
+	}
+	return &collection
+}
+
+func selectFresh(withCollection bool) *bool {
+	if !withCollection {
+		return nil
+	}
+	_, option, err := freshSelect.Run()
+	logger.MaybeFatal(err, "failed to read fresh flag")
+
+	switch option {
+	case freshPagesOption:
+		return utils.ToPtr(true)
+	case allPagesOption:
+		return utils.ToPtr(false)
+	default:
+		logger.Fatal("incorrect fresh flag choice: %v", option)
 		panic("unreachable")
 	}
 }

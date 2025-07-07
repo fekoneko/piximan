@@ -101,6 +101,21 @@ var lowMetaSelect = promptui.Select{
 	Items: []string{lowMetaOption, fullMetaOption},
 }
 
+var collectionPromptLabel = "Ignore works already present in the directory (leave empty to download all)"
+
+var collectionPrompt = promptui.Prompt{
+	Label: collectionPromptLabel,
+}
+
+var freshSelectLabel = "Pick bookmark pages fetching strategy"
+var freshPagesOption = "Fetch new bookmarks until fully downloaded bookmark page is reached"
+var allPagesOption = "Fetch and check all bookmarks"
+
+var freshSelect = promptui.Select{
+	Label: freshSelectLabel,
+	Items: []string{freshPagesOption, allPagesOption},
+}
+
 var sizeSelectLabel = "Size of downloaded images"
 var sizeSelectWithQueueLabel = "Default size of downloaded images"
 var thumbnailSizeOption = "Thumbnail"

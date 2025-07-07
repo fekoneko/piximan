@@ -17,7 +17,7 @@ func (c *Collection) Parse() {
 		startTime := time.Now()
 		collectionPath := c.Path()
 		cancelled := false
-		c.logger.Info("started parsing collection at %v", collectionPath)
+		c.logger.Info("parsing collection at %v", collectionPath)
 
 		fsext.WalkWorks(collectionPath, func(path *string, err error) (proceed bool) {
 			if signal.Cancelled() {

@@ -69,6 +69,14 @@ func nonInteractive() {
 		fmt.Println("`-R, --private' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
+	if options.Fresh != nil && options.Bookmarks == nil {
+		fmt.Println("`-f, --fresh' flag can only be used with `-b, --bookmarks' source")
+		os.Exit(2)
+	}
+	if options.Fresh != nil && options.Collection == nil {
+		fmt.Println("`-f, --fresh' flag can only be used when `-c, --collection' was provided")
+		os.Exit(2)
+	}
 	if options.Path != nil {
 		if err := fsext.WorkPathValid(*options.Path); err != nil {
 			fmt.Printf("invalid argument for flag `-p, --path': %v\n", err)
