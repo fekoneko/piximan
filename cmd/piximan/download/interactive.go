@@ -33,12 +33,12 @@ func interactive() {
 		Kind:       &kind,
 		Size:       size,
 		OnlyMeta:   &onlyMeta,
+		Rules:      rules,
 		Tag:        tag,
 		FromOffset: fromOffset,
 		ToOffset:   toOffset,
 		Private:    private,
 		LowMeta:    lowMeta,
-		Rules:      rules,
 		Path:       path,
 	})
 }
