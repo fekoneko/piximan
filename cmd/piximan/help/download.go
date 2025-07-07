@@ -125,22 +125,28 @@ const downloadHelp = //
 > piximan download --id 10000 --path "$HOME/My Collection/{user-id}/{id}"
 
 # Download novels with ID 10000 and 20000
-> piximan download --id 10000 --id 20000 --type novel --path "./{user-id}/{id}"
+> piximan download --id 10000 --id 20000 --type novel --path './{user-id}/{id}'
 
 # Download 101th to 200th of your latest public artwork bookmarks with full metadata
-> piximan download --bookmarks my --from 100 --to 200 --path "./{id}"
+> piximan download --bookmarks my --from 100 --to 200 --path './{id}'
 
 # Download all of your private artwork bookmarks with partial metadata saving requests
-> piximan download --bookmarks my --private --low-meta --path "./{id}"
+> piximan download --bookmarks my --private --low-meta --path './{id}'
 
 # Download all novel bookmarks from user 10000 with tag 'お気に入り'
-> piximan download --bookmarks 10000 --type novel --tag "お気に入り" --path "./{id}"
+> piximan download --bookmarks 10000 --type novel --tag 'お気に入り' --path './{id}'
 
 # Download works from list.yaml to the current directory with fallback path
-> piximan download --list "./list.yaml" --path "./{user-id}/{id}"
+> piximan download --list './list.yaml' --path './{user-id}/{id}'
 
-# Update metadata in the collection saved earlier
+# Update metadata for artworks in the collection saved earlier
 > piximan download --infer-id --only-meta "$HOME/My Collection/*/{id}"
+
+# Use download rulesto filter user's bookmarks
+> piximan download --bookmarks 12345 --rules './rules.yaml' --path './{user-id}/{id}'
+
+# Sync your bookmarks with the existing collection
+> piximan download --bookmarks my --collection '.' --fresh --path './{user-id}/{id}'
 `
 
 const downloadRulesHelp = //
@@ -198,6 +204,8 @@ func RunDownload() {
 		fmt.Print(downloadHelp)
 	}
 }
+
+// TODO: ability to provide infer id pattern to --collection
 
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list
