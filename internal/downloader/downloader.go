@@ -70,27 +70,7 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 func (d *Downloader) String() string {
 	builder := strings.Builder{}
 
-	builder.WriteString("download queue:")
-	d.downloadQueueMutex.Lock()
-	if len(d.downloadQueue) == 0 {
-		builder.WriteString(" empty\n")
-	} else {
-		builder.WriteByte('\n')
-		builder.WriteString(d.downloadQueue.String())
-	}
-	d.downloadQueueMutex.Unlock()
-
-	d.numDownloadingCond.L.Lock()
-	if d.numDownloading > 0 {
-		builder.WriteString("tasks in progress: ")
-		builder.WriteString(strconv.FormatInt(int64(d.numDownloading), 10))
-		builder.WriteByte('\n')
-	}
-	d.numDownloadingCond.L.Unlock()
-
-	builder.WriteByte('\n')
-
-	builder.WriteString("crawl queue: ")
+	builder.WriteString("- crawl queue: ")
 	d.crawlQueueMutex.Lock()
 	if len(d.crawlQueue) == 0 {
 		builder.WriteString("empty\n")
@@ -102,9 +82,27 @@ func (d *Downloader) String() string {
 
 	d.crawlingCond.L.Lock()
 	if d.crawling {
-		builder.WriteString("task is in progress\n")
+		builder.WriteString("  task is in progress\n")
 	}
 	d.crawlingCond.L.Unlock()
+
+	builder.WriteString("- download queue:")
+	d.downloadQueueMutex.Lock()
+	if len(d.downloadQueue) == 0 {
+		builder.WriteString(" empty\n")
+	} else {
+		builder.WriteByte('\n')
+		builder.WriteString(d.downloadQueue.String())
+	}
+	d.downloadQueueMutex.Unlock()
+
+	d.numDownloadingCond.L.Lock()
+	if d.numDownloading > 0 {
+		builder.WriteString("  tasks in progress: ")
+		builder.WriteString(strconv.FormatInt(int64(d.numDownloading), 10))
+		builder.WriteByte('\n')
+	}
+	d.numDownloadingCond.L.Unlock()
 
 	return builder.String()
 }

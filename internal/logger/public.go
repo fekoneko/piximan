@@ -8,10 +8,6 @@ import (
 	"github.com/fekoneko/piximan/internal/termext"
 )
 
-// TODO: multiline logs
-// TODO: make a dictionary with log messages
-// TODO: group logs if there are multiple of the same type
-
 func (l *Logger) Info(message string, args ...any) {
 	l.log(infoPrefix+message, args...)
 }
@@ -214,5 +210,5 @@ func (l *Logger) Stats() {
 	builder.WriteByte('\n')
 
 	l.mutex.Unlock()
-	l.printWithProgress("%v", builder.String())
+	l.printWithProgress(builder.String())
 }

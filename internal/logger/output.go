@@ -11,8 +11,10 @@ import (
 )
 
 func (l *Logger) log(message string, args ...any) {
-	timePrefix := subtleGray(time.Now().Format(time.DateTime)) + " "
-	l.printWithProgress(timePrefix+message+"\n", args...)
+	timePrefix := time.Now().Format("15:04") + " "
+	message = fmt.Sprintf(message, args...)
+	message = strings.ReplaceAll(message, "\n", "\n                ")
+	l.printWithProgress(subtleGray(timePrefix) + message + "\n")
 }
 
 type RemoveBarFunc func()
@@ -47,7 +49,7 @@ func (l *Logger) registerRequest(url string, authorized bool) (RemoveBarFunc, Up
 	return removeBar, updateBar
 }
 
-func (l *Logger) printWithProgress(s string, args ...any) {
+func (l *Logger) printWithProgress(s string) {
 	builder := strings.Builder{}
 
 	l.mutex.Lock()
@@ -58,10 +60,10 @@ func (l *Logger) printWithProgress(s string, args ...any) {
 	}
 	if !l.progressShown {
 		l.prevProgressShown = false
-		builder.WriteString(fmt.Sprintf(s, args...))
+		builder.WriteString(s)
 		fmt.Fprint(color.Output, builder.String())
 	} else {
-		builder.WriteString(fmt.Sprintf(s, args...))
+		builder.WriteString(s)
 		builder.WriteByte('\n')
 
 		l.addSlots(&builder)

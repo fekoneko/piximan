@@ -1,7 +1,6 @@
 package download
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
@@ -48,7 +47,6 @@ func download(options *options) {
 			kind, options.Tag, options.FromOffset, options.ToOffset, private,
 			size, onlyMeta, lowMeta, fresh, paths,
 		)
-		fmt.Println()
 
 	} else if options.Bookmarks != nil {
 		userId, err := strconv.ParseUint(*options.Bookmarks, 10, 64)
@@ -59,7 +57,6 @@ func download(options *options) {
 			userId, kind, options.Tag, options.FromOffset, options.ToOffset, private,
 			size, onlyMeta, lowMeta, fresh, paths,
 		)
-		fmt.Println()
 
 	} else if options.InferId != nil {
 		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.InferId)
@@ -107,7 +104,7 @@ func download(options *options) {
 		d.SetIgnoreList(list)
 	}
 
-	fmt.Println(d)
+	logger.Info("created downloader:\n%v", d.String())
 
 	logger.EnableProgress()
 	defer logger.DisableProgress()
