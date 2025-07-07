@@ -13,7 +13,7 @@ import (
 func (l *Logger) log(message string, args ...any) {
 	timePrefix := time.Now().Format("15:04 ")
 	message = fmt.Sprintf(message, args...)
-	message = strings.ReplaceAll(message, "\n", "\n                ")
+	message = strings.ReplaceAll(message, "\n", "\n              ")
 	l.printWithProgress(subtleGray(timePrefix) + message + "\n")
 }
 
