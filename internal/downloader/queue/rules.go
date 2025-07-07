@@ -106,6 +106,9 @@ func (r *Rules) MatchWork(w *work.Work, partial bool) (matches bool, warnings []
 		matchManyToMany(r.Tags, w.Tags, "tags", "tags", &warnings) &&
 		matchManyToManyNot(r.NotTags, w.Tags, "not_tags", "tags", &warnings)
 
+	if !matches {
+		warnings = []error{}
+	}
 	return matches, warnings
 }
 

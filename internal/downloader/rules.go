@@ -66,11 +66,12 @@ func (d *Downloader) matchArtworkNeedFull(id uint64, w *work.Work) (matches bool
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	matches, warnings := d.rules.MatchWork(w, true)
-	if !matches {
+	if matches, warnings := d.rules.MatchWork(w, true); !matches {
 		d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
+		return false, false
+	} else {
+		return true, len(warnings) > 0
 	}
-	return matches, len(warnings) > 0
 }
 
 // Checkes weather the work matches the rules and can be downloaded.
@@ -96,9 +97,10 @@ func (d *Downloader) matchNovelNeedFull(id uint64, w *work.Work) (matches bool, 
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	matches, warnings := d.rules.MatchWork(w, true)
-	if !matches {
+	if matches, warnings := d.rules.MatchWork(w, true); !matches {
 		d.logger.Info("skipping novel %v as it doesn't match download rules", id)
+		return false, false
+	} else {
+		return true, len(warnings) > 0
 	}
-	return matches, len(warnings) > 0
 }
