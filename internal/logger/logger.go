@@ -22,12 +22,12 @@ var white = color.New(color.FgHiWhite, color.Bold).SprintFunc()
 var gray = color.New(color.FgHiBlack, color.Bold).SprintFunc()
 var subtleGray = color.New(color.FgHiBlack).SprintFunc()
 
-var infoPrefix = cyan("[INFO]") + "    "
-var successPrefix = green("[SUCCESS]") + " "
-var warningPrefix = yellow("[WARNING]") + " "
-var errorPrefix = red("[ERROR]") + "   "
-var requestPrefix = magenta("[REQUEST]") + " " + white("(unauthorized)") + " "
-var authRequestPrefix = magenta("[REQUEST]") + " " + red("(authorized)") + " "
+var infoPrefix = cyan("   INFO ")
+var successPrefix = green("SUCCESS ")
+var warningPrefix = yellow("WARNING ")
+var errorPrefix = red("  ERROR ")
+var requestPrefix = magenta("REQUEST ") + white("(unauthorized) ")
+var authRequestPrefix = magenta("REQUEST ") + red("(authorized) ")
 
 // Used to log the messages and display request statuses.
 // Avoid using multiple loggers on the same output at the same time.
