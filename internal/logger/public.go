@@ -155,11 +155,12 @@ func (l *Logger) Stats() {
 	builder.WriteString("\ndownloader stats:\n\n")
 
 	builder.WriteString(fmt.Sprintf("- tasks crawled: %v / %v\n", l.numSuccessfulCrawls, l.numExpectedCrawls))
-	builder.WriteString(fmt.Sprintf(
-		"- works downloaded: %v / %v + %v skipped\n", l.numSuccessfulWorks,
-		l.numExpectedWorks-l.numSkippedWorks, l.numSkippedWorks,
-	))
-	builder.WriteString(fmt.Sprintf("- unauthorized requests: %v\n", l.numRequests-l.numAuthorizedRequests))
+	numTotalWorks := l.numExpectedWorks - l.numSkippedWorks
+	builder.WriteString(fmt.Sprintf("- works downloaded: %v / %v", l.numSuccessfulWorks, numTotalWorks))
+	if l.numSkippedWorks > 0 {
+		builder.WriteString(fmt.Sprintf(" + %v skipped", l.numSkippedWorks))
+	}
+	builder.WriteString(fmt.Sprintf("\n- unauthorized requests: %v\n", l.numRequests-l.numAuthorizedRequests))
 	builder.WriteString(fmt.Sprintf("- authorized requests: %v\n\n", l.numAuthorizedRequests))
 
 	s := fmt.Sprintf("- warnings: %v\n", l.numWarnings)
