@@ -10,7 +10,7 @@ import (
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
-	if !d.matchNovelId(id) {
+	if d.novelIgnored(id) || !d.matchNovelId(id) {
 		return nil, nil
 	}
 	d.logger.Info("started downloading metadata for novel %v", id)
@@ -30,7 +30,7 @@ func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []string) (*work.Work, error) {
-	if !d.matchNovel(id, w, true) {
+	if d.novelIgnored(id) || !d.matchNovel(id, w, true) {
 		return nil, nil
 	}
 	assets := []fsext.Asset{}
@@ -41,7 +41,7 @@ func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []stri
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
-	if !d.matchNovelId(id) {
+	if d.novelIgnored(id) || !d.matchNovelId(id) {
 		return nil, nil
 	}
 	d.logger.Info("started downloading novel %v", id)
@@ -66,7 +66,9 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 // metadata are defined, it will wait until full metadata is received.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) (*work.Work, error) {
-	if matches, needFull := d.matchNovelNeedFull(id, nil); !matches {
+	if d.novelIgnored(id) {
+		return nil, nil
+	} else if matches, needFull := d.matchNovelNeedFull(id, nil); !matches {
 		return nil, nil
 	} else if needFull {
 		return d.Novel(id, paths)

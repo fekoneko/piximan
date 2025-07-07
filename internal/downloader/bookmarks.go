@@ -11,6 +11,11 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
+// TODO: make an option to skip fetching consequent bookmark pages if all found works
+//       on the current page were ignored
+
+// TODO: make a cli option to specify collection path and ignore all works there
+
 // Schedule bookmarks of authorized user for download. Run() to start downloading.
 func (d *Downloader) ScheduleMyBookmarks(
 	kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,

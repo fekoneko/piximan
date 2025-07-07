@@ -45,6 +45,9 @@ type Downloader struct {
 
 	rules      *queue.Rules
 	rulesMutex *sync.Mutex
+
+	ignoreList      *queue.IgnoreList
+	ignoreListMutex *sync.Mutex
 }
 
 func New(client *client.Client, logger *logger.Logger) *Downloader {
@@ -59,8 +62,8 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 		crawlQueue:         make([]CrawlFunc, 0),
 		crawlQueueMutex:    &sync.Mutex{},
 		numCrawlingCond:    sync.NewCond(&sync.Mutex{}),
-		rules:              &queue.Rules{},
 		rulesMutex:         &sync.Mutex{},
+		ignoreListMutex:    &sync.Mutex{},
 	}
 }
 

@@ -10,11 +10,7 @@ func (d *Downloader) SetRules(rules *queue.Rules) {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	if rules == nil {
-		*d.rules = queue.Rules{}
-	} else {
-		*d.rules = *rules
-	}
+	d.rules = rules
 }
 
 // Checks weather the artwork is worth getting metadata for a full MatchWork() call.
@@ -23,6 +19,9 @@ func (d *Downloader) matchArtworkId(id uint64) bool {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
+	if d.rules == nil {
+		return true
+	}
 	matches := d.rules.MatchArtworkId(id)
 	if !matches {
 		d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
@@ -36,6 +35,9 @@ func (d *Downloader) matchNovelId(id uint64) bool {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
+	if d.rules == nil {
+		return true
+	}
 	matches := d.rules.MatchNovelId(id)
 	if !matches {
 		d.logger.Info("skipping novel %v as it doesn't match download rules", id)
@@ -51,6 +53,9 @@ func (d *Downloader) matchArtwork(id uint64, w *work.Work, partial bool) bool {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
+	if d.rules == nil {
+		return true
+	}
 	matches, warnings := d.rules.MatchWork(w, partial)
 	d.logger.MaybeWarnings(warnings, "while matching metadata for artwork %v", id)
 	if !matches {
@@ -66,6 +71,9 @@ func (d *Downloader) matchArtworkNeedFull(id uint64, w *work.Work) (matches bool
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
+	if d.rules == nil {
+		return true, false
+	}
 	if matches, warnings := d.rules.MatchWork(w, true); !matches {
 		d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
 		return false, false
@@ -82,6 +90,9 @@ func (d *Downloader) matchNovel(id uint64, w *work.Work, partial bool) bool {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
+	if d.rules == nil {
+		return true
+	}
 	matches, warnings := d.rules.MatchWork(w, partial)
 	d.logger.MaybeWarnings(warnings, "while matching metadata for novel %v", id)
 	if !matches {
@@ -97,6 +108,9 @@ func (d *Downloader) matchNovelNeedFull(id uint64, w *work.Work) (matches bool, 
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
+	if d.rules == nil {
+		return true, false
+	}
 	if matches, warnings := d.rules.MatchWork(w, true); !matches {
 		d.logger.Info("skipping novel %v as it doesn't match download rules", id)
 		return false, false
