@@ -52,3 +52,12 @@ func (kind Kind) String() string {
 		return KindDefault.String()
 	}
 }
+
+func ValidKindString(kind string) bool {
+	switch kind {
+	case KindIllustString, KindMangaString, KindUgoiraString, KindNovelString:
+		return true
+	default:
+		return false
+	}
+}

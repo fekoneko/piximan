@@ -8,10 +8,6 @@ import (
 	"github.com/fekoneko/piximan/internal/termext"
 )
 
-// TODO: multiline logs
-// TODO: make a dictionary with log messages
-// TODO: group logs if there are multiple of the same type
-
 func (l *Logger) Info(message string, args ...any) {
 	l.log(infoPrefix+message, args...)
 }
@@ -80,14 +76,14 @@ func (l *Logger) MaybeErrors(errs []error, prefix string, args ...any) {
 	}
 }
 
-func (l *Logger) Request(url string) (removeBar func(), updateBar func(int, int)) {
-	removeBar, updateBar = l.registerRequest(url, false)
+func (l *Logger) Request(url string) (RemoveBarFunc, UpdateBarFunc) {
+	removeBar, updateBar := l.registerRequest(url, false)
 	l.log(requestPrefix + url)
 	return removeBar, updateBar
 }
 
-func (l *Logger) AuthorizedRequest(url string) (removeBar func(), updateBar func(int, int)) {
-	removeBar, updateBar = l.registerRequest(url, true)
+func (l *Logger) AuthorizedRequest(url string) (RemoveBarFunc, UpdateBarFunc) {
+	removeBar, updateBar := l.registerRequest(url, true)
 	l.log(authRequestPrefix + url)
 	return removeBar, updateBar
 }
@@ -101,6 +97,12 @@ func (l *Logger) ExpectWorks(count int) {
 func (l *Logger) AddSuccessfulWork() {
 	l.mutex.Lock()
 	l.numSuccessfulWorks++
+	l.mutex.Unlock()
+}
+
+func (l *Logger) AddSkippedWork() {
+	l.mutex.Lock()
+	l.numSkippedWorks++
 	l.mutex.Unlock()
 }
 
@@ -128,6 +130,12 @@ func (l *Logger) AddFailedCrawl() {
 	l.mutex.Unlock()
 }
 
+func (l *Logger) AddSkippedCrawl() {
+	l.mutex.Lock()
+	l.numSkippedCrawls++
+	l.mutex.Unlock()
+}
+
 func (l *Logger) ShowProgress() {
 	l.mutex.Lock()
 	l.progressShown = true
@@ -148,9 +156,19 @@ func (l *Logger) Stats() {
 	builder := strings.Builder{}
 	builder.WriteString("\ndownloader stats:\n\n")
 
-	builder.WriteString(fmt.Sprintf("- tasks crawled: %v\n", l.numSuccessfulCrawls))
-	builder.WriteString(fmt.Sprintf("- works downloaded: %v\n", l.numSuccessfulWorks))
-	builder.WriteString(fmt.Sprintf("- unauthorized requests: %v\n", l.numRequests-l.numAuthorizedRequests))
+	numTotalCrawls := l.numExpectedCrawls - l.numSkippedCrawls
+	builder.WriteString(fmt.Sprintf("- tasks crawled: %v / %v", l.numSuccessfulCrawls, numTotalCrawls))
+	if l.numSkippedCrawls > 0 {
+		builder.WriteString(fmt.Sprintf(" + %v skipped", l.numSkippedCrawls))
+	}
+
+	numTotalWorks := l.numExpectedWorks - l.numSkippedWorks
+	builder.WriteString(fmt.Sprintf("\n- works downloaded: %v / %v", l.numSuccessfulWorks, numTotalWorks))
+	if l.numSkippedWorks > 0 {
+		builder.WriteString(fmt.Sprintf(" + %v skipped", l.numSkippedWorks))
+	}
+
+	builder.WriteString(fmt.Sprintf("\n- unauthorized requests: %v\n", l.numRequests-l.numAuthorizedRequests))
 	builder.WriteString(fmt.Sprintf("- authorized requests: %v\n\n", l.numAuthorizedRequests))
 
 	s := fmt.Sprintf("- warnings: %v\n", l.numWarnings)
@@ -192,5 +210,5 @@ func (l *Logger) Stats() {
 	builder.WriteByte('\n')
 
 	l.mutex.Unlock()
-	l.printWithProgress("%v", builder.String())
+	l.printWithProgress(builder.String())
 }

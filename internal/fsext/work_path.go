@@ -20,13 +20,13 @@ func FormatWorkPath(pattern string, w *work.Work) (string, error) {
 		sections[0] = string(filepath.Separator)
 	}
 
-	replacer := getWorkPathReplacer(w)
+	replacer := workPathReplacer(w)
 	for i, section := range sections {
 		if i == 0 || section == "." || section == ".." {
 			continue
 		}
 		filename := replacer.Replace(section)
-		sections[i] = ToValidFilename(filename)
+		sections[i] = FormatFilename(filename)
 	}
 
 	return filepath.Join(sections...), nil
@@ -53,7 +53,7 @@ func WorkPathValid(pattern string) error {
 	return nil
 }
 
-func getWorkPathReplacer(w *work.Work) *strings.Replacer {
+func workPathReplacer(w *work.Work) *strings.Replacer {
 	oldNew := make([]string, 0, len(workPathSubstitutions)*2)
 	for substitution, value := range workPathSubstitutions {
 		oldNew = append(oldNew, substitution, value(w))
@@ -103,20 +103,18 @@ var workPathSubstitutions = map[string]func(w *work.Work) string{
 		}
 	},
 	"{ai}": func(w *work.Work) string {
-		switch utils.FromPtr(w.AiKind, 255) {
-		case work.AiKindNotAi:
-			return "Human"
-		case work.AiKindIsAi:
-			return "AI"
-		default:
+		if w.Ai == nil {
 			return "Unknown"
+		} else if *w.Ai {
+			return "AI"
+		} else {
+			return "Human"
 		}
 	},
 	"{original}": func(w *work.Work) string {
 		if w.Original == nil {
 			return "Unknown"
-		}
-		if *w.Original {
+		} else if *w.Original {
 			return "Original"
 		} else {
 			return "Not Original"

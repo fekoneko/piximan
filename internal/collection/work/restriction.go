@@ -46,3 +46,12 @@ func (restriction Restriction) String() string {
 		return RestrictionDefaultString
 	}
 }
+
+func ValidRestrictionString(restriction string) bool {
+	switch restriction {
+	case RestrictionNoneString, RestrictionR18String, RestrictionR18GString:
+		return true
+	default:
+		return false
+	}
+}

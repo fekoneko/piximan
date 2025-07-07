@@ -18,10 +18,12 @@ func MaybeWarnings(errs []error, prefix string, args ...any) { l.MaybeWarnings(e
 func MaybeErrors(errs []error, prefix string, args ...any)   { l.MaybeErrors(errs, prefix, args...) }
 func ExpectWorks(count int)                                  { l.ExpectWorks(count) }
 func AddSuccessfulWork()                                     { l.AddSuccessfulWork() }
+func AddSkippedWork()                                        { l.AddSkippedWork() }
 func AddFailedWork(id uint64)                                { l.AddFailedWork(id) }
 func ExpectCrawls(count int)                                 { l.ExpectCrawls(count) }
 func AddSuccessfulCrawl()                                    { l.AddSuccessfulCrawl() }
 func AddFailedCrawl()                                        { l.AddFailedCrawl() }
+func AddSkippedCrawl()                                       { l.AddSkippedCrawl() }
 func EnableProgress()                                        { l.ShowProgress() }
 func DisableProgress()                                       { l.HideProgress() }
 func Stats()                                                 { l.Stats() }

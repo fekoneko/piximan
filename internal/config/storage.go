@@ -20,7 +20,7 @@ var homePath, _ = os.UserHomeDir()
 var sessionIdPath = filepath.Join(homePath, ".piximan", "sessionid")
 var configPath = filepath.Join(homePath, ".piximan", "config.yaml")
 
-// Stores and reads configuration. You can directly access and change public fields and then
+// Stores and reads configuration. You can directly access and modify public fields and then
 // call Write() to save the changes on the disk.
 // SessionId() is decrypted lazily and cached in the Storage. WriteSessionId() writes the
 // encrypted session id to the disk separately from other fields.
@@ -34,7 +34,7 @@ type Storage struct {
 	DefaultDelay      time.Duration
 }
 
-func Open(password *string) (*Storage, error) {
+func New(password *string) (*Storage, error) {
 	// TODO: maybe make the salt not empty and store it as well
 	key, err := pbkdf2.Key(sha256.New, utils.FromPtr(password, ""), []byte{}, 4096, 32)
 	if err != nil {
@@ -67,10 +67,10 @@ func Open(password *string) (*Storage, error) {
 		cipher:            aesCipher,
 		gcm:               gcm,
 		sessionId:         nil,
-		PximgMaxPending:   utils.FromPtr(unmarshalled.PximgMaxPending, DEFAULT_PXIMG_MAX_PENDING),
-		PximgDelay:        utils.FromPtr(unmarshalled.PximgDelay, DEFAULT_PXIMG_DELAY),
-		DefaultMaxPending: utils.FromPtr(unmarshalled.DefaultMaxPending, DEFAULT_DEFAULT_MAX_PENDING),
-		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, DEFAULT_DEFAULT_DELAY),
+		PximgMaxPending:   utils.FromPtr(unmarshalled.PximgMaxPending, defaultPximgMaxPending),
+		PximgDelay:        utils.FromPtr(unmarshalled.PximgDelay, defaultPximgDelay),
+		DefaultMaxPending: utils.FromPtr(unmarshalled.DefaultMaxPending, defaultMaxPending),
+		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, defaultDelay),
 	}
 
 	return storage, nil

@@ -1,11 +1,13 @@
 package dto
 
 import (
+	"fmt"
+
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-const VERSION = uint64(1)
+const WorkVersion = uint64(1)
 
 type Work struct {
 	Version     *uint64   `yaml:"_version,omitempty"`
@@ -31,9 +33,9 @@ type Work struct {
 	Tags        *[]string `yaml:"tags,omitempty"`
 }
 
-func ToDto(w *work.Work) *Work {
+func WorkToDto(w *work.Work) *Work {
 	return &Work{
-		Version:     utils.ToPtr(VERSION),
+		Version:     utils.ToPtr(WorkVersion),
 		Id:          w.Id,
 		Title:       w.Title,
 		Kind:        utils.MapPtr(w.Kind, work.Kind.String),
@@ -41,7 +43,7 @@ func ToDto(w *work.Work) *Work {
 		UserId:      w.UserId,
 		UserName:    w.UserName,
 		Restriction: utils.MapPtr(w.Restriction, work.Restriction.String),
-		Ai:          w.AiKind.Bool(),
+		Ai:          w.Ai,
 		Original:    w.Original,
 		Pages:       w.NumPages,
 		Views:       w.NumViews,
@@ -55,4 +57,39 @@ func ToDto(w *work.Work) *Work {
 		SeriesOrder: w.SeriesOrder,
 		Tags:        w.Tags,
 	}
+}
+
+func (dto *Work) FromDto() (w *work.Work, warning error) {
+	if dto.Version == nil {
+		warning = fmt.Errorf("metadata version is missing")
+	} else if *dto.Version != WorkVersion {
+		warning = fmt.Errorf("metadata version mismatch: expected %v, got %v", WorkVersion, *dto.Version)
+	}
+
+	// TODO: warn if some fields are incorrect or there are extra fields
+
+	w = &work.Work{
+		Id:           dto.Id,
+		Title:        dto.Title,
+		Kind:         utils.MapPtr(dto.Kind, work.KindFromString),
+		Description:  dto.Description,
+		UserId:       dto.UserId,
+		UserName:     dto.UserName,
+		Restriction:  utils.MapPtr(dto.Restriction, work.RestrictionFromString),
+		Ai:           dto.Ai,
+		Original:     dto.Original,
+		NumPages:     dto.Pages,
+		NumViews:     dto.Views,
+		NumBookmarks: dto.Bookmarks,
+		NumLikes:     dto.Likes,
+		NumComments:  dto.Comments,
+		UploadTime:   utils.ParseLocalTimePtr(dto.Uploaded),
+		DownloadTime: utils.ParseLocalTimePtr(dto.Downloaded),
+		SeriesId:     dto.SeriesId,
+		SeriesTitle:  dto.SeriesTitle,
+		SeriesOrder:  dto.SeriesOrder,
+		Tags:         dto.Tags,
+	}
+
+	return w, warning
 }

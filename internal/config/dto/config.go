@@ -2,7 +2,7 @@ package dto
 
 import "time"
 
-const VERSION = uint64(1)
+const ConfigVersion = uint64(1)
 
 type Config struct {
 	Version           *uint64        `yaml:"_version,omitempty"`

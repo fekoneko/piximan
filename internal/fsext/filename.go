@@ -13,7 +13,7 @@ var filenameReplacer = strings.NewReplacer(
 	"\x1c", "", "\x1d", "", "\x1e", "", "\x1f", "",
 )
 
-func ToValidFilename(filename string) string {
+func FormatFilename(filename string) string {
 
 	switch strings.ToUpper(filename) {
 	case ".", "..", "CON", "PRN", "AUX", "NUL",

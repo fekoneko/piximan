@@ -1,6 +1,7 @@
 package fsext
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -19,7 +20,7 @@ type Asset struct {
 }
 
 func WriteWork(work *work.Work, assets []Asset, paths []string) error {
-	dto := dto.ToDto(work)
+	dto := dto.WorkToDto(work)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {
 		return err
@@ -29,8 +30,8 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 		if err := os.MkdirAll(path, 0775); err != nil {
 			return err
 		}
-		metadataPath := filepath.Join(path, "metadata.yaml")
-		if err := os.WriteFile(metadataPath, marshalled, 0664); err != nil {
+		metaPath := filepath.Join(path, "metadata.yaml")
+		if err := os.WriteFile(metaPath, marshalled, 0664); err != nil {
 			return err
 		}
 
@@ -41,7 +42,7 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 			}
 			builder.WriteString(utils.FromPtr(work.Title, "unknown"))
 			builder.WriteString(asset.Extension)
-			filename := ToValidFilename(builder.String())
+			filename := FormatFilename(builder.String())
 			path := filepath.Join(path, filename)
 			if err := os.WriteFile(path, asset.Bytes, 0664); err != nil {
 				return err
@@ -50,4 +51,23 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 	}
 
 	return nil
+}
+
+func ReadWork(path string) (w *work.Work, warning error, err error) {
+	metaPath := filepath.Join(path, "metadata.yaml")
+	bytes, err := os.ReadFile(metaPath)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		warning = fmt.Errorf("metadata is missing")
+		return &work.Work{}, warning, nil
+	} else if err != nil {
+		return nil, nil, err
+	}
+
+	unmarshalled := &dto.Work{}
+	if err := yaml.Unmarshal(bytes, unmarshalled); err != nil {
+		return nil, nil, err
+	}
+
+	w, warning = unmarshalled.FromDto()
+	return w, warning, nil
 }
