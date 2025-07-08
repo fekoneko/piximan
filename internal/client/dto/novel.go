@@ -12,17 +12,32 @@ import (
 
 type Novel struct {
 	Work
-	Content            *string     `json:"content"`
-	CoverUrl           *string     `json:"coverUrl"`
-	TextEmbeddedImages interface{} `json:"textEmbeddedImages"` // TODO: implement
+	Content            *string `json:"content"`
+	CoverUrl           *string `json:"coverUrl"`
+	TextEmbeddedImages map[string]struct {
+		Urls struct {
+			Thumb    *string `json:"128x128"`
+			Small    *string `json:"480mw"`
+			Regular  *string `json:"1200x1200"`
+			Original *string `json:"original"`
+		} `json:"urls"`
+	} `json:"textEmbeddedImages"`
 }
 
 func (dto *Novel) FromDto(downloadTime time.Time) (w *work.Work, content *string, coverUrl *string) {
 	w = dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
+
 	content, _ = parseContent(w, dto.Content)
 
 	return w, content, dto.CoverUrl
 }
+
+// TODO: parse page breaks
+// TODO: parse page titles
+// TODO: parse page links
+// TODO: parse url links
+// TODO: parse ruby (furigana)
+// TODO: ensure image extensions are correct when quolity is 'original'
 
 // Convert novel content from pixiv format to markdown. This does the following:
 // - doubles the line breaks
@@ -45,7 +60,6 @@ func parseContent(w *work.Work, content *string) (_ *string, imageMap map[uint64
 		} else if id := embeddedImage(content, &i); id != 0 {
 			latestImageId++
 			title := utils.FromPtr(w.Title, "unknown")
-			// TODO: ensure the name and extension are correct
 			s := fmt.Sprintf("![Embedded Image](./%03d. %v.jpg)", latestImageId, title)
 			builder.WriteString(s)
 		} else {
