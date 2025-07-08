@@ -71,7 +71,7 @@ func (d *Downloader) novelMetaWith(
 	}
 
 	if content != nil {
-		contentAsset := fsext.Asset{Bytes: []byte(*content), Extension: ".txt"}
+		contentAsset := fsext.Asset{Bytes: []byte(*content), Extension: ".md"}
 		return w, coverUrl, &contentAsset, nil
 	} else {
 		return w, coverUrl, nil, nil

@@ -70,7 +70,7 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 		Id:           utils.ParseUint64Ptr(dto.Id),
 		Title:        dto.Title,
 		Kind:         kind,
-		Description:  formatDescription(dto.Description),
+		Description:  parseDescription(dto.Description),
 		UserId:       utils.ParseUint64Ptr(dto.UserId),
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
@@ -91,11 +91,11 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 }
 
 // This function converts the work description with HTML to plain text. It does the following:
-// - replaces <br> tags with \n
+// - replaces <br> tags with line breaks
 // - replaces <a> tags with their href attribute values
 // - removes all other HTML tags
 // - unescapes HTML entities
-func formatDescription(description *string) *string {
+func parseDescription(description *string) *string {
 	if description == nil {
 		return nil
 	}
@@ -104,8 +104,8 @@ func formatDescription(description *string) *string {
 	textStart := 0
 	builder := strings.Builder{}
 
-	for i, b := range *description {
-		switch b {
+	for i, r := range *description {
+		switch r {
 		case '<':
 			tagStart = i + 1
 			builder.WriteString((*description)[textStart:i])

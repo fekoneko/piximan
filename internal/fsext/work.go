@@ -19,8 +19,8 @@ type Asset struct {
 	Page      uint64
 }
 
-func WriteWork(work *work.Work, assets []Asset, paths []string) error {
-	dto := dto.WorkToDto(work)
+func WriteWork(w *work.Work, assets []Asset, paths []string) error {
+	dto := dto.WorkToDto(w)
 	marshalled, err := yaml.Marshal(dto)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func WriteWork(work *work.Work, assets []Asset, paths []string) error {
 			if asset.Page != 0 {
 				builder.WriteString(fmt.Sprintf("%03d. ", asset.Page))
 			}
-			builder.WriteString(utils.FromPtr(work.Title, "unknown"))
+			builder.WriteString(utils.FromPtr(w.Title, "unknown"))
 			builder.WriteString(asset.Extension)
 			filename := FormatFilename(builder.String())
 			path := filepath.Join(path, filename)
