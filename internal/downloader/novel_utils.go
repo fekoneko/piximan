@@ -84,7 +84,7 @@ func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, 
 	d.logger.MaybeSuccess(err, "fetched cover for novel %v", id)
 	d.logger.MaybeError(err, "failed to fetch cover for novel %v", id)
 
-	asset := fsext.Asset{Bytes: cover, Extension: path.Ext(coverUrl)}
+	asset := fsext.Asset{Bytes: cover, Extension: path.Ext(coverUrl), Page: 1}
 	return &asset, nil
 }
 
