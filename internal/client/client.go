@@ -11,7 +11,6 @@ import (
 )
 
 // Client is used to make requests to Pixiv API, it holds the session id and request configuration
-// Don't copy Client after creation
 type Client struct {
 	_sessionId          *string
 	sessionIdMutex      *sync.Mutex

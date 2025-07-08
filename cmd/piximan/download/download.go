@@ -105,7 +105,7 @@ func download(options *options) {
 	} else if options.Collection != nil {
 		c := collection.New(*options.Collection, logger.DefaultLogger)
 		works := make([]*work.Work, 0)
-		c.Parse()
+		c.Read()
 		for w := c.WaitNext(); w != nil; w = c.WaitNext() {
 			works = append(works, w)
 		}

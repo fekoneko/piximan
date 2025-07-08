@@ -14,7 +14,8 @@ const channelSize = 10
 // TODO: store paths with the works
 
 // Used to access locally stored collection of works.
-// Use Parse() to start reading the collection.
+// Use Read() to start reading the collection.
+// Use Wait<...>() to block on the results.
 type Collection struct {
 	logger      *logger.Logger
 	channel     chan *work.Work
