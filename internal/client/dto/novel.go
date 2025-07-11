@@ -24,26 +24,33 @@ type Novel struct {
 	} `json:"textEmbeddedImages"`
 }
 
-func (dto *Novel) FromDto(downloadTime time.Time) (w *work.Work, content *string, coverUrl *string) {
+func (dto *Novel) FromDto(downloadTime time.Time) (w *work.Work, pages *[]string, coverUrl *string) {
 	w = dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
 
-	content, _ = parseContent(w, dto.Content)
+	pages, _ = parseContent(w, dto.Content)
 
-	return w, content, dto.CoverUrl
+	return w, pages, dto.CoverUrl
 }
 
-// TODO: parse page breaks
+// TODO: parse page breaks (multiple pages)
 // TODO: parse page titles
 // TODO: parse page links
 // TODO: parse url links
 // TODO: parse ruby (furigana)
+// TODO: parse pixiv images
 // TODO: ensure image extensions are correct when quolity is 'original'
 
 // Convert novel content from pixiv format to markdown. This does the following:
-// - doubles the line breaks
-// - replaces embedded image annotations with the appropriate markdown links
+// - \n -> \n\n
+// - [uploadedimage:{id}] -> ![Embedded Image](./{id}. {title}.{ext})
+// - [pixivimage:{id}] -> ![Embedded Image](./{id}. {title}.{ext})
+// - [[rb:{word} > {ruby}]] -> <ruby>{word}<rt>{ruby}</rt></ruby>
+// - [newpage]\n -> write to next page file
+// - [chapter:{title}] -> # {title}
+// - [jump:{page}] -> [{page}](./{page}. {title}.md)
+// - [[jumpuri:{title} > {url}]] -> [{title}]({url})
 // Also returns a map to later translate Pixiv image ids to local IDs.
-func parseContent(w *work.Work, content *string) (_ *string, imageMap map[uint64]uint64) {
+func parseContent(w *work.Work, content *string) (pages *[]string, imageMap map[uint64]uint64) {
 	imageMap = make(map[uint64]uint64)
 	charsOnLine := 0
 	latestImageId := 1
@@ -69,7 +76,7 @@ func parseContent(w *work.Work, content *string) (_ *string, imageMap map[uint64
 	}
 
 	parsed := builder.String()
-	return &parsed, imageMap
+	return &[]string{parsed}, imageMap
 }
 
 // Determine if embedded image annotation starts at index i. If it is, return the image ID,
