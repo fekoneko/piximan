@@ -147,7 +147,7 @@ func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]str
 	withUnauthorized := w.Restriction == nil ||
 		*w.Restriction == work.RestrictionNone || !authorized
 	if withUnauthorized {
-		pageUrls, err := d.client.ArtworkPages(id, size)
+		pageUrls, err := d.client.IllustMangaPages(id, size)
 		if err == nil {
 			d.logger.Success("fetched page urls for artwork %v", id)
 			return pageUrls, nil
@@ -163,7 +163,7 @@ func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]str
 		if withUnauthorized {
 			d.logger.Info("retrying fetching pages with authorization for artwork %v", id)
 		}
-		pageUrls, err := d.client.ArtworkPagesAuthorized(id, size)
+		pageUrls, err := d.client.IllustMangaPagesAuthorized(id, size)
 		d.logger.MaybeSuccess(err, "fetched page urls for artwork %v", id)
 		d.logger.MaybeError(err, "failed to fetch page urls for artwork %v", id)
 		if err != nil {
@@ -210,7 +210,8 @@ func (d *Downloader) fetchAssets(
 			}
 
 			d.logger.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
-			assets := fsext.Asset{Bytes: bytes, Extension: extension, Page: 1}
+			name := fsext.IllustMangaAssetName(1, extension)
+			assets := fsext.Asset{Bytes: bytes, Name: name}
 			assetChannel <- assets
 			guessedExtension = extension
 			break
@@ -239,7 +240,8 @@ func (d *Downloader) fetchAssets(
 			if withExtensions {
 				extension = path.Ext(url)
 			}
-			assets := fsext.Asset{Bytes: bytes, Extension: extension, Page: uint64(i + 1)}
+			name := fsext.IllustMangaAssetName(uint64(i+1), extension)
+			assets := fsext.Asset{Bytes: bytes, Name: name}
 			assetChannel <- assets
 		}()
 	}

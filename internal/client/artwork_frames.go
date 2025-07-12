@@ -8,23 +8,21 @@ import (
 	"github.com/fekoneko/piximan/internal/imageext"
 )
 
-// Ugoira artwork is expected for this function
-func (c *Client) ArtworkFrames(id uint64) (framesUrl *string, frames *[]imageext.Frame, err error) {
-	return artworkFramesWith(func(url string) ([]byte, error) {
+func (c *Client) UgoiraFrames(id uint64) (framesUrl *string, frames *[]imageext.Frame, err error) {
+	return ugoiraFramesWith(func(url string) ([]byte, error) {
 		body, _, err := c.Do(url, nil)
 		return body, err
 	}, id)
 }
 
-// Ugoira artwork is expected for this function
-func (c *Client) ArtworkFramesAuthorized(id uint64) (framesUrl *string, frames *[]imageext.Frame, err error) {
-	return artworkFramesWith(func(url string) ([]byte, error) {
+func (c *Client) UgoiraFramesAuthorized(id uint64) (framesUrl *string, frames *[]imageext.Frame, err error) {
+	return ugoiraFramesWith(func(url string) ([]byte, error) {
 		body, _, err := c.DoAuthorized(url, nil)
 		return body, err
 	}, id)
 }
 
-func artworkFramesWith(
+func ugoiraFramesWith(
 	do func(url string) ([]byte, error), id uint64,
 ) (framesUrl *string, frames *[]imageext.Frame, err error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/ugoira_meta", id)

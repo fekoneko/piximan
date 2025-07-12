@@ -75,7 +75,8 @@ func (d *Downloader) novelMetaWith(
 	if pages != nil {
 		pageAssets := make([]fsext.Asset, len(*pages))
 		for i, page := range *pages {
-			pageAssets[i] = fsext.Asset{Bytes: []byte(page), Extension: ".md", Page: uint64(i + 1)}
+			name := fsext.NovelPageAssetName(uint64(i + 1))
+			pageAssets[i] = fsext.Asset{Bytes: []byte(page), Name: name}
 		}
 		return w, coverUrl, &pageAssets, nil
 	} else {
@@ -89,7 +90,8 @@ func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, 
 	d.logger.MaybeSuccess(err, "fetched cover for novel %v", id)
 	d.logger.MaybeError(err, "failed to fetch cover for novel %v", id)
 
-	asset := fsext.Asset{Bytes: cover, Extension: path.Ext(coverUrl), Page: 1}
+	name := fsext.NovelCoverAssetName(path.Ext(coverUrl))
+	asset := fsext.Asset{Bytes: cover, Name: name}
 	return &asset, nil
 }
 

@@ -8,23 +8,21 @@ import (
 	"github.com/fekoneko/piximan/internal/downloader/image"
 )
 
-// Illustration or manga artwork is expected for this function
-func (c *Client) ArtworkPages(id uint64, size image.Size) ([]string, error) {
-	return artworkPagesWith(func(url string) ([]byte, error) {
+func (c *Client) IllustMangaPages(id uint64, size image.Size) ([]string, error) {
+	return illustMangaPagesWith(func(url string) ([]byte, error) {
 		body, _, err := c.Do(url, nil)
 		return body, err
 	}, id, size)
 }
 
-// Illustration or manga artwork is expected for this function
-func (c *Client) ArtworkPagesAuthorized(id uint64, size image.Size) ([]string, error) {
-	return artworkPagesWith(func(url string) ([]byte, error) {
+func (c *Client) IllustMangaPagesAuthorized(id uint64, size image.Size) ([]string, error) {
+	return illustMangaPagesWith(func(url string) ([]byte, error) {
 		body, _, err := c.DoAuthorized(url, nil)
 		return body, err
 	}, id, size)
 }
 
-func artworkPagesWith(
+func illustMangaPagesWith(
 	do func(url string) ([]byte, error), id uint64, size image.Size,
 ) ([]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/pages", id)

@@ -29,7 +29,8 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error
 		return nil, err
 	}
 
-	assets := []fsext.Asset{{Bytes: gif, Extension: ".gif"}}
+	name := fsext.UgoiraAssetName()
+	assets := []fsext.Asset{{Bytes: gif, Name: name}}
 	return assets, nil
 }
 
@@ -42,7 +43,7 @@ func (d *Downloader) fetchFrames(
 ) (framesUrl string, frames []imageext.Frame, err error) {
 	authorized := d.client.Authorized()
 	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || !authorized {
-		url, frames, err := d.client.ArtworkFrames(id)
+		url, frames, err := d.client.UgoiraFrames(id)
 		if err == nil && url == nil {
 			err = fmt.Errorf("frames archive url is missing")
 		} else if err == nil && frames == nil {
@@ -60,7 +61,7 @@ func (d *Downloader) fetchFrames(
 	}
 
 	if authorized {
-		url, frames, err := d.client.ArtworkFramesAuthorized(id)
+		url, frames, err := d.client.UgoiraFramesAuthorized(id)
 		if err == nil && url == nil {
 			err = fmt.Errorf("frames archive url is missing")
 		} else if err == nil && frames == nil {

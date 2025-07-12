@@ -2,10 +2,12 @@ package dto
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -29,6 +31,9 @@ func (dto *Novel) FromDto(downloadTime time.Time) (w *work.Work, pages *[]string
 
 	return w, pages, dto.CoverUrl
 }
+
+// TODO: download embedded images
+// TODO: wrap lines at 60 - 80 characters on word boundaries
 
 // Convert novel content from pixiv format to markdown. This does the following:
 // - 2 or more \n -> \n\n
@@ -83,10 +88,13 @@ func parseContent(content *string) (pages *[]string) {
 			builder.WriteString("# ")
 			builder.WriteString(text)
 		} else if match[pageLink] >= 0 {
-			page := (*content)[match[pageLinkPage]:match[pageLinkPage+1]]
+			pageString := (*content)[match[pageLinkPage]:match[pageLinkPage+1]]
+			page, _ := strconv.ParseUint(pageString, 10, 64)
 			builder.WriteByte('[')
-			builder.WriteString(page)
-			builder.WriteString("]()") // TODO: filename
+			builder.WriteString(pageString)
+			builder.WriteString("](")
+			builder.WriteString(fsext.NovelPageAssetName(page))
+			builder.WriteByte(')')
 		} else if match[urlLink] >= 0 {
 			text := (*content)[match[urlLinkText]:match[urlLinkText+1]]
 			url := (*content)[match[urlLinkUrl]:match[urlLinkUrl+1]]
