@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/fekoneko/piximan/internal/imageext"
+
 type Page struct {
 	Urls struct {
 		Thumb     *string `json:"thumb"`
@@ -10,20 +12,21 @@ type Page struct {
 	} `json:"urls"`
 }
 
-func (p *Page) FromDto() *[4]string {
-	thumbnailUrl := p.Urls.Thumb
-	if thumbnailUrl == nil {
-		thumbnailUrl = p.Urls.ThumbMini
-	}
-
-	if thumbnailUrl == nil || p.Urls.Small == nil || p.Urls.Regular == nil || p.Urls.Original == nil {
+func (p *Page) FromDto(size imageext.Size) *string {
+	switch size {
+	case imageext.SizeThumbnail:
+		if p.Urls.Thumb != nil {
+			return p.Urls.Thumb
+		} else {
+			return p.Urls.ThumbMini
+		}
+	case imageext.SizeSmall:
+		return p.Urls.Small
+	case imageext.SizeMedium:
+		return p.Urls.Regular
+	case imageext.SizeOriginal:
+		return p.Urls.Original
+	default:
 		return nil
-	}
-
-	return &[4]string{
-		*thumbnailUrl,
-		*p.Urls.Small,
-		*p.Urls.Regular,
-		*p.Urls.Original,
 	}
 }

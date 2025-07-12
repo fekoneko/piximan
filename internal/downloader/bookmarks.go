@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/fekoneko/piximan/internal/client"
-	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/syncext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
@@ -17,7 +17,7 @@ import (
 // a fully ignored one. Use this to conserve requests when synching freshly bookmarked works.
 func (d *Downloader) ScheduleMyBookmarks(
 	kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
-	size image.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
+	size imageext.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -42,7 +42,7 @@ func (d *Downloader) ScheduleMyBookmarks(
 // a fully ignored one. Use this to conserve requests when synching freshly bookmarked works.
 func (d *Downloader) ScheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
-	size image.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
+	size imageext.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -104,7 +104,7 @@ func (d *Downloader) ScheduleBookmarks(
 // Can be cancelled with provided signal until work download tasks were scheduled.
 func (d *Downloader) scheduleBookmarksPage(
 	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64, private bool,
-	size image.Size, onlyMeta bool, lowMeta bool, paths []string, signal *syncext.Signal,
+	size imageext.Size, onlyMeta bool, lowMeta bool, paths []string, signal *syncext.Signal,
 ) (total uint64, allIngored bool, err error) {
 	if signal != nil && signal.Cancelled() {
 		return 0, false, ErrSkipped

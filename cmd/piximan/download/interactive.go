@@ -3,8 +3,8 @@ package download
 import (
 	"fmt"
 
-	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 )
@@ -203,16 +203,16 @@ func selectSize(withQueue bool, onlyMeta bool) *uint {
 
 	switch size {
 	case thumbnailSizeOption:
-		result := uint(image.SizeThumbnail)
+		result := uint(imageext.SizeThumbnail)
 		return &result
 	case smallSizeOption:
-		result := uint(image.SizeSmall)
+		result := uint(imageext.SizeSmall)
 		return &result
 	case mediumSizeOption:
-		result := uint(image.SizeMedium)
+		result := uint(imageext.SizeMedium)
 		return &result
 	case originalSizeOption:
-		result := uint(image.SizeOriginal)
+		result := uint(imageext.SizeOriginal)
 		return &result
 	default:
 		logger.Fatal("incorrect size: %v", size)

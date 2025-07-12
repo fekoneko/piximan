@@ -6,27 +6,19 @@ import (
 	"strings"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
-	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
-
-func urlFromMap(id uint64, urls map[uint64]string) *string {
-	var urlPtr *string
-	if url, ok := urls[id]; ok {
-		urlPtr = &url
-	}
-	return urlPtr
-}
 
 // Fetch all image assets for illust or manga artwork
 func (d *Downloader) illustMangaAssets(
 	id uint64,
 	w *work.Work,
-	firstPageUrls *[4]string,
+	firstPageUrl *string,
 	thumbnailUrl *string,
-	size image.Size,
+	size imageext.Size,
 ) ([]fsext.Asset, error) {
-	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrls, thumbnailUrl, size)
+	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrl, thumbnailUrl, size)
 	if err != nil {
 		d.logger.Warning("failed to infer page urls for artwork %v: %v", id, err)
 	} else {
@@ -50,24 +42,26 @@ func (d *Downloader) illustMangaAssets(
 // For illustrations and manga it's possible to omit the request for fetching page urls
 // and infer them. This way we can also avoid authorization if the work has age restriction.
 // This function receives the data derived from metadata request:
-// - urls for different sizes of the first page (available only for works without restriction)
+// - url of the first page (available only for works without restriction)
 // - thumbnail url (available for all works but cannot be used to derive the extension)
-// ! The extension for restricted images in original size cannot be derived, thus we'll have to
-// ! try each one later.
+// If provided, firstPageUrl and thumbnailUls should be of the provided size.
+// The extension for restricted images in original size cannot be derived, thus we'll have to
+// try each one later.
 func inferPages(
-	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrl *string, size image.Size,
+	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string, size imageext.Size,
 ) (pageUrls []string, withExtensions bool, err error) {
 	if w.NumPages == nil {
-		err := fmt.Errorf("number of pages is missing in %v", w)
+		err := fmt.Errorf("page count is missing")
 		return nil, false, err
+	} else if *w.NumPages == 0 {
+		return nil, false, fmt.Errorf("page count is zero")
 	}
 
-	if firstPageUrls != nil {
-		firstPageUrl := (*firstPageUrls)[size]
-		if *w.NumPages <= 1 {
-			return []string{firstPageUrl}, true, nil
+	if firstPageUrl != nil {
+		if *w.NumPages == 1 {
+			return []string{*firstPageUrl}, true, nil
 		}
-		pageUrls, err := inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
+		pageUrls, err := inferPagesFromFirstUrl(*firstPageUrl, *w.NumPages)
 		if err == nil {
 			return pageUrls, true, nil
 		}
@@ -95,32 +89,32 @@ func inferPages(
 	}
 	urlDate := (*thumbnailUrl)[urlDateStart:urlDateEnd]
 
-	var firstPageUrl string
+	var inferredFirstPageUrl string
 	withExtensions = true
 	switch size {
-	case image.SizeThumbnail:
-		firstPageUrl = fmt.Sprintf(
+	case imageext.SizeThumbnail:
+		inferredFirstPageUrl = fmt.Sprintf(
 			"https://i.pximg.net/c/128x128/img-master/img/%v/%v_p0_square1200.jpg",
 			urlDate, id,
 		)
-	case image.SizeSmall:
-		firstPageUrl = fmt.Sprintf(
+	case imageext.SizeSmall:
+		inferredFirstPageUrl = fmt.Sprintf(
 			"https://i.pximg.net/c/540x540_70/img-master/img/%v/%v_p0_master1200.jpg",
 			urlDate, id,
 		)
-	case image.SizeMedium:
-		firstPageUrl = fmt.Sprintf(
+	case imageext.SizeMedium:
+		inferredFirstPageUrl = fmt.Sprintf(
 			"https://i.pximg.net/img-master/img/%v/%v_p0_master1200.jpg",
 			urlDate, id,
 		)
-	case image.SizeOriginal:
-		firstPageUrl = fmt.Sprintf(
+	case imageext.SizeOriginal:
+		inferredFirstPageUrl = fmt.Sprintf(
 			"https://i.pximg.net/img-original/img/%v/%v_p0",
 			urlDate, id,
 		)
 		withExtensions = false
 	}
-	pageUrls, _ = inferPagesFromFirstUrl(firstPageUrl, *w.NumPages)
+	pageUrls, _ = inferPagesFromFirstUrl(inferredFirstPageUrl, *w.NumPages)
 	return pageUrls, withExtensions, nil
 }
 
@@ -142,7 +136,7 @@ func inferPagesFromFirstUrl(firstPageUrl string, numPages uint64) ([]string, err
 // First the function will try to make the request without authorization and then with one.
 // If the work has age restriction, there's no point in fetching page urls without authorization,
 // so unauthoried request will be tried only if session id is unknown, otherwise - skipped.
-func (d *Downloader) fetchPages(w *work.Work, id uint64, size image.Size) ([]string, error) {
+func (d *Downloader) fetchPages(w *work.Work, id uint64, size imageext.Size) ([]string, error) {
 	authorized := d.client.Authorized()
 	withUnauthorized := w.Restriction == nil ||
 		*w.Restriction == work.RestrictionNone || !authorized
@@ -259,10 +253,10 @@ func (d *Downloader) fetchAssets(
 }
 
 func (d *Downloader) illustMangaAssetsChannel(
-	id uint64, w *work.Work, firstPageUrls *[4]string, thumbnailUrl *string, size image.Size,
+	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string, size imageext.Size,
 	assetsChannel chan []fsext.Asset, errorChannel chan error,
 ) {
-	if assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrl, size); err == nil {
+	if assets, err := d.illustMangaAssets(id, w, firstPageUrl, thumbnailUrl, size); err == nil {
 		assetsChannel <- assets
 	} else {
 		errorChannel <- err

@@ -2,13 +2,15 @@ package downloader
 
 import (
 	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
 
-// Fetch artwork metadata, map with urls to the first page and thumbnail urls
+// Provided size is used only to determine the url of the first page.
+// If you don't need this or you don't know the size, pass nil instead.
 func (d *Downloader) artworkMeta(
-	id uint64,
-) (w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, err error) {
-	w, firstPageUrls, thumbnailUrls, err = d.client.ArtworkMeta(id)
+	id uint64, size *imageext.Size,
+) (w *work.Work, firstPageUrl *string, thumbnailUrl *string, err error) {
+	w, firstPageUrl, thumbnailUrl, err = d.client.ArtworkMeta(id, size)
 	d.logger.MaybeSuccess(err, "fetched metadata for artwork %v", id)
 	d.logger.MaybeError(err, "failed to fetch metadata for artwork %v", id)
 	if err != nil {
@@ -17,7 +19,7 @@ func (d *Downloader) artworkMeta(
 	if !w.Full() {
 		d.logger.Warning("metadata for artwork %v is incomplete", id)
 	}
-	return w, firstPageUrls, thumbnailUrls, nil
+	return w, firstPageUrl, thumbnailUrl, nil
 }
 
 func (d *Downloader) artworkMetaChannel(
@@ -25,7 +27,7 @@ func (d *Downloader) artworkMetaChannel(
 	workChannel chan *work.Work,
 	errorChannel chan error,
 ) {
-	if w, _, _, err := d.artworkMeta(id); err == nil {
+	if w, _, _, err := d.artworkMeta(id, nil); err == nil {
 		workChannel <- w
 	} else {
 		errorChannel <- err

@@ -3,8 +3,8 @@ package dto
 import (
 	"fmt"
 
-	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -18,7 +18,7 @@ type List []struct {
 
 func (dto *List) FromDto(
 	defaultKind queue.ItemKind,
-	defaultSize image.Size,
+	defaultSize imageext.Size,
 	defaultOnlyMeta bool,
 	defaultPaths []string,
 ) (*queue.Queue, error) {
@@ -32,7 +32,7 @@ func (dto *List) FromDto(
 		q[i] = queue.Item{
 			Id:       *itemDto.Id,
 			Kind:     utils.FromPtrTransform(itemDto.Kind, queue.ItemKindFromString, defaultKind),
-			Size:     utils.FromPtrTransform(itemDto.Size, image.SizeFromUint, defaultSize),
+			Size:     utils.FromPtrTransform(itemDto.Size, imageext.SizeFromUint, defaultSize),
 			OnlyMeta: utils.FromPtr(itemDto.OnlyMeta, defaultOnlyMeta),
 			Paths:    utils.FromPtr(itemDto.Paths, defaultPaths),
 		}

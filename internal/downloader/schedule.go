@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
-	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
 
 // Schedule download. Run() to start downloading.
 func (d *Downloader) Schedule(
-	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
+	ids []uint64, kind queue.ItemKind, size imageext.Size, onlyMeta bool, paths []string,
 ) {
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
@@ -29,7 +29,7 @@ func (d *Downloader) Schedule(
 
 // Schedule download with additional work metadata if available. Run() to start downloading.
 func (d *Downloader) ScheduleWithKnown(
-	ids []uint64, kind queue.ItemKind, size image.Size, onlyMeta bool, paths []string,
+	ids []uint64, kind queue.ItemKind, size imageext.Size, onlyMeta bool, paths []string,
 	work *work.Work, imageUrl *string, lowMeta bool,
 ) {
 	d.downloadQueueMutex.Lock()

@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
 
 type Queue []Item
@@ -67,7 +67,7 @@ func (q *Queue) String() string {
 }
 
 func FromMap(
-	m *map[uint64][]string, kind ItemKind, size image.Size, onlyMeta bool,
+	m *map[uint64][]string, kind ItemKind, size imageext.Size, onlyMeta bool,
 ) *Queue {
 	queue := make(Queue, len(*m))
 
@@ -81,7 +81,7 @@ func FromMap(
 }
 
 func FromMapWithPaths(
-	m *map[uint64][]string, kind ItemKind, size image.Size, onlyMeta bool, paths []string,
+	m *map[uint64][]string, kind ItemKind, size imageext.Size, onlyMeta bool, paths []string,
 ) *Queue {
 	queue := make(Queue, len(*m))
 

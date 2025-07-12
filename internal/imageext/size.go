@@ -1,4 +1,4 @@
-package image
+package imageext
 
 type Size uint8
 
