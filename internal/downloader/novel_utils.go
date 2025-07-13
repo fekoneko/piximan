@@ -77,9 +77,10 @@ func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, 
 	return &asset, nil
 }
 
-// Fetch all novel illustrations as assets.
+// Fetch all novel illustrations as assets. uploadedImages urls should have the correct size.
 func (d *Downloader) novelImageAssets(
-	id uint64, uploadedImages dto.NovelUpladedImages, pixivImages dto.NovelPixivImages,
+	id uint64, size imageext.Size,
+	uploadedImages dto.NovelUpladedImages, pixivImages dto.NovelPixivImages,
 ) (map[uint64]fsext.Asset, error) {
 	assets := make(map[uint64]fsext.Asset, len(uploadedImages)+len(pixivImages))
 	assetsMutex := sync.Mutex{}
@@ -102,10 +103,16 @@ func (d *Downloader) novelImageAssets(
 		}()
 	}
 
-	for range pixivImages {
+	for index, artworkId := range pixivImages {
 		go func() {
-			// TODO: implement
-			errorChannel <- nil
+			if asset, err := d.novelPixivImage(id, index, artworkId, size); err == nil {
+				assetsMutex.Lock()
+				assets[index] = *asset
+				assetsMutex.Unlock()
+				errorChannel <- nil
+			} else {
+				errorChannel <- err
+			}
 		}()
 	}
 
@@ -131,10 +138,11 @@ func (d *Downloader) novelCoverAssetChannel(
 
 // novelImageAssets() but returs results through channels.
 func (d *Downloader) novelImageAssetsChannel(
-	id uint64, uploadedImages dto.NovelUpladedImages, pixivImages dto.NovelPixivImages,
-	imagesChannel chan map[uint64]fsext.Asset, errorChannel chan error,
+	id uint64, size imageext.Size, uploadedImages dto.NovelUpladedImages,
+	pixivImages dto.NovelPixivImages, imagesChannel chan map[uint64]fsext.Asset,
+	errorChannel chan error,
 ) {
-	if assets, err := d.novelImageAssets(id, uploadedImages, pixivImages); err == nil {
+	if assets, err := d.novelImageAssets(id, size, uploadedImages, pixivImages); err == nil {
 		imagesChannel <- assets
 	} else {
 		errorChannel <- err
@@ -148,7 +156,7 @@ func (d *Downloader) novelMetaImageAssetsChannel(
 ) {
 	if w, _, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size); err != nil {
 		errorChannel <- err
-	} else if assets, err := d.novelImageAssets(id, uploadedImages, pixivImages); err != nil {
+	} else if assets, err := d.novelImageAssets(id, size, uploadedImages, pixivImages); err != nil {
 		errorChannel <- err
 	} else {
 		workChannel <- w
@@ -179,4 +187,43 @@ func combineAssets(
 	assets = append(assets, *coverAsset)
 
 	return assets
+}
+
+// Get only the first page of artwork. Used for novel embedded illustrations.
+// Doesn't store anything, just returns the work and the asset.
+// This operation cannot be ignored with download rules or ignore list.
+func (d *Downloader) novelPixivImage(
+	novelId uint64, imageIndex uint64, artworkId uint64, size imageext.Size,
+) (*fsext.Asset, error) {
+	d.logger.Info("getting artwork %v for illustration %v in novel %v", artworkId, imageIndex, novelId)
+
+	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(artworkId, &size)
+	if err != nil {
+		return nil, err
+	}
+
+	var asset *fsext.Asset
+	if w.Kind == nil {
+		err = fmt.Errorf("work kind is missing in %v", w)
+		d.logger.Error("failed to download artwork %v: %v", artworkId, err)
+	} else if *w.Kind == work.KindUgoira {
+		asset, err = d.ugoiraAsset(artworkId, w)
+	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
+		var assets []fsext.Asset
+		assets, err = d.illustMangaAssets(artworkId, w, firstPageUrl, thumbnailUrl, size, true)
+		if err == nil && len(assets) > 0 {
+			asset = &assets[0]
+		}
+	} else {
+		err = fmt.Errorf("invalid work kind: %v", *w.Kind)
+		d.logger.Error("failed to download artwork %v: %v", artworkId, err)
+	}
+
+	if err != nil {
+		return nil, err
+	} else {
+		ext := path.Ext(asset.Name)
+		asset.Name = fsext.NovelImageAssetName(imageIndex, ext)
+		return asset, nil
+	}
 }

@@ -8,13 +8,16 @@ import (
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/imageext"
+	"github.com/fekoneko/piximan/internal/utils"
 )
 
 // Fetch all image assets for illust or manga artwork
 func (d *Downloader) illustMangaAssets(
-	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string, size imageext.Size,
+	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string,
+	size imageext.Size, onlyFirstPage bool,
 ) ([]fsext.Asset, error) {
-	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrl, thumbnailUrl, size)
+	numPages := utils.If(onlyFirstPage, utils.ToPtr(uint64(1)), w.NumPages)
+	pageUrls, withExtensions, err := inferPages(id, firstPageUrl, thumbnailUrl, size, numPages)
 	if err != nil {
 		d.logger.Warning("failed to infer page urls for artwork %v: %v", id, err)
 	} else {
@@ -27,6 +30,9 @@ func (d *Downloader) illustMangaAssets(
 	pageUrls, err = d.fetchPages(w, id, size)
 	if err != nil {
 		return nil, err
+	}
+	if onlyFirstPage {
+		pageUrls = pageUrls[:1]
 	}
 	assets, err := d.fetchAssets(id, pageUrls, true, false)
 	if err != nil {
@@ -44,20 +50,20 @@ func (d *Downloader) illustMangaAssets(
 // The extension for restricted images in original size cannot be derived, thus we'll have to
 // try each one later.
 func inferPages(
-	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string, size imageext.Size,
+	id uint64, firstPageUrl *string, thumbnailUrl *string, size imageext.Size, numPages *uint64,
 ) (pageUrls []string, withExtensions bool, err error) {
-	if w.NumPages == nil {
+	if numPages == nil {
 		err := fmt.Errorf("page count is missing")
 		return nil, false, err
-	} else if *w.NumPages == 0 {
+	} else if *numPages == 0 {
 		return nil, false, fmt.Errorf("page count is zero")
 	}
 
 	if firstPageUrl != nil {
-		if *w.NumPages == 1 {
+		if *numPages == 1 {
 			return []string{*firstPageUrl}, true, nil
 		}
-		pageUrls, err := inferPagesFromFirstUrl(*firstPageUrl, *w.NumPages)
+		pageUrls, err := inferPagesFromFirstUrl(*firstPageUrl, *numPages)
 		if err == nil {
 			return pageUrls, true, nil
 		}
@@ -110,7 +116,7 @@ func inferPages(
 		)
 		withExtensions = false
 	}
-	pageUrls, _ = inferPagesFromFirstUrl(inferredFirstPageUrl, *w.NumPages)
+	pageUrls, _ = inferPagesFromFirstUrl(inferredFirstPageUrl, *numPages)
 	return pageUrls, withExtensions, nil
 }
 
@@ -252,7 +258,7 @@ func (d *Downloader) illustMangaAssetsChannel(
 	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string, size imageext.Size,
 	assetsChannel chan []fsext.Asset, errorChannel chan error,
 ) {
-	if assets, err := d.illustMangaAssets(id, w, firstPageUrl, thumbnailUrl, size); err == nil {
+	if assets, err := d.illustMangaAssets(id, w, firstPageUrl, thumbnailUrl, size, false); err == nil {
 		assetsChannel <- assets
 	} else {
 		errorChannel <- err

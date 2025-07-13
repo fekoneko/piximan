@@ -15,7 +15,7 @@ func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
 	if d.ignored(id, queue.ItemKindNovel, false) || !d.matchNovelId(id) {
 		return nil, ErrSkipped
 	}
-	d.logger.Info("started downloading metadata for novel %v", id)
+	d.logger.Info("downloading metadata for novel %v", id)
 
 	w, err := d.novelOnlyMeta(id)
 	if err != nil {
@@ -46,7 +46,7 @@ func (d *Downloader) Novel(id uint64, size imageext.Size, paths []string) (*work
 	if d.ignored(id, queue.ItemKindNovel, false) || !d.matchNovelId(id) {
 		return nil, ErrSkipped
 	}
-	d.logger.Info("started downloading novel %v", id)
+	d.logger.Info("downloading novel %v", id)
 
 	w, coverUrl, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size)
 	if err != nil {
@@ -60,7 +60,7 @@ func (d *Downloader) Novel(id uint64, size imageext.Size, paths []string) (*work
 	errorChannel := make(chan error, 1)
 
 	go d.novelCoverAssetChannel(id, *coverUrl, coverChannel, errorChannel)
-	go d.novelImageAssetsChannel(id, uploadedImages, pixivImages, imagesChannel, errorChannel)
+	go d.novelImageAssetsChannel(id, size, uploadedImages, pixivImages, imagesChannel, errorChannel)
 
 	var coverAsset *fsext.Asset
 	var imageAssets map[uint64]fsext.Asset
@@ -93,7 +93,7 @@ func (d *Downloader) NovelWithKnown(
 	} else if needFull {
 		return d.Novel(id, size, paths)
 	}
-	d.logger.Info("started downloading novel %v", id)
+	d.logger.Info("downloading novel %v", id)
 
 	workChannel := make(chan *work.Work, 1)
 	pagesChannel := make(chan dto.NovelPages, 1)

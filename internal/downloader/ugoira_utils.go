@@ -9,7 +9,7 @@ import (
 )
 
 // Fetch and encode gif asset for ugoira
-func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error) {
+func (d *Downloader) ugoiraAsset(id uint64, w *work.Work) (*fsext.Asset, error) {
 	url, frames, err := d.fetchFrames(w, id)
 	if err != nil {
 		return nil, err
@@ -30,8 +30,8 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error
 	}
 
 	name := fsext.UgoiraAssetName()
-	assets := []fsext.Asset{{Bytes: gif, Name: name}}
-	return assets, nil
+	asset := &fsext.Asset{Bytes: gif, Name: name}
+	return asset, nil
 }
 
 // The function is used to fetch the information about animation frames for ugoira.
@@ -81,10 +81,11 @@ func (d *Downloader) fetchFrames(
 }
 
 func (d *Downloader) ugoiraAssetsChannel(
-	id uint64, w *work.Work, assetsChannel chan []fsext.Asset, errorChannel chan error,
+	id uint64, w *work.Work, assetChannel chan []fsext.Asset, errorChannel chan error,
 ) {
-	if assets, err := d.ugoiraAssets(id, w); err == nil {
-		assetsChannel <- assets
+	if asset, err := d.ugoiraAsset(id, w); err == nil {
+		assets := []fsext.Asset{*asset}
+		assetChannel <- assets
 	} else {
 		errorChannel <- err
 	}

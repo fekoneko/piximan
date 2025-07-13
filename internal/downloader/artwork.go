@@ -16,7 +16,7 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtworkId(id) {
 		return nil, ErrSkipped
 	}
-	d.logger.Info("started downloading metadata for artwork %v", id)
+	d.logger.Info("downloading metadata for artwork %v", id)
 
 	w, _, _, err := d.artworkMeta(id, nil)
 	if err != nil {
@@ -47,7 +47,7 @@ func (d *Downloader) Artwork(id uint64, size imageext.Size, paths []string) (*wo
 	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtworkId(id) {
 		return nil, ErrSkipped
 	}
-	d.logger.Info("started downloading artwork %v", id)
+	d.logger.Info("downloading artwork %v", id)
 
 	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(id, &size)
 	if err != nil {
@@ -61,11 +61,12 @@ func (d *Downloader) Artwork(id uint64, size imageext.Size, paths []string) (*wo
 		d.logger.Error("failed to download artwork %v: %v", id, err)
 		return w, err
 	} else if *w.Kind == work.KindUgoira {
-		assets, err := d.ugoiraAssets(id, w)
+		asset, err := d.ugoiraAsset(id, w)
+		assets := []fsext.Asset{*asset}
 		d.writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
-		assets, err := d.illustMangaAssets(id, w, firstPageUrl, thumbnailUrl, size)
+		assets, err := d.illustMangaAssets(id, w, firstPageUrl, thumbnailUrl, size, false)
 		d.writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else {
@@ -90,7 +91,7 @@ func (d *Downloader) ArtworkWithKnown(
 	} else if needFull {
 		return d.Artwork(id, size, paths)
 	}
-	d.logger.Info("started downloading artwork %v", id)
+	d.logger.Info("downloading artwork %v", id)
 
 	workChannel := make(chan *work.Work, 1)
 	assetsChannel := make(chan []fsext.Asset, 1)
@@ -142,11 +143,12 @@ func (d *Downloader) LowArtworkWithKnown(
 		d.logger.Error("failed to download artwork %v: %v", id, err)
 		return w, err
 	} else if *w.Kind == work.KindUgoira {
-		assets, err := d.ugoiraAssets(id, w)
+		asset, err := d.ugoiraAsset(id, w)
+		assets := []fsext.Asset{*asset}
 		d.writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
-		assets, err := d.illustMangaAssets(id, w, nil, &thumbnailUrl, size)
+		assets, err := d.illustMangaAssets(id, w, nil, &thumbnailUrl, size, false)
 		d.writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else {
