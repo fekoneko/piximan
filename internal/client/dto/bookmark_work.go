@@ -54,7 +54,7 @@ func (dto *BookmarkWork) FromDto(
 		Id:           id,
 		Title:        dto.Title,
 		Kind:         kind,
-		Description:  formatDescription(dto.Description),
+		Description:  parseDescription(dto.Description),
 		UserId:       userId,
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),

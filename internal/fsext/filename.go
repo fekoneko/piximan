@@ -1,6 +1,8 @@
 package fsext
 
-import "strings"
+import (
+	"strings"
+)
 
 var filenameReplacer = strings.NewReplacer(
 	"/", "／", "\\", "＼", ":", "：",

@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
-	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
 
 // Download only artwork metadata and store it in paths. Blocks until done.
@@ -16,9 +16,9 @@ func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) 
 	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtworkId(id) {
 		return nil, ErrSkipped
 	}
-	d.logger.Info("started downloading metadata for artwork %v", id)
+	d.logger.Info("downloading metadata for artwork %v", id)
 
-	w, _, _, err := d.artworkMeta(id)
+	w, _, _, err := d.artworkMeta(id, nil)
 	if err != nil {
 		return nil, err
 	} else if !d.matchArtwork(id, w, false) {
@@ -43,13 +43,13 @@ func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []st
 // Download artwork with all assets and metadata and store it in paths. Blocks until done.
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
-func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.Work, error) {
+func (d *Downloader) Artwork(id uint64, size imageext.Size, paths []string) (*work.Work, error) {
 	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtworkId(id) {
 		return nil, ErrSkipped
 	}
-	d.logger.Info("started downloading artwork %v", id)
+	d.logger.Info("downloading artwork %v", id)
 
-	w, firstPageUrls, thumbnailUrls, err := d.artworkMeta(id)
+	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(id, &size)
 	if err != nil {
 		return nil, err
 	} else if !d.matchArtwork(id, w, false) {
@@ -61,12 +61,12 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 		d.logger.Error("failed to download artwork %v: %v", id, err)
 		return w, err
 	} else if *w.Kind == work.KindUgoira {
-		assets, err := d.ugoiraAssets(id, w)
+		asset, err := d.ugoiraAsset(id, w)
+		assets := []fsext.Asset{*asset}
 		d.writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
-		thumbnailUrl := urlFromMap(id, thumbnailUrls)
-		assets, err := d.illustMangaAssets(id, w, firstPageUrls, thumbnailUrl, size)
+		assets, err := d.illustMangaAssets(id, w, firstPageUrl, thumbnailUrl, size, false)
 		d.writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else {
@@ -82,7 +82,7 @@ func (d *Downloader) Artwork(id uint64, size image.Size, paths []string) (*work.
 // metadata are defined, it will wait until full metadata is received.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) ArtworkWithKnown(
-	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
+	id uint64, size imageext.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
 	if d.ignored(id, queue.ItemKindArtwork, false) {
 		return nil, ErrSkipped
@@ -91,11 +91,11 @@ func (d *Downloader) ArtworkWithKnown(
 	} else if needFull {
 		return d.Artwork(id, size, paths)
 	}
-	d.logger.Info("started downloading artwork %v", id)
+	d.logger.Info("downloading artwork %v", id)
 
-	workChannel := make(chan *work.Work)
-	assetsChannel := make(chan []fsext.Asset)
-	errorChannel := make(chan error)
+	workChannel := make(chan *work.Work, 1)
+	assetsChannel := make(chan []fsext.Asset, 1)
+	errorChannel := make(chan error, 1)
 
 	go d.artworkMetaChannel(id, workChannel, errorChannel)
 
@@ -133,7 +133,7 @@ func (d *Downloader) ArtworkWithKnown(
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowArtworkWithKnown(
-	id uint64, size image.Size, w *work.Work, thumbnailUrl string, paths []string,
+	id uint64, size imageext.Size, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
 	if d.ignored(id, queue.ItemKindArtwork, false) || !d.matchArtwork(id, w, true) {
 		return nil, ErrSkipped
@@ -143,11 +143,12 @@ func (d *Downloader) LowArtworkWithKnown(
 		d.logger.Error("failed to download artwork %v: %v", id, err)
 		return w, err
 	} else if *w.Kind == work.KindUgoira {
-		assets, err := d.ugoiraAssets(id, w)
+		asset, err := d.ugoiraAsset(id, w)
+		assets := []fsext.Asset{*asset}
 		d.writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else if *w.Kind == work.KindIllust || *w.Kind == work.KindManga {
-		assets, err := d.illustMangaAssets(id, w, nil, &thumbnailUrl, size)
+		assets, err := d.illustMangaAssets(id, w, nil, &thumbnailUrl, size, false)
 		d.writeWork(id, queue.ItemKindArtwork, w, assets, false, paths)
 		return w, err
 	} else {

@@ -10,7 +10,7 @@ import (
 
 // Start reading the works in the collection. Cancels previous parsing if pending.
 // The operation must be waited for with WaitNext() or WaitDone() after this method.
-func (c *Collection) Parse() {
+func (c *Collection) Read() {
 	signal := c.newSignal()
 
 	go func() {

@@ -103,3 +103,12 @@ func ExactlyOneDefined(values ...any) bool {
 	}
 	return defined
 }
+
+func MapFindValue[K comparable, V comparable](m map[K]V, value V) (key K, ok bool) {
+	for k, v := range m {
+		if v == value {
+			return k, true
+		}
+	}
+	return key, false
+}

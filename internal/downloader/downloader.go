@@ -24,7 +24,6 @@ type CrawlFunc func() error
 // - crawlQueue - list of pages to crawl works from, modifies downloadQueue
 // Use Schedule<...>() methods to fill the queues and then Run() to start downloading.
 // Use Wait<...>() to block on the results.
-// Don't copy Downloader after creation
 type Downloader struct {
 	client  *client.Client
 	logger  *logger.Logger

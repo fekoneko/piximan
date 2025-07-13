@@ -3,16 +3,16 @@ package fsext
 import (
 	"os"
 
-	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext/dto"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"gopkg.in/yaml.v2"
 )
 
 func ReadList(
 	path string,
 	defaultKind queue.ItemKind,
-	defaultSize image.Size,
+	defaultSize imageext.Size,
 	defaultOnlyMeta bool,
 	defaultPaths []string,
 ) (*queue.Queue, error) {

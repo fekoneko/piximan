@@ -9,7 +9,7 @@ import (
 )
 
 // Fetch and encode gif asset for ugoira
-func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error) {
+func (d *Downloader) ugoiraAsset(id uint64, w *work.Work) (*fsext.Asset, error) {
 	url, frames, err := d.fetchFrames(w, id)
 	if err != nil {
 		return nil, err
@@ -29,8 +29,9 @@ func (d *Downloader) ugoiraAssets(id uint64, w *work.Work) ([]fsext.Asset, error
 		return nil, err
 	}
 
-	assets := []fsext.Asset{{Bytes: gif, Extension: ".gif"}}
-	return assets, nil
+	name := fsext.UgoiraAssetName()
+	asset := &fsext.Asset{Bytes: gif, Name: name}
+	return asset, nil
 }
 
 // The function is used to fetch the information about animation frames for ugoira.
@@ -42,7 +43,7 @@ func (d *Downloader) fetchFrames(
 ) (framesUrl string, frames []imageext.Frame, err error) {
 	authorized := d.client.Authorized()
 	if w.Restriction == nil || *w.Restriction == work.RestrictionNone || !authorized {
-		url, frames, err := d.client.ArtworkFrames(id)
+		url, frames, err := d.client.UgoiraFrames(id)
 		if err == nil && url == nil {
 			err = fmt.Errorf("frames archive url is missing")
 		} else if err == nil && frames == nil {
@@ -60,7 +61,7 @@ func (d *Downloader) fetchFrames(
 	}
 
 	if authorized {
-		url, frames, err := d.client.ArtworkFramesAuthorized(id)
+		url, frames, err := d.client.UgoiraFramesAuthorized(id)
 		if err == nil && url == nil {
 			err = fmt.Errorf("frames archive url is missing")
 		} else if err == nil && frames == nil {
@@ -80,10 +81,11 @@ func (d *Downloader) fetchFrames(
 }
 
 func (d *Downloader) ugoiraAssetsChannel(
-	id uint64, w *work.Work, assetsChannel chan []fsext.Asset, errorChannel chan error,
+	id uint64, w *work.Work, assetChannel chan []fsext.Asset, errorChannel chan error,
 ) {
-	if assets, err := d.ugoiraAssets(id, w); err == nil {
-		assetsChannel <- assets
+	if asset, err := d.ugoiraAsset(id, w); err == nil {
+		assets := []fsext.Asset{*asset}
+		assetChannel <- assets
 	} else {
 		errorChannel <- err
 	}

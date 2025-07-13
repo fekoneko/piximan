@@ -10,6 +10,9 @@ import (
 	"github.com/fekoneko/piximan/internal/logger"
 )
 
+// TODO: caching?
+// TODO: cancelling requests?
+
 const bufferSize = 4096
 
 func (c *Client) Do(url string, onProgress func(int, int)) (body []byte, headers http.Header, err error) {

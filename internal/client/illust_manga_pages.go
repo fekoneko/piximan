@@ -5,27 +5,25 @@ import (
 	"fmt"
 
 	"github.com/fekoneko/piximan/internal/client/dto"
-	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
 
-// Illustration or manga artwork is expected for this function
-func (c *Client) ArtworkPages(id uint64, size image.Size) ([]string, error) {
-	return artworkPagesWith(func(url string) ([]byte, error) {
+func (c *Client) IllustMangaPages(id uint64, size imageext.Size) ([]string, error) {
+	return illustMangaPagesWith(func(url string) ([]byte, error) {
 		body, _, err := c.Do(url, nil)
 		return body, err
 	}, id, size)
 }
 
-// Illustration or manga artwork is expected for this function
-func (c *Client) ArtworkPagesAuthorized(id uint64, size image.Size) ([]string, error) {
-	return artworkPagesWith(func(url string) ([]byte, error) {
+func (c *Client) IllustMangaPagesAuthorized(id uint64, size imageext.Size) ([]string, error) {
+	return illustMangaPagesWith(func(url string) ([]byte, error) {
 		body, _, err := c.DoAuthorized(url, nil)
 		return body, err
 	}, id, size)
 }
 
-func artworkPagesWith(
-	do func(url string) ([]byte, error), id uint64, size image.Size,
+func illustMangaPagesWith(
+	do func(url string) ([]byte, error), id uint64, size imageext.Size,
 ) ([]string, error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v/pages", id)
 	body, err := do(url)
@@ -40,7 +38,11 @@ func artworkPagesWith(
 
 	pageUrls := make([]string, len(unmarshalled.Body))
 	for i, page := range unmarshalled.Body {
-		pageUrls[i] = page.FromDto()[size]
+		if url := page.FromDto(size); url != nil {
+			pageUrls[i] = *url
+		} else {
+			return nil, fmt.Errorf("no url found for page %v", i+1)
+		}
 	}
 
 	return pageUrls, nil
