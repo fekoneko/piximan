@@ -38,60 +38,6 @@ func (dto *Novel) FromDto(downloadTime time.Time, size *imageext.Size) (
 	w = dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
 	coverUrl = dto.CoverUrl
 
-	dto.Content = utils.ToPtr(`
-
-
-
-
-
-	      [chapter:test]
-	test
-
-		[jump:2]
-		[jump:3]
-		[jump:69]
-
-
-		[newpage]
-		[newpage]
-
-		afafafa    [pixivimage:132140669] [pixivimage:129209287] [pixivimage:129209287] [pixivimage:132140669]
-		[pixivimage:132140669]
-
-		[pixivimage:129209287]
-
-
-		[pixivimage:129209287]
-		[pixivimage:129209287]
-		[pixivimage:129209287]
-		[pixivimage:129209287]
-		[pixivimage:129209287]
-		[pixivimage:129209287]
-		[pixivimage:129209287]
-		[pixivimage:129209287]
-		[pixivimage:129209287 ]
-		[pixivimage:fff]
-		[pixivimage:fff]
-
-## test
-
-
-
-		[[jumpuri:test > https://www.pixiv.net]]
-
-		affaf
-
-
-	test
-
-
-
-
-
-		[newpage]
-
-	`)
-
 	if size == nil || dto.Content == nil {
 		return w, coverUrl, nil, nil, nil, false
 	}
