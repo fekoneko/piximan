@@ -236,7 +236,7 @@ func (d *Downloader) fetchAssets(
 			if withExtensions {
 				extension = path.Ext(url)
 			}
-			name := fsext.IllustMangaAssetName(uint64(i+1), extension)
+			name := fsext.IllustMangaAssetName(i+1, extension)
 			assets := fsext.Asset{Bytes: bytes, Name: name}
 			assetsChannel <- assets
 		}()

@@ -81,8 +81,8 @@ func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, 
 func (d *Downloader) novelImageAssets(
 	id uint64, size imageext.Size,
 	uploadedImages dto.NovelUpladedImages, pixivImages dto.NovelPixivImages,
-) (map[uint64]fsext.Asset, error) {
-	assets := make(map[uint64]fsext.Asset, len(uploadedImages)+len(pixivImages))
+) (map[int]fsext.Asset, error) {
+	assets := make(map[int]fsext.Asset, len(uploadedImages)+len(pixivImages))
 	assetsMutex := sync.Mutex{}
 	errorChannel := make(chan error, 1)
 
@@ -139,7 +139,7 @@ func (d *Downloader) novelCoverAssetChannel(
 // novelImageAssets() but returs results through channels.
 func (d *Downloader) novelImageAssetsChannel(
 	id uint64, size imageext.Size, uploadedImages dto.NovelUpladedImages,
-	pixivImages dto.NovelPixivImages, imagesChannel chan map[uint64]fsext.Asset,
+	pixivImages dto.NovelPixivImages, imagesChannel chan map[int]fsext.Asset,
 	errorChannel chan error,
 ) {
 	if assets, err := d.novelImageAssets(id, size, uploadedImages, pixivImages); err == nil {
@@ -152,7 +152,7 @@ func (d *Downloader) novelImageAssetsChannel(
 // novelMeta() + novelImageAssets() but returs results through channels.
 func (d *Downloader) novelMetaImageAssetsChannel(
 	id uint64, size imageext.Size, workChannel chan *work.Work,
-	pagesChannel chan dto.NovelPages, imagesChannel chan map[uint64]fsext.Asset, errorChannel chan error,
+	pagesChannel chan dto.NovelPages, imagesChannel chan map[int]fsext.Asset, errorChannel chan error,
 ) {
 	if w, _, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size); err != nil {
 		errorChannel <- err
@@ -166,13 +166,13 @@ func (d *Downloader) novelMetaImageAssetsChannel(
 }
 
 func combineAssets(
-	coverAsset *fsext.Asset, imageAssets map[uint64]fsext.Asset, pages dto.NovelPages,
+	coverAsset *fsext.Asset, imageAssets map[int]fsext.Asset, pages dto.NovelPages,
 ) []fsext.Asset {
-	imageName := func(index uint64) string {
+	imageName := func(index int) string {
 		return imageAssets[index].Name
 	}
-	pageName := func(index uint64) string {
-		return fsext.NovelPageAssetName(index)
+	pageName := func(page int) string {
+		return fsext.NovelPageAssetName(page)
 	}
 	pageAssets := pages(imageName, pageName)
 
@@ -193,7 +193,7 @@ func combineAssets(
 // Doesn't store anything, just returns the work and the asset.
 // This operation cannot be ignored with download rules or ignore list.
 func (d *Downloader) novelPixivImage(
-	novelId uint64, imageIndex uint64, artworkId uint64, size imageext.Size,
+	novelId uint64, imageIndex int, artworkId uint64, size imageext.Size,
 ) (*fsext.Asset, error) {
 	d.logger.Info("getting artwork %v for illustration %v in novel %v", artworkId, imageIndex, novelId)
 

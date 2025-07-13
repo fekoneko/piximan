@@ -26,6 +26,7 @@ type Novel struct {
 	} `json:"textEmbeddedImages"`
 }
 
+// TODO: escape markdown syntax
 // TODO: wrap lines at 60 - 80 characters on word boundaries
 
 // Provided size is only used to determine embedded image urls.
@@ -37,6 +38,60 @@ func (dto *Novel) FromDto(downloadTime time.Time, size *imageext.Size) (
 	w = dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
 	coverUrl = dto.CoverUrl
 
+	dto.Content = utils.ToPtr(`
+
+
+
+
+
+	      [chapter:test]
+	test
+
+		[jump:2]
+		[jump:3]
+		[jump:69]
+
+
+		[newpage]
+		[newpage]
+
+		afafafa    [pixivimage:132140669] [pixivimage:129209287] [pixivimage:129209287] [pixivimage:132140669]
+		[pixivimage:132140669]
+
+		[pixivimage:129209287]
+
+
+		[pixivimage:129209287]
+		[pixivimage:129209287]
+		[pixivimage:129209287]
+		[pixivimage:129209287]
+		[pixivimage:129209287]
+		[pixivimage:129209287]
+		[pixivimage:129209287]
+		[pixivimage:129209287]
+		[pixivimage:129209287 ]
+		[pixivimage:fff]
+		[pixivimage:fff]
+
+## test
+
+
+
+		[[jumpuri:test > https://www.pixiv.net]]
+
+		affaf
+
+
+	test
+
+
+
+
+
+		[newpage]
+
+	`)
+
 	if size == nil || dto.Content == nil {
 		return w, coverUrl, nil, nil, nil, false
 	}
@@ -44,7 +99,7 @@ func (dto *Novel) FromDto(downloadTime time.Time, size *imageext.Size) (
 	matches := contentRegexp.FindAllStringSubmatchIndex(*dto.Content, -1)
 	pixivImages = make(NovelPixivImages)
 	uploadedImages = make(NovelUpladedImages)
-	imageIndex := uint64(1)
+	imageIndexes := make([]int, 0)
 
 	for _, match := range matches {
 		if match[uploadedImage] >= 0 {
@@ -56,22 +111,30 @@ func (dto *Novel) FromDto(downloadTime time.Time, size *imageext.Size) (
 			if !ok {
 				return w, coverUrl, nil, nil, nil, false
 			}
-			uploadedImages[imageIndex] = url
-			imageIndex++
+			index, ok := utils.MapFindValue(uploadedImages, url)
+			if !ok {
+				index = len(uploadedImages) + 1
+				uploadedImages[index] = url
+			}
+			imageIndexes = append(imageIndexes, index)
 
 		} else if match[pixivImage] >= 0 {
 			idString := (*dto.Content)[match[pixivImageId]:match[pixivImageId+1]]
 			id, _ := strconv.ParseUint(idString, 10, 64)
-			pixivImages[imageIndex] = id
-			imageIndex++
+			index, ok := utils.MapFindValue(pixivImages, id)
+			if !ok {
+				index = len(pixivImages) + 1
+				pixivImages[index] = id
+			}
+			imageIndexes = append(imageIndexes, index)
 		}
 	}
 
 	pages = func(
-		imageName func(index uint64) string,
-		pageName func(index uint64) string,
+		imageName func(index int) string,
+		pageName func(index int) string,
 	) []fsext.Asset {
-		return finishParsingContent(dto.Content, matches, imageName, pageName)
+		return finishParsingContent(dto.Content, matches, imageIndexes, imageName, pageName)
 	}
 
 	return w, coverUrl, uploadedImages, pixivImages, pages, true
@@ -106,15 +169,14 @@ func (dto *Novel) uploadedImageUrl(idString string, size imageext.Size) (url str
 // - [jump:{page}] -> [{page}]({name})
 // - [[jumpuri:{title} > {url}]] -> [{title}]({url})
 func finishParsingContent(
-	content *string, matches [][]int,
-	imageName func(index uint64) string,
-	pageName func(index uint64) string,
+	content *string, matches [][]int, imageIndexes []int,
+	imageName func(index int) string, pageName func(index int) string,
 ) []fsext.Asset {
 	assets := make([]fsext.Asset, 0, 1)
 	builder := strings.Builder{}
 	prevEnd := 0
-	pageNumber := uint64(1)
-	imageIndex := uint64(1)
+	pageNumber := 1
+	numImages := 0
 
 	for _, match := range matches {
 		if prevEnd < match[0] {
@@ -140,15 +202,15 @@ func finishParsingContent(
 
 		} else if match[uploadedImage] >= 0 {
 			builder.WriteString("![Illustration](<")
-			builder.WriteString(imageName(imageIndex))
+			builder.WriteString(imageName(imageIndexes[numImages]))
 			builder.WriteString(">)")
-			imageIndex++
+			numImages++
 
 		} else if match[pixivImage] >= 0 {
 			builder.WriteString("![Illustration](<")
-			builder.WriteString(imageName(imageIndex))
+			builder.WriteString(imageName(imageIndexes[numImages]))
 			builder.WriteString(">)")
-			imageIndex++
+			numImages++
 
 		} else if match[ruby] >= 0 {
 			word := (*content)[match[rubyWord]:match[rubyWord+1]]
@@ -166,11 +228,11 @@ func finishParsingContent(
 
 		} else if match[pageLink] >= 0 {
 			pageString := (*content)[match[pageLinkPage]:match[pageLinkPage+1]]
-			page, _ := strconv.ParseUint(pageString, 10, 64)
+			page, _ := strconv.ParseInt(pageString, 10, 64)
 			builder.WriteByte('[')
 			builder.WriteString(pageString)
 			builder.WriteString("](<")
-			builder.WriteString(pageName(page))
+			builder.WriteString(pageName(int(page)))
 			builder.WriteString(">)")
 
 		} else if match[urlLink] >= 0 {
@@ -195,11 +257,11 @@ func finishParsingContent(
 }
 
 var contentRegexp = regexp.MustCompile(
-	`(\n*\[newpage\]\n*)|` +
-		`(^\n*)|` +
-		`(\n*$)|` +
-		`(\n{2,})|` +
-		`(\n)|` +
+	`([ 　\n\t]*\[newpage\][ 　\n\t]*)|` +
+		`(^[ 　\n\t]*)|` +
+		`([ 　\n\t]*$)|` +
+		`([ 　\t]*\n[ 　\t]*\n[ 　\n\t]*)|` +
+		`([ 　\t]*\n[ 　\t]*)|` +
 		`(\[uploadedimage:([0-9]+)\])|` +
 		`(\[pixivimage:([0-9]+)\])|` +
 		`(\[\[rb:(.+) *> *(.+)\]\])|` +
@@ -231,13 +293,13 @@ const (
 )
 
 // Map: index -> URL, used for downloading novel illustrations.
-type NovelUpladedImages map[uint64]string
+type NovelUpladedImages map[int]string
 
 // Map: index -> Pixiv work ID, used for downloading novel illustrations.
-type NovelPixivImages map[uint64]uint64
+type NovelPixivImages map[int]uint64
 
 // Call to finish parsing novel contents when all asset names are known.
 type NovelPages = func(
-	imageName func(index uint64) string,
-	pageName func(index uint64) string,
+	imageName func(index int) string,
+	pageName func(page int) string,
 ) []fsext.Asset

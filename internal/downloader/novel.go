@@ -56,14 +56,14 @@ func (d *Downloader) Novel(id uint64, size imageext.Size, paths []string) (*work
 	}
 
 	coverChannel := make(chan *fsext.Asset, 1)
-	imagesChannel := make(chan map[uint64]fsext.Asset, 1)
+	imagesChannel := make(chan map[int]fsext.Asset, 1)
 	errorChannel := make(chan error, 1)
 
 	go d.novelCoverAssetChannel(id, *coverUrl, coverChannel, errorChannel)
 	go d.novelImageAssetsChannel(id, size, uploadedImages, pixivImages, imagesChannel, errorChannel)
 
 	var coverAsset *fsext.Asset
-	var imageAssets map[uint64]fsext.Asset
+	var imageAssets map[int]fsext.Asset
 
 	for range 2 {
 		select {
@@ -97,7 +97,7 @@ func (d *Downloader) NovelWithKnown(
 
 	workChannel := make(chan *work.Work, 1)
 	pagesChannel := make(chan dto.NovelPages, 1)
-	imagesChannel := make(chan map[uint64]fsext.Asset, 1)
+	imagesChannel := make(chan map[int]fsext.Asset, 1)
 	coverChannel := make(chan *fsext.Asset, 1)
 	errorChannel := make(chan error, 1)
 
@@ -106,7 +106,7 @@ func (d *Downloader) NovelWithKnown(
 
 	var w *work.Work
 	var pages dto.NovelPages
-	var imageAssets map[uint64]fsext.Asset
+	var imageAssets map[int]fsext.Asset
 	var coverAsset *fsext.Asset
 
 	for range 4 {

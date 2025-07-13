@@ -63,7 +63,7 @@ func ReadWork(path string) (w *work.Work, warning error, err error) {
 	return w, warning, nil
 }
 
-func IllustMangaAssetName(page uint64, extension string) string {
+func IllustMangaAssetName(page int, extension string) string {
 	return fmt.Sprintf("page %03d%v", page, extension)
 }
 
@@ -75,10 +75,10 @@ func NovelCoverAssetName(extension string) string {
 	return fmt.Sprintf("cover%v", extension)
 }
 
-func NovelImageAssetName(index uint64, extension string) string {
+func NovelImageAssetName(index int, extension string) string {
 	return fmt.Sprintf("illustration %03d%v", index, extension)
 }
 
-func NovelPageAssetName(page uint64) string {
+func NovelPageAssetName(page int) string {
 	return fmt.Sprintf("page %03d.md", page)
 }
