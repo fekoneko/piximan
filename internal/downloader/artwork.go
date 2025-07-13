@@ -92,9 +92,9 @@ func (d *Downloader) ArtworkWithKnown(
 	}
 	d.logger.Info("started downloading artwork %v", id)
 
-	workChannel := make(chan *work.Work)
-	assetsChannel := make(chan []fsext.Asset)
-	errorChannel := make(chan error)
+	workChannel := make(chan *work.Work, 1)
+	assetsChannel := make(chan []fsext.Asset, 1)
+	errorChannel := make(chan error, 1)
 
 	go d.artworkMetaChannel(id, workChannel, errorChannel)
 

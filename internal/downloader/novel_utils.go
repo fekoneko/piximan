@@ -3,88 +3,70 @@ package downloader
 import (
 	"fmt"
 	"path"
+	"sync"
 
+	"github.com/fekoneko/piximan/internal/client/dto"
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
+	"github.com/fekoneko/piximan/internal/utils"
 )
 
-// Fetch novel metadata, cover url and page assets.
-// Retry authorized if the apges or cover url is missing.
-// If err != nil, coverUrl and pageAssets are guaranteed to be present.
+// TODO: don't forget to change the docs
+
+// Fetch novel metadata, cover url and information about embedded illustrations.
+// Retry authorized if something is missing.
 func (d *Downloader) novelMeta(
-	id uint64,
-) (w *work.Work, coverUrl *string, pageAssets *[]fsext.Asset, err error) {
+	id uint64, size *imageext.Size,
+) (
+	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
+	pixivImages dto.NovelPixivImages, pages dto.NovelPages, err error,
+) {
 	authorized := d.client.Authorized()
+	do := d.client.NovelMeta
+	logError := utils.If(authorized, d.logger.Warning, d.logger.Error)
+	triedAuthorized := false
 
-	if w, coverUrl, pageAssets, err := d.novelMetaWith(func() (*work.Work, *[]string, *string, error) {
-		return d.client.NovelMeta(id)
-	}, id, false, authorized); err == nil {
-		return w, coverUrl, pageAssets, nil
-	} else if authorized {
-		d.logger.Info("retrying fetching metadata with authorization for novel %v", id)
-		return d.novelMetaWith(func() (*work.Work, *[]string, *string, error) {
-			return d.client.NovelMetaAuthorized(id)
-		}, id, false, false)
-	} else {
-		return nil, nil, nil, err
-	}
-}
-
-// Fetch novel metadata and ignore if anything else is missing
-func (d *Downloader) novelOnlyMeta(id uint64) (*work.Work, error) {
-	w, _, _, err := d.novelMetaWith(func() (*work.Work, *[]string, *string, error) {
-		return d.client.NovelMeta(id)
-	}, id, true, false)
-
-	return w, err
-}
-
-func (d *Downloader) novelMetaWith(
-	do func() (w *work.Work, pages *[]string, coverUrl *string, err error),
-	id uint64,
-	ignoreMissing bool,
-	noLogErrors bool,
-) (w *work.Work, coveruUrl *string, pageAssets *[]fsext.Asset, err error) {
-	logErrorOrWarning := d.logger.Error
-	if noLogErrors {
-		logErrorOrWarning = d.logger.Warning
-	}
-
-	w, pages, coverUrl, err := do()
-	d.logger.MaybeSuccess(err, "fetched metadata for novel %v", id)
-	if err != nil {
-		logErrorOrWarning("failed to fetch metadata for novel %v: %v", id, err)
-		return nil, nil, nil, err
-	}
-	if !ignoreMissing {
-		if pages == nil {
+	for {
+		w, coverUrl, upladedImages, pixivImages, pages, withPages, err := do(id, size)
+		d.logger.MaybeSuccess(err, "fetched metadata for novel %v", id)
+		if err != nil {
+			logError("failed to fetch metadata for novel %v: %v", id, err)
+		} else if !withPages {
 			err = fmt.Errorf("pages are missing")
-			logErrorOrWarning("failed to download novel %v: %v", id, err)
-			return nil, nil, nil, err
-		}
-		if coverUrl == nil {
+			logError("failed to download novel %v: %v", id, err)
+		} else if coverUrl == nil {
 			err = fmt.Errorf("cover url is missing")
-			logErrorOrWarning("failed to download novel %v: %v", id, err)
-			return nil, nil, nil, err
+			logError("failed to download novel %v: %v", id, err)
+		} else {
+			if !w.Full() {
+				d.logger.Warning("metadata for novel %v is incomplete", id)
+			}
+			return w, coverUrl, upladedImages, pixivImages, pages, nil
 		}
+
+		if triedAuthorized || !authorized {
+			return nil, nil, nil, nil, nil, err
+		}
+		d.logger.Info("retrying fetching metadata with authorization for novel %v", id)
+		do = d.client.NovelMetaAuthorized
+		logError = d.logger.Error
+		triedAuthorized = true
 	}
+}
+
+// Fetch novel metadata and ignore if anything else is missing.
+func (d *Downloader) novelOnlyMeta(id uint64) (*work.Work, error) {
+	w, _, _, _, _, _, err := d.client.NovelMeta(id, nil)
+	d.logger.MaybeSuccess(err, "fetched metadata for novel %v", id)
+	d.logger.MaybeError(err, "failed to fetch metadata for novel %v", id)
 	if !w.Full() {
 		d.logger.Warning("metadata for novel %v is incomplete", id)
 	}
-
-	if pages != nil {
-		pageAssets := make([]fsext.Asset, len(*pages))
-		for i, page := range *pages {
-			name := fsext.NovelPageAssetName(uint64(i + 1))
-			pageAssets[i] = fsext.Asset{Bytes: []byte(page), Name: name}
-		}
-		return w, coverUrl, &pageAssets, nil
-	} else {
-		return w, coverUrl, nil, nil
-	}
+	return w, err
 }
 
-// fetch novel cover asset
+// Fetch novel cover asset.
 func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, error) {
 	cover, _, err := d.client.Do(coverUrl, nil)
 	d.logger.MaybeSuccess(err, "fetched cover for novel %v", id)
@@ -95,30 +77,106 @@ func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, 
 	return &asset, nil
 }
 
-// novelMeta() but returs results through channels
-func (d *Downloader) novelMetaChannel(
-	id uint64,
-	workChannel chan *work.Work,
-	pagesChannel chan *[]fsext.Asset,
-	errorChannel chan error,
-) {
-	if w, _, pageAssets, err := d.novelMeta(id); err == nil {
-		workChannel <- w
-		pagesChannel <- pageAssets
-	} else {
-		errorChannel <- err
+// Fetch all novel illustrations as assets.
+func (d *Downloader) novelImageAssets(
+	id uint64, upladedImages dto.NovelUpladedImages, pixivImages dto.NovelPixivImages,
+) (map[uint64]fsext.Asset, error) {
+	assets := make(map[uint64]fsext.Asset, len(upladedImages)+len(pixivImages))
+	assetsMutex := sync.Mutex{}
+	errorChannel := make(chan error, 1)
+
+	for index, url := range upladedImages {
+		go func() {
+			if bytes, _, err := d.client.Do(url, nil); err == nil {
+				d.logger.Success("fetched illustration %v for novel %v", index, id)
+				name := fsext.NovelImageAssetName(index, path.Ext(url))
+				asset := fsext.Asset{Bytes: bytes, Name: name}
+				assetsMutex.Lock()
+				assets[index] = asset
+				assetsMutex.Unlock()
+				errorChannel <- nil
+			} else {
+				d.logger.Error("failed to fetch illustration %v for novel %v: %v", index, id, err)
+				errorChannel <- err
+			}
+		}()
 	}
+
+	for range pixivImages {
+		go func() {
+			// TODO: implement
+			errorChannel <- nil
+		}()
+	}
+
+	for range 2 {
+		if err := <-errorChannel; err != nil {
+			return nil, err
+		}
+	}
+
+	return assets, nil
 }
 
-// coverAsset() but returs results through channels
+// coverAsset() but returs results through channels.
 func (d *Downloader) novelCoverAssetChannel(
-	id uint64, coverUrl string,
-	coverChannel chan *fsext.Asset,
-	errorChannel chan error,
+	id uint64, coverUrl string, coverChannel chan *fsext.Asset, errorChannel chan error,
 ) {
 	if coverAsset, err := d.novelCoverAsset(id, coverUrl); err == nil {
 		coverChannel <- coverAsset
 	} else {
 		errorChannel <- err
 	}
+}
+
+// novelImageAssets() but returs results through channels.
+func (d *Downloader) novelImageAssetsChannel(
+	id uint64, uploadedImages dto.NovelUpladedImages, pixivImages dto.NovelPixivImages,
+	imagesChannel chan map[uint64]fsext.Asset, errorChannel chan error,
+) {
+	if assets, err := d.novelImageAssets(id, uploadedImages, pixivImages); err == nil {
+		imagesChannel <- assets
+	} else {
+		errorChannel <- err
+	}
+}
+
+// novelMeta() + novelImageAssets() but returs results through channels.
+func (d *Downloader) novelMetaImageAssetsChannel(
+	id uint64, size imageext.Size, workChannel chan *work.Work,
+	pagesChannel chan dto.NovelPages, imagesChannel chan map[uint64]fsext.Asset, errorChannel chan error,
+) {
+	if w, _, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size); err != nil {
+		errorChannel <- err
+	} else if assets, err := d.novelImageAssets(id, uploadedImages, pixivImages); err != nil {
+		errorChannel <- err
+	} else {
+		workChannel <- w
+		pagesChannel <- pages
+		imagesChannel <- assets
+	}
+}
+
+func combineAssets(
+	coverAsset *fsext.Asset, imageAssets map[uint64]fsext.Asset, pages dto.NovelPages,
+) []fsext.Asset {
+	imageName := func(index uint64) string {
+		return imageAssets[index].Name
+	}
+	pageName := func(index uint64) string {
+		return fsext.NovelPageAssetName(index)
+	}
+	pageAssets := pages(imageName, pageName)
+
+	imageAssetsSlice := make([]fsext.Asset, 0, len(imageAssets))
+	for _, asset := range imageAssets {
+		imageAssetsSlice = append(imageAssetsSlice, asset)
+	}
+
+	assets := make([]fsext.Asset, 0, len(pageAssets)+len(imageAssetsSlice)+2)
+	assets = append(assets, pageAssets...)
+	assets = append(assets, imageAssetsSlice...)
+	assets = append(assets, *coverAsset)
+
+	return assets
 }

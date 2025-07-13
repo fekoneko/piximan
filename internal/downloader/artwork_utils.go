@@ -5,7 +5,7 @@ import (
 	"github.com/fekoneko/piximan/internal/imageext"
 )
 
-// Provided size is used only to determine the url of the first page.
+// Provided size is only used to determine the url of the first page.
 // If you don't need this or you don't know the size, pass nil instead.
 func (d *Downloader) artworkMeta(
 	id uint64, size *imageext.Size,

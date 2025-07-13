@@ -10,7 +10,7 @@ const configHelp = //
                             Authorization options
                             ---------------------
 --session-id The session ID to use for pixiv.net API autorization.
- -s          The authorization is used only when it's absolutely required, other
+ -s          The authorization is only used when it's absolutely required, other
              requests will be made anonymously.
              You can get this ID from browser cookies on https://www.pixiv.net.
              Search for a cookie named 'PHPSESSID'.

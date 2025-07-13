@@ -18,7 +18,7 @@ type Artwork struct {
 	} `json:"userIllusts"`
 }
 
-// Provided size is used only to determine the url of the first page.
+// Provided size is only used to determine the url of the first page.
 // If you don't need this or you don't know the size, pass nil instead.
 func (dto *Artwork) FromDto(
 	downloadTime time.Time, size *imageext.Size,

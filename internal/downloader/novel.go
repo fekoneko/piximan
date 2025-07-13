@@ -1,9 +1,11 @@
 package downloader
 
 import (
+	"github.com/fekoneko/piximan/internal/client/dto"
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
 
 // Download only novel metadata and store it in paths. Blocks until done.
@@ -40,25 +42,39 @@ func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []stri
 // Download novel with all assets and metadata and store it in paths. Blocks until done.
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
-func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
+func (d *Downloader) Novel(id uint64, size imageext.Size, paths []string) (*work.Work, error) {
 	if d.ignored(id, queue.ItemKindNovel, false) || !d.matchNovelId(id) {
 		return nil, ErrSkipped
 	}
 	d.logger.Info("started downloading novel %v", id)
 
-	w, coverUrl, pageAssets, err := d.novelMeta(id)
+	w, coverUrl, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size)
 	if err != nil {
 		return nil, err
 	} else if !d.matchNovel(id, w, false) {
 		return nil, ErrSkipped
 	}
-	coverAsset, err := d.novelCoverAsset(id, *coverUrl)
-	if err != nil {
-		return nil, err
+
+	coverChannel := make(chan *fsext.Asset, 1)
+	imagesChannel := make(chan map[uint64]fsext.Asset, 1)
+	errorChannel := make(chan error, 1)
+
+	go d.novelCoverAssetChannel(id, *coverUrl, coverChannel, errorChannel)
+	go d.novelImageAssetsChannel(id, uploadedImages, pixivImages, imagesChannel, errorChannel)
+
+	var coverAsset *fsext.Asset
+	var imageAssets map[uint64]fsext.Asset
+
+	for range 2 {
+		select {
+		case coverAsset = <-coverChannel:
+		case imageAssets = <-imagesChannel:
+		case err := <-errorChannel:
+			return nil, err
+		}
 	}
-	assets := make([]fsext.Asset, 0, len(*pageAssets)+1)
-	assets = append(assets, *pageAssets...)
-	assets = append(assets, *coverAsset)
+
+	assets := combineAssets(coverAsset, imageAssets, pages)
 	return w, d.writeWork(id, queue.ItemKindNovel, w, assets, false, paths)
 }
 
@@ -67,40 +83,43 @@ func (d *Downloader) Novel(id uint64, paths []string) (*work.Work, error) {
 // Tries to start downloading assets as soon as possible, but if some rules dependent on full
 // metadata are defined, it will wait until full metadata is received.
 // For downloading multiple works consider using Schedule().
-func (d *Downloader) NovelWithKnown(id uint64, coverUrl string, paths []string) (*work.Work, error) {
+func (d *Downloader) NovelWithKnown(
+	id uint64, size imageext.Size, coverUrl string, paths []string,
+) (*work.Work, error) {
 	if d.ignored(id, queue.ItemKindNovel, false) {
 		return nil, ErrSkipped
 	} else if matches, needFull := d.matchNovelNeedFull(id, nil); !matches {
 		return nil, ErrSkipped
 	} else if needFull {
-		return d.Novel(id, paths)
+		return d.Novel(id, size, paths)
 	}
 	d.logger.Info("started downloading novel %v", id)
 
 	workChannel := make(chan *work.Work, 1)
-	pagesChannel := make(chan *[]fsext.Asset, 1)
+	pagesChannel := make(chan dto.NovelPages, 1)
+	imagesChannel := make(chan map[uint64]fsext.Asset, 1)
 	coverChannel := make(chan *fsext.Asset, 1)
-	errorChannel := make(chan error)
+	errorChannel := make(chan error, 1)
 
-	go d.novelMetaChannel(id, workChannel, pagesChannel, errorChannel)
+	go d.novelMetaImageAssetsChannel(id, size, workChannel, pagesChannel, imagesChannel, errorChannel)
 	go d.novelCoverAssetChannel(id, coverUrl, coverChannel, errorChannel)
 
 	var w *work.Work
-	var pageAssets *[]fsext.Asset
+	var pages dto.NovelPages
+	var imageAssets map[uint64]fsext.Asset
 	var coverAsset *fsext.Asset
 
-	for range 3 {
+	for range 4 {
 		select {
 		case w = <-workChannel:
-		case pageAssets = <-pagesChannel:
+		case pages = <-pagesChannel:
+		case imageAssets = <-imagesChannel:
 		case coverAsset = <-coverChannel:
 		case err := <-errorChannel:
 			return nil, err
 		}
 	}
 
-	assets := make([]fsext.Asset, 0, len(*pageAssets)+1)
-	assets = append(assets, *pageAssets...)
-	assets = append(assets, *coverAsset)
+	assets := combineAssets(coverAsset, imageAssets, pages)
 	return w, d.writeWork(id, queue.ItemKindNovel, w, assets, false, paths)
 }

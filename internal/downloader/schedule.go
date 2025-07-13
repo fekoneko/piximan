@@ -215,9 +215,9 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 
 	switch {
 	case isNovel && !onlyMeta && !withImage:
-		w, err = d.Novel(item.Id, item.Paths)
+		w, err = d.Novel(item.Id, item.Size, item.Paths)
 	case isNovel && !onlyMeta && withImage:
-		w, err = d.NovelWithKnown(item.Id, *item.ImageUrl, item.Paths)
+		w, err = d.NovelWithKnown(item.Id, item.Size, *item.ImageUrl, item.Paths)
 	case isNovel && onlyMeta && !(withWork && lowMeta):
 		w, err = d.NovelMeta(item.Id, item.Paths)
 	case isNovel && onlyMeta && withWork && lowMeta:

@@ -12,11 +12,7 @@ import (
 
 // Fetch all image assets for illust or manga artwork
 func (d *Downloader) illustMangaAssets(
-	id uint64,
-	w *work.Work,
-	firstPageUrl *string,
-	thumbnailUrl *string,
-	size imageext.Size,
+	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string, size imageext.Size,
 ) ([]fsext.Asset, error) {
 	pageUrls, withExtensions, err := inferPages(id, w, firstPageUrl, thumbnailUrl, size)
 	if err != nil {
@@ -191,8 +187,8 @@ func (d *Downloader) fetchAssets(
 		return nil, err
 	}
 
-	assetChannel := make(chan fsext.Asset, len(pageUrls))
-	errorChannel := make(chan error)
+	assetsChannel := make(chan fsext.Asset, 1)
+	errorChannel := make(chan error, 1)
 
 	guessedExtension := ""
 	if !withExtensions {
@@ -206,7 +202,7 @@ func (d *Downloader) fetchAssets(
 			d.logger.Success("fetched page 1 with guessed extension %v for artwork %v", extension, id)
 			name := fsext.IllustMangaAssetName(1, extension)
 			assets := fsext.Asset{Bytes: bytes, Name: name}
-			assetChannel <- assets
+			assetsChannel <- assets
 			guessedExtension = extension
 			break
 		}
@@ -236,14 +232,14 @@ func (d *Downloader) fetchAssets(
 			}
 			name := fsext.IllustMangaAssetName(uint64(i+1), extension)
 			assets := fsext.Asset{Bytes: bytes, Name: name}
-			assetChannel <- assets
+			assetsChannel <- assets
 		}()
 	}
 
 	assets := make([]fsext.Asset, len(pageUrls))
 	for i := range pageUrls {
 		select {
-		case assets[i] = <-assetChannel:
+		case assets[i] = <-assetsChannel:
 		case err := <-errorChannel:
 			return nil, err
 		}

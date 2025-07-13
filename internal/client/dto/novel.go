@@ -8,6 +8,7 @@ import (
 
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -25,35 +26,95 @@ type Novel struct {
 	} `json:"textEmbeddedImages"`
 }
 
-func (dto *Novel) FromDto(downloadTime time.Time) (w *work.Work, pages *[]string, coverUrl *string) {
-	w = dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
-	pages = parseContent(dto.Content)
-
-	return w, pages, dto.CoverUrl
-}
-
 // TODO: download embedded images
 // TODO: wrap lines at 60 - 80 characters on word boundaries
+
+// Provided size is only used to determine embedded image urls.
+// If you don't need novel content and images, pass nil instead.
+func (dto *Novel) FromDto(downloadTime time.Time, size *imageext.Size) (
+	w *work.Work, coverUrl *string, uploadedImages NovelUpladedImages,
+	pixivImages NovelPixivImages, pages NovelPages, withPages bool,
+) {
+	w = dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
+	coverUrl = dto.CoverUrl
+
+	if size == nil || dto.Content == nil {
+		return w, coverUrl, nil, nil, nil, false
+	}
+
+	matches := contentRegexp.FindAllStringSubmatchIndex(*dto.Content, -1)
+	pixivImages = make(NovelPixivImages)
+	uploadedImages = make(NovelUpladedImages)
+	imageIndex := uint64(1)
+
+	for _, match := range matches {
+		if match[uploadedImage] >= 0 {
+			if dto.TextEmbeddedImages == nil {
+				return w, coverUrl, nil, nil, nil, false
+			}
+			idString := (*dto.Content)[match[uploadedImageId]:match[uploadedImageId+1]]
+			url, ok := dto.uploadedImageUrl(idString, *size)
+			if !ok {
+				return w, coverUrl, nil, nil, nil, false
+			}
+			uploadedImages[imageIndex] = url
+			imageIndex++
+
+		} else if match[pixivImage] >= 0 {
+			idString := (*dto.Content)[match[pixivImageId]:match[pixivImageId+1]]
+			id, _ := strconv.ParseUint(idString, 10, 64)
+			pixivImages[imageIndex] = id
+			imageIndex++
+		}
+	}
+
+	pages = func(
+		imageName func(index uint64) string,
+		pageName func(index uint64) string,
+	) []fsext.Asset {
+		return finishParsingContent(dto.Content, matches, imageName, pageName)
+	}
+
+	return w, coverUrl, uploadedImages, pixivImages, pages, true
+}
+
+func (dto *Novel) uploadedImageUrl(idString string, size imageext.Size) (url string, ok bool) {
+	if dto.TextEmbeddedImages == nil {
+		return "", false
+	} else if urls, ok := dto.TextEmbeddedImages[idString]; !ok {
+		return "", false
+	} else if size == imageext.SizeThumbnail && urls.Urls.Thumb != nil {
+		return *urls.Urls.Thumb, true
+	} else if size == imageext.SizeSmall && urls.Urls.Small != nil {
+		return *urls.Urls.Small, true
+	} else if size == imageext.SizeMedium && urls.Urls.Regular != nil {
+		return *urls.Urls.Regular, true
+	} else if size == imageext.SizeOriginal && urls.Urls.Original != nil {
+		return *urls.Urls.Original, true
+	} else {
+		return "", false
+	}
+}
 
 // Convert novel content from pixiv format to markdown. This does the following:
 // - 2 or more \n -> \n\n
 // - \n -> <br>
 // - [newpage] -> write to next page and trim empty lines at the beginning and at the end
-// - [uploadedimage:{id}] -> ![Illustration](./{id}. {title}.{ext})
-// - [pixivimage:{id}] -> ![Illustration](./{id}. {title}.{ext})
+// - [uploadedimage:{id}] -> ![Illustration]({name})
+// - [pixivimage:{id}] -> ![Illustration]({name})
 // - [[rb:{word} > {ruby}]] -> <ruby>{word}<rt>{ruby}</rt></ruby>
 // - [chapter:{title}] -> # {title}
-// - [jump:{page}] -> [{page}](./{page}. {title}.md)
+// - [jump:{page}] -> [{page}]({name})
 // - [[jumpuri:{title} > {url}]] -> [{title}]({url})
-func parseContent(content *string) (pages *[]string) {
-	if content == nil {
-		return nil
-	}
-
-	pages = utils.ToPtr(make([]string, 0, 1))
-	matches := contentRegexp.FindAllStringSubmatchIndex(*content, -1)
+func finishParsingContent(
+	content *string, matches [][]int,
+	imageName func(index uint64) string,
+	pageName func(index uint64) string,
+) []fsext.Asset {
+	assets := make([]fsext.Asset, 0, 1)
 	builder := strings.Builder{}
 	prevEnd := 0
+	imageIndex := uint64(1)
 
 	for _, match := range matches {
 		if prevEnd < match[0] {
@@ -63,7 +124,8 @@ func parseContent(content *string) (pages *[]string) {
 
 		if match[newPage] >= 0 {
 			builder.WriteString("\n")
-			*pages = append(*pages, builder.String())
+			asset := fsext.Asset{Bytes: []byte(builder.String()), Name: pageName(imageIndex)}
+			assets = append(assets, asset)
 			builder.Reset()
 		} else if match[startNewLines] >= 0 {
 		} else if match[endNewLines] >= 0 {
@@ -72,9 +134,15 @@ func parseContent(content *string) (pages *[]string) {
 		} else if match[newLine] >= 0 {
 			builder.WriteString("<br>")
 		} else if match[uploadedImage] >= 0 {
-			builder.WriteString("![Illustration]()") // TODO: filename
+			builder.WriteString("![Illustration](")
+			builder.WriteString(imageName(imageIndex))
+			imageIndex++
+			builder.WriteByte(')')
 		} else if match[pixivImage] >= 0 {
-			builder.WriteString("![Illustration]()") // TODO: filename
+			builder.WriteString("![Illustration](")
+			builder.WriteString(imageName(imageIndex))
+			imageIndex++
+			builder.WriteByte(')')
 		} else if match[ruby] >= 0 {
 			word := (*content)[match[rubyWord]:match[rubyWord+1]]
 			ruby := (*content)[match[rubyRuby]:match[rubyRuby+1]]
@@ -93,7 +161,7 @@ func parseContent(content *string) (pages *[]string) {
 			builder.WriteByte('[')
 			builder.WriteString(pageString)
 			builder.WriteString("](")
-			builder.WriteString(fsext.NovelPageAssetName(page))
+			builder.WriteString(pageName(page))
 			builder.WriteByte(')')
 		} else if match[urlLink] >= 0 {
 			text := (*content)[match[urlLinkText]:match[urlLinkText+1]]
@@ -110,9 +178,10 @@ func parseContent(content *string) (pages *[]string) {
 		builder.WriteString((*content)[prevEnd:len(*content)])
 	}
 	builder.WriteString("\n")
-	*pages = append(*pages, builder.String())
+	asset := fsext.Asset{Bytes: []byte(builder.String()), Name: pageName(imageIndex)}
+	assets = append(assets, asset)
 
-	return pages
+	return assets
 }
 
 var contentRegexp = regexp.MustCompile(
@@ -150,3 +219,15 @@ const (
 	urlLinkText     = 2 * 18
 	urlLinkUrl      = 2 * 19
 )
+
+// Map: index -> URL, used for downloading novel illustrations.
+type NovelUpladedImages map[uint64]string
+
+// Map: index -> Pixiv work ID, used for downloading novel illustrations.
+type NovelPixivImages map[uint64]uint64
+
+// Call to finish parsing novel contents when all asset names are known.
+type NovelPages = func(
+	imageName func(index uint64) string,
+	pageName func(index uint64) string,
+) []fsext.Asset
