@@ -9,16 +9,16 @@ import (
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
-	"github.com/fekoneko/piximan/internal/downloader/image"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
 func download(options *options) {
-	size := utils.FromPtrTransform(options.Size, image.SizeFromUint, image.SizeDefault)
+	size := utils.FromPtrTransform(options.Size, imageext.SizeFromUint, imageext.SizeDefault)
 	kind := utils.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
 	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
@@ -105,7 +105,7 @@ func download(options *options) {
 	} else if options.Collection != nil {
 		c := collection.New(*options.Collection, logger.DefaultLogger)
 		works := make([]*work.Work, 0)
-		c.Parse()
+		c.Read()
 		for w := c.WaitNext(); w != nil; w = c.WaitNext() {
 			works = append(works, w)
 		}

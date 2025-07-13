@@ -2,13 +2,13 @@ package queue
 
 import (
 	"github.com/fekoneko/piximan/internal/collection/work"
-	"github.com/fekoneko/piximan/internal/downloader/image"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
 
 type Item struct {
 	Id       uint64
 	Kind     ItemKind
-	Size     image.Size
+	Size     imageext.Size
 	OnlyMeta bool
 	Paths    []string
 

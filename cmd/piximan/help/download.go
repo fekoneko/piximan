@@ -52,8 +52,8 @@ const downloadHelp = //
  -t          Available options are:
              - artwork      - novel
 
---size       Size (resolution) of the image to download. This Option doesn't
- -s          apply to ugoira and novels. Defaults to original size.
+--size       Size (resolution) of downloaded images. This Option doesn't apply to ugoira.
+ -           Defaults to original size.
              Available options are:
              - 0 thumbnail  - 2 medium
              - 1 small      - 3 original

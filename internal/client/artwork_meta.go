@@ -7,11 +7,14 @@ import (
 
 	"github.com/fekoneko/piximan/internal/client/dto"
 	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/imageext"
 )
 
+// Provided size is only used to determine the url of the first page.
+// If you don't need this or you don't know the size, pass nil instead.
 func (c *Client) ArtworkMeta(
-	id uint64,
-) (w *work.Work, firstPageUrls *[4]string, thumbnailUrls map[uint64]string, err error) {
+	id uint64, size *imageext.Size,
+) (w *work.Work, firstPageUrl *string, thumbnailUrl *string, err error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
 	body, _, err := c.Do(url, nil)
 	if err != nil {
@@ -23,7 +26,6 @@ func (c *Client) ArtworkMeta(
 		return nil, nil, nil, err
 	}
 
-	w, firstPageUrls, thumbnailUrls = unmarshalled.Body.FromDto(time.Now())
-
-	return w, firstPageUrls, thumbnailUrls, nil
+	w, firstPageUrl, thumbnailUrl = unmarshalled.Body.FromDto(time.Now(), size)
+	return w, firstPageUrl, thumbnailUrl, nil
 }

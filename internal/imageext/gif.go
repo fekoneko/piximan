@@ -13,11 +13,6 @@ import (
 	"github.com/ericpauley/go-quantize/quantize"
 )
 
-type Frame struct {
-	Filename string
-	Duration int
-}
-
 var quantizer = quantize.MedianCutQuantizer{}
 
 func GifFromFrames(archive []byte, frames []Frame) ([]byte, error) {

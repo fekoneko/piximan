@@ -31,10 +31,6 @@ func nonInteractive() {
 		fmt.Println("invalid argument for flag `-t, --type'")
 		os.Exit(2)
 	}
-	if options.Kind != nil && options.Size != nil && *options.Kind == queue.ItemKindNovelString {
-		fmt.Println("cannot use `-s, --size' flag with `-t, --type' novel")
-		os.Exit(2)
-	}
 	if options.Size != nil && *options.Size > 3 {
 		fmt.Println("invalid argument for flag `-s, --size'")
 		os.Exit(2)

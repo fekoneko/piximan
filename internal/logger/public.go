@@ -151,10 +151,9 @@ func (l *Logger) HideProgress() {
 }
 
 func (l *Logger) Stats() {
-	l.mutex.Lock()
-
 	builder := strings.Builder{}
-	builder.WriteString("\ndownloader stats:\n\n")
+	builder.WriteByte('\n')
+	l.mutex.Lock()
 
 	numTotalCrawls := l.numExpectedCrawls - l.numSkippedCrawls
 	builder.WriteString(fmt.Sprintf("- tasks crawled: %v / %v", l.numSuccessfulCrawls, numTotalCrawls))
