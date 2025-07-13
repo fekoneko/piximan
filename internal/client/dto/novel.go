@@ -26,7 +26,6 @@ type Novel struct {
 	} `json:"textEmbeddedImages"`
 }
 
-// TODO: escape markdown syntax
 // TODO: wrap lines at 60 - 80 characters on word boundaries
 
 // Provided size is only used to determine embedded image urls.
@@ -189,6 +188,11 @@ func finishParsingContent(
 			builder.WriteString("](")
 			builder.WriteString(url)
 			builder.WriteByte(')')
+
+		} else if match[specialChar] >= 0 {
+			char := (*content)[match[specialChar]:match[specialChar+1]]
+			builder.WriteByte('\\')
+			builder.WriteString(char)
 		}
 	}
 
@@ -213,7 +217,8 @@ var contentRegexp = regexp.MustCompile(
 		`(\[\[rb:(.+) *> *(.+)\]\])|` +
 		`(\[chapter:(.+)\])|` +
 		`(\[jump:([0-9]+)\])|` +
-		`(\[\[jumpuri:(.+) *> *(.+)\]\])`,
+		`(\[\[jumpuri:(.+) *> *(.+)\]\])|` +
+		`([!"#$%&'()*+,\-.\/:;<=>?@[\\\]^_` + "`" + `{|}~])`,
 )
 
 const (
@@ -236,6 +241,7 @@ const (
 	urlLink         = 2 * 17
 	urlLinkText     = 2 * 18
 	urlLinkUrl      = 2 * 19
+	specialChar     = 2 * 20
 )
 
 // Map: index -> URL, used for downloading novel illustrations.
