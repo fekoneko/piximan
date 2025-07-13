@@ -3,7 +3,10 @@
 Pixiv batch **downloader** and local collection **viewer**. Preserve your favorite art with ease!
 
 > [!NOTE]
-> The GUI for viewer is yet to be implemented. By now you can use CLI tool to download works.
+> The project is currently in active development
+>
+> - The downloader CLI tool is pretty stable and feature-rich now
+> - Collection viewer GUI is still being figured out
 
 ## Installation
 
@@ -30,6 +33,7 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 
 ### Authorization
 
+> [!NOTE]
 > If you only download works without age restriction and don't need to fetch user bookmarks,
 > the downloader is usable without authorization.
 
@@ -84,7 +88,8 @@ piximan download \
 
 ### Downloading bookmarks
 
-> For downloading any bookmarks you need to be authorized (configuration the session ID).
+> [!NOTE]
+> For downloading any bookmarks you need to be authorized (configure the session ID).
 
 You can download your public artwork bookmarks like this:
 
@@ -164,9 +169,7 @@ You can infer the IDs of works from the given path. For example, this is useful 
 the metadata in the existing collection when coupled with the `--only-meta` flag:
 
 ```shell
-piximan download \
-  --infer-id './artworks/*/* ({id})' \
-  --only-meta
+piximan download --infer-id './artworks/*/* ({id})' --only-meta
 ```
 
 ### Downloading rules
