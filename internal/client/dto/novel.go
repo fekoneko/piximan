@@ -143,7 +143,7 @@ func finishParsingContent(
 			builder.WriteString("\n\n")
 
 		} else if match[newLine] >= 0 {
-			builder.WriteString("<br>")
+			builder.WriteString("<br>\n")
 
 		} else if match[uploadedImage] >= 0 {
 			builder.WriteString("![Illustration](<")
@@ -207,11 +207,11 @@ func finishParsingContent(
 }
 
 var contentRegexp = regexp.MustCompile(
-	`([ 　\n\t]*\[newpage\][ 　\n\t]*)|` +
-		`(^[ 　\n\t]*)|` +
-		`([ 　\n\t]*$)|` +
-		`([ 　\t]*\n[ 　\t]*\n[ 　\n\t]*)|` +
-		`([ 　\t]*\n[ 　\t]*)|` +
+	`([ 　\n\r\t]*\[newpage\][ 　\n\r\t]*)|` +
+		`(^[ 　\n\r\t]*)|` +
+		`([ 　\n\r\t]*$)|` +
+		`([ 　\r\t]*\n[ 　\r\t]*\n[ 　\n\r\t]*)|` +
+		`([ 　\r\t]*\n[ 　\r\t]*)|` +
 		`(\[uploadedimage:([0-9]+)\])|` +
 		`(\[pixivimage:([0-9]+)\])|` +
 		`(\[\[rb:(.+) *> *(.+)\]\])|` +
