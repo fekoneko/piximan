@@ -79,13 +79,13 @@ func (d *Downloader) novelCoverAsset(id uint64, coverUrl string) (*fsext.Asset, 
 
 // Fetch all novel illustrations as assets.
 func (d *Downloader) novelImageAssets(
-	id uint64, upladedImages dto.NovelUpladedImages, pixivImages dto.NovelPixivImages,
+	id uint64, uploadedImages dto.NovelUpladedImages, pixivImages dto.NovelPixivImages,
 ) (map[uint64]fsext.Asset, error) {
-	assets := make(map[uint64]fsext.Asset, len(upladedImages)+len(pixivImages))
+	assets := make(map[uint64]fsext.Asset, len(uploadedImages)+len(pixivImages))
 	assetsMutex := sync.Mutex{}
 	errorChannel := make(chan error, 1)
 
-	for index, url := range upladedImages {
+	for index, url := range uploadedImages {
 		go func() {
 			if bytes, _, err := d.client.Do(url, nil); err == nil {
 				d.logger.Success("fetched illustration %v for novel %v", index, id)
@@ -109,7 +109,7 @@ func (d *Downloader) novelImageAssets(
 		}()
 	}
 
-	for range 2 {
+	for range len(uploadedImages) + len(pixivImages) {
 		if err := <-errorChannel; err != nil {
 			return nil, err
 		}

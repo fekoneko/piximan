@@ -26,7 +26,6 @@ type Novel struct {
 	} `json:"textEmbeddedImages"`
 }
 
-// TODO: download embedded images
 // TODO: wrap lines at 60 - 80 characters on word boundaries
 
 // Provided size is only used to determine embedded image urls.
@@ -114,6 +113,7 @@ func finishParsingContent(
 	assets := make([]fsext.Asset, 0, 1)
 	builder := strings.Builder{}
 	prevEnd := 0
+	pageNumber := uint64(1)
 	imageIndex := uint64(1)
 
 	for _, match := range matches {
@@ -124,25 +124,32 @@ func finishParsingContent(
 
 		if match[newPage] >= 0 {
 			builder.WriteString("\n")
-			asset := fsext.Asset{Bytes: []byte(builder.String()), Name: pageName(imageIndex)}
+			asset := fsext.Asset{Bytes: []byte(builder.String()), Name: pageName(pageNumber)}
 			assets = append(assets, asset)
 			builder.Reset()
+			pageNumber++
+
 		} else if match[startNewLines] >= 0 {
 		} else if match[endNewLines] >= 0 {
+
 		} else if match[newParagraph] >= 0 {
 			builder.WriteString("\n\n")
+
 		} else if match[newLine] >= 0 {
 			builder.WriteString("<br>")
+
 		} else if match[uploadedImage] >= 0 {
-			builder.WriteString("![Illustration](")
+			builder.WriteString("![Illustration](<")
 			builder.WriteString(imageName(imageIndex))
+			builder.WriteString(">)")
 			imageIndex++
-			builder.WriteByte(')')
+
 		} else if match[pixivImage] >= 0 {
-			builder.WriteString("![Illustration](")
+			builder.WriteString("![Illustration](<")
 			builder.WriteString(imageName(imageIndex))
+			builder.WriteString(">)")
 			imageIndex++
-			builder.WriteByte(')')
+
 		} else if match[ruby] >= 0 {
 			word := (*content)[match[rubyWord]:match[rubyWord+1]]
 			ruby := (*content)[match[rubyRuby]:match[rubyRuby+1]]
@@ -151,18 +158,21 @@ func finishParsingContent(
 			builder.WriteString("<rt>")
 			builder.WriteString(ruby)
 			builder.WriteString("</rt></ruby>")
+
 		} else if match[title] >= 0 {
 			text := (*content)[match[titleText]:match[titleText+1]]
 			builder.WriteString("# ")
 			builder.WriteString(text)
+
 		} else if match[pageLink] >= 0 {
 			pageString := (*content)[match[pageLinkPage]:match[pageLinkPage+1]]
 			page, _ := strconv.ParseUint(pageString, 10, 64)
 			builder.WriteByte('[')
 			builder.WriteString(pageString)
-			builder.WriteString("](")
+			builder.WriteString("](<")
 			builder.WriteString(pageName(page))
-			builder.WriteByte(')')
+			builder.WriteString(">)")
+
 		} else if match[urlLink] >= 0 {
 			text := (*content)[match[urlLinkText]:match[urlLinkText+1]]
 			url := (*content)[match[urlLinkUrl]:match[urlLinkUrl+1]]
@@ -178,7 +188,7 @@ func finishParsingContent(
 		builder.WriteString((*content)[prevEnd:len(*content)])
 	}
 	builder.WriteString("\n")
-	asset := fsext.Asset{Bytes: []byte(builder.String()), Name: pageName(imageIndex)}
+	asset := fsext.Asset{Bytes: []byte(builder.String()), Name: pageName(pageNumber)}
 	assets = append(assets, asset)
 
 	return assets
