@@ -51,9 +51,8 @@ func runApplication(version string) {
 	app.ConnectActivate(func() {
 		addCssProvider()
 
-		builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
-		window := NewWindow(builder)
-		window.Add(app)
+		window := NewWindow()
+		window.Attach(app)
 	})
 
 	if code := app.Run(os.Args); code > 0 {

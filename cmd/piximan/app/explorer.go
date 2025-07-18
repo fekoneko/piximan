@@ -8,15 +8,17 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
-type WorksList struct {
+type Explorer struct {
 	*gtk.ListView
 }
 
-func NewWorksList(builder *gtk.Builder) *WorksList {
-	list := builder.GetObject("works-list").Cast().(*gtk.ListView)
+func NewExplorer() *Explorer {
+	builder := gtk.NewBuilderFromResource(resourcePrefix + "/explorer.ui")
+	list := builder.GetObject("explorer-list").Cast().(*gtk.ListView)
+
 	model := gio.NewListStore(glib.TypeObject)
 	factory := gtk.NewBuilderListItemFactoryFromResource(
-		builder.Scope(), resourcePrefix+"/work-list-item.ui",
+		builder.Scope(), resourcePrefix+"/card.ui",
 	)
 
 	list.ConnectActivate(func(position uint) {
@@ -34,5 +36,10 @@ func NewWorksList(builder *gtk.Builder) *WorksList {
 
 	model.Splice(0, 0, objects)
 
-	return &WorksList{list}
+	return &Explorer{list}
+}
+
+func (w *Explorer) Attach(builder *gtk.Builder) {
+	container := builder.GetObject("explorer-root").Cast().(*gtk.ScrolledWindow)
+	container.SetChild(w)
 }

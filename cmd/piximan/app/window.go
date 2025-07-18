@@ -7,16 +7,21 @@ import (
 
 type Window struct {
 	*adw.ApplicationWindow
-	worksList *WorksList
 }
 
-func NewWindow(builder *gtk.Builder) *Window {
+func NewWindow() *Window {
+	builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
 	window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
-	worksList := NewWorksList(builder)
 
-	return &Window{window, worksList}
+	explorer := NewExplorer()
+	explorer.Attach(builder)
+
+	viewer := NewViewer()
+	viewer.Attach(builder)
+
+	return &Window{window}
 }
 
-func (w *Window) Add(app *adw.Application) {
+func (w *Window) Attach(app *adw.Application) {
 	app.AddWindow(&w.Window)
 }

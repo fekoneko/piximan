@@ -2,182 +2,82 @@ using Gtk 4.0;
 using Adw 1;
 
 Adw.ApplicationWindow window {
-  title: "piximan";
-  default-width: 1000;
-  default-height: 700;
-  visible: true;
+	title: "piximan";
+	default-width: 1000;
+	default-height: 700;
+	visible: true;
 
-  Adw.Breakpoint {
-    condition("max-width: 650sp")
+	Adw.Breakpoint {
+		condition("max-width: 650sp")
 
-    setters {
-      split-view.collapsed: true;
-      toggle-sidebar-button.visible: false;
-      sidebar-header-stack.visible-child: sidebar-search-entry;
-    }
-  }
+		setters {
+			split-view.collapsed: true;
+			sidebar-toggle.visible: false;
+			sidebar-header-stack.visible-child: sidebar-search;
+		}
+	}
 
-  Adw.NavigationSplitView split-view {
-    sidebar-width-fraction: 0.3;
-    min-sidebar-width: 280;
-    max-sidebar-width: 400;
+	Adw.NavigationSplitView split-view {
+		sidebar-width-fraction: 0.3;
+		min-sidebar-width: 280;
+		max-sidebar-width: 400;
 
-    sidebar: Adw.NavigationPage {
-      title: "Collection explorer";
+		sidebar: Adw.NavigationPage {
+			title: "Collection explorer";
 
-      Adw.ToolbarView {
-        [top] Adw.HeaderBar {
-          [start] Gtk.Button {
-            icon-name: "document-open-symbolic";
-          }
+			Adw.ToolbarView {
+				[top] Adw.HeaderBar {
+					[start] Gtk.Button {
+						icon-name: "document-open-symbolic";
+					}
 
-          title-widget: Gtk.Stack sidebar-header-stack {
-            visible-child: collection-title;
+					title-widget: Gtk.Stack sidebar-header-stack {
+						visible-child: collection-title;
 
-            Adw.WindowTitle collection-title {
-              title: "Collection Title";
-            }
+						Adw.WindowTitle collection-title {
+							title: "Collection Title";
+						}
 
-            Gtk.SearchEntry sidebar-search-entry {
-              hexpand: true;
-              placeholder-text: "Search";
-            }
-          };
+						Gtk.SearchEntry sidebar-search {
+							hexpand: true;
+							placeholder-text: "Search";
+						}
+					};
 
-          [end] Gtk.Button {
-            icon-name: "open-menu-symbolic";
-          }
-        }
+					[end] Gtk.Button {
+						icon-name: "open-menu-symbolic";
+					}
+				}
 
-        content: ScrolledWindow {
-          Gtk.ListView works-list {
-            css-classes: ["works-list"];
-          }
-        };
-      }
-    };
+				content: Gtk.ScrolledWindow explorer-root {};
+			}
+		};
 
-    content: Adw.NavigationPage {
-      title: "Work viewer";
+		content: Adw.NavigationPage {
+			title: "Work viewer";
 
-      Adw.ToolbarView {
-        [top] Adw.HeaderBar {
-          [start] Gtk.Button toggle-sidebar-button {
-            icon-name: "sidebar-show-symbolic";
-          }
+			Adw.ToolbarView {
+				[top] Adw.HeaderBar {
+					[start] Gtk.Button sidebar-toggle {
+						icon-name: "sidebar-show-symbolic";
+					}
 
-          title-widget: Adw.Clamp {
-            maximum-size: 300;
+					title-widget: Adw.Clamp {
+						maximum-size: 300;
 
-            Gtk.SearchEntry {
-              hexpand: true;
-              placeholder-text: "Search";
-            }
-          };
+						Gtk.SearchEntry {
+							hexpand: true;
+							placeholder-text: "Search";
+						}
+					};
 
-          [end] Gtk.Button {
-            icon-name: "view-grid-symbolic";
-          }
-        }
+					[end] Gtk.Button {
+						icon-name: "view-grid-symbolic";
+					}
+				}
 
-        content: Gtk.Box {
-          orientation: vertical;
-
-          Gtk.Overlay {
-            vexpand: true;
-
-            Adw.Carousel work-carousel {
-              Gtk.Image {
-                css-classes: ["card"];
-                hexpand: true;
-                vexpand: true;
-                margin-start: 10;
-                margin-end: 10;
-                margin-bottom: 10;
-                pixel-size: 76;
-                icon-name: "image-missing-symbolic";
-              }
-
-              Gtk.Image {
-                css-classes: ["card"];
-                hexpand: true;
-                vexpand: true;
-                margin-start: 10;
-                margin-end: 10;
-                margin-bottom: 10;
-                pixel-size: 76;
-                icon-name: "image-missing-symbolic";
-              }
-            }
-
-            [overlay] Adw.CarouselIndicatorLines {
-              carousel: work-carousel;
-              valign: end;
-              margin-bottom: 25;
-            }
-          }
-
-          Gtk.Box {
-            margin-start: 10;
-            margin-end: 10;
-            margin-bottom: 10;
-            spacing: 5;
-
-            Gtk.Button {
-              css-classes: ["page-button"];
-              valign: start;
-              height-request: 52;
-              icon-name: "go-previous-symbolic";
-            }
-
-            Gtk.ListBox {
-              css-classes: ["boxed-list", "work-details"];
-              selection-mode: none;
-
-              Adw.ExpanderRow {
-                [prefix] Gtk.Label {
-                  css-classes: ["title-4"];
-                  label: "Work Title Work Title Work Title Work Title";
-                  ellipsize: end;
-                }
-
-                [prefix] Gtk.Box {
-                  css-classes: ["card"];
-                  valign: center;
-
-                  Gtk.Label {
-                    margin-start: 10;
-                    margin-end: 10;
-                    margin-top: 5;
-                    margin-bottom: 5;
-                    label: "Username";
-                    ellipsize: end;
-                  }
-                }
-
-                Gtk.ListBoxRow {
-                  activatable: false;
-                  can-focus: false;
-
-                  Gtk.Label {
-                    margin-top: 5;
-                    margin-bottom: 10;
-                    wrap: true;
-                    label: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
-                  }
-                }
-              }
-            }
-
-            Gtk.Button {
-              css-classes: ["page-button"];
-              valign: start;
-              height-request: 52;
-              icon-name: "go-next-symbolic";
-            }
-          }
-        };
-      }
-    };
-  }
+				content: Gtk.ScrolledWindow viewer-root {};
+			}
+		};
+	}
 }

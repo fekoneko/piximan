@@ -1,46 +1,46 @@
-.works-list {
+.explorer-list {
   background-color: transparent;
 }
 
-.work-card {
+.card-container {
   padding: 0;
   border-radius: 12px;
 }
 
-.work-card .work-card-preview {
+.card-container .card-preview {
   border-radius: 12px 0 0 12px;
 }
 
-.work-details {
+.viewer-details {
   background-color: transparent;
   border: none;
   box-shadow: none;
 }
 
-.work-details .expander .nested {
+.viewer-details .expander .nested {
   background-color: transparent;
 }
 
-.work-details .expander .header {
+.viewer-details .expander .header {
   border: none;
 }
 
-.work-details .expander:hover {
+.viewer-details .expander:hover {
   background-color: color-mix(in srgb, var(--card-bg-color) 10%, transparent);
   border-radius: 12px;
   transition: background-color 0.2s ease-in-out;
 }
 
-.work-details .expander .expander-row-arrow {
+.viewer-details .expander .expander-row-arrow {
   opacity: 0;
 }
 
-.page-button {
+.viewer-page-button {
   background-color: transparent;
   color: color-mix(in srgb, var(--card-fg-color) 50%, transparent);
   transition: color 0.2s ease-in-out;
 }
 
-.page-button:hover {
+.viewer-page-button:hover {
   color: var(--card-fg-color);
 }
