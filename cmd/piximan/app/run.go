@@ -24,14 +24,7 @@ func Run(version string) {
 	}
 
 	registerResources()
-
-	app := adw.NewApplication(applicationId, gio.ApplicationFlagsNone)
-	app.SetVersion(version)
-	app.ConnectActivate(func() { activate(&app.Application) })
-
-	if code := app.Run(os.Args); code > 0 {
-		os.Exit(code)
-	}
+	runApplication(version)
 }
 
 func registerResources() {
@@ -43,8 +36,17 @@ func registerResources() {
 	gio.ResourcesRegister(resource)
 }
 
-func activate(app *gtk.Application) {
-	builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
-	window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
-	app.AddWindow(&window.Window)
+func runApplication(version string) {
+	app := adw.NewApplication(applicationId, gio.ApplicationFlagsNone)
+	app.SetVersion(version)
+
+	app.ConnectActivate(func() {
+		builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
+		window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
+		app.AddWindow(&window.Window)
+	})
+
+	if code := app.Run(os.Args); code > 0 {
+		os.Exit(code)
+	}
 }
