@@ -2,6 +2,15 @@
   background-color: transparent;
 }
 
+.work-card {
+  padding: 0;
+  border-radius: 12px;
+}
+
+.work-card .work-card-preview {
+  border-radius: 12px 0 0 12px;
+}
+
 .work-details {
   background-color: transparent;
   border: none;
@@ -18,7 +27,7 @@
 
 .work-details .expander:hover {
   background-color: color-mix(in srgb, var(--card-bg-color) 10%, transparent);
-  border-radius: 15px;
+  border-radius: 12px;
   transition: background-color 0.2s ease-in-out;
 }
 
