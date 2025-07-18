@@ -36,6 +36,7 @@ Adw.ApplicationWindow window {
             }
 
             Gtk.SearchEntry sidebar-search-entry {
+              hexpand: true;
               placeholder-text: "Search";
             }
           };
@@ -56,8 +57,13 @@ Adw.ApplicationWindow window {
             icon-name: "sidebar-show-symbolic";
           }
 
-          title-widget: Gtk.SearchEntry search-entry {
-            placeholder-text: "Search";
+          title-widget: Adw.Clamp {
+            maximum-size: 300;
+
+            Gtk.SearchEntry search-entry {
+              hexpand: true;
+              placeholder-text: "Search";
+            }
           };
 
           [end] Gtk.Button work-menu-button {
@@ -65,7 +71,32 @@ Adw.ApplicationWindow window {
           }
         }
 
-        content: Gtk.Box {};
+        content: Gtk.Box {
+          orientation: vertical;
+
+          Adw.Carousel work-carousel {
+            vexpand: true;
+
+            Gtk.Image {
+              hexpand: true;
+              vexpand: true;
+              icon-size: large;
+              icon-name: "image-missing-symbolic";
+            }
+
+            Gtk.Image {
+              hexpand: true;
+              vexpand: true;
+              icon-size: large;
+              icon-name: "image-missing-symbolic";
+            }
+          }
+
+          Adw.CarouselIndicatorLines {
+            carousel: work-carousel;
+            margin-bottom: 20;
+          }
+        };
       }
     };
   }
