@@ -37,19 +37,23 @@ func registerResources() {
 	gio.ResourcesRegister(resource)
 }
 
+func addCssProvider() {
+	cssProvider := gtk.NewCSSProvider()
+	cssProvider.LoadFromResource(resourcePrefix + "/window.css")
+	priority := uint(gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	gtk.StyleContextAddProviderForDisplay(gdk.DisplayGetDefault(), cssProvider, priority)
+}
+
 func runApplication(version string) {
 	app := adw.NewApplication(applicationId, gio.ApplicationFlagsNone)
 	app.SetVersion(version)
 
 	app.ConnectActivate(func() {
-		builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
-		window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
-		app.AddWindow(&window.Window)
+		addCssProvider()
 
-		cssProvider := gtk.NewCSSProvider()
-		cssProvider.LoadFromResource(resourcePrefix + "/window.css")
-		priority := uint(gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-		gtk.StyleContextAddProviderForDisplay(gdk.DisplayGetDefault(), cssProvider, priority)
+		builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
+		window := NewWindow(builder)
+		window.Add(app)
 	})
 
 	if code := app.Run(os.Args); code > 0 {

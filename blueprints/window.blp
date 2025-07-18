@@ -22,7 +22,9 @@ Adw.ApplicationWindow window {
     min-sidebar-width: 280;
     max-sidebar-width: 400;
 
-    sidebar:  Adw.NavigationPage {
+    sidebar: Adw.NavigationPage {
+      title: "Collection explorer";
+
       Adw.ToolbarView {
         [top] Adw.HeaderBar {
           [start] Gtk.Button {
@@ -47,78 +49,17 @@ Adw.ApplicationWindow window {
           }
         }
 
-        content: Gtk.Box {
-          css-classes: ["works-list"];
-          orientation: vertical;
-          spacing: 5;
-
-          Gtk.Button {
-            css-classes: ["card", "work-card"];
-            margin-start: 10;
-            margin-end: 10;
-
-            Gtk.Box {
-              spacing: 10;
-
-              Gtk.Image {
-                css-classes: ["work-card-preview"];
-                width-request: 90;
-                icon-name: "image-missing-symbolic";
-                pixel-size: 64;
-              }
-
-              Gtk.Box {
-                orientation: vertical;
-                valign: center;
-                margin-end: 10;
-                margin-top: 10;
-                margin-bottom: 5;
-                spacing: 5;
-
-                Gtk.Label {
-                  css-classes: ["title-4"];
-                  halign: start;
-                  label: "Work Title Work Title";
-                  ellipsize: end;
-                }
-
-                Gtk.Label {
-                  css-classes: ["dimmed"];
-                  halign: start;
-                  label: "Username";
-                  ellipsize: end;
-                }
-
-                Gtk.Box {
-                  spacing: 10;
-
-                  Gtk.Label {
-                    css-classes: ["dimmed"];
-                    label: "#tag1";
-                    ellipsize: end;
-                  }
-
-                  Gtk.Label {
-                    css-classes: ["dimmed"];
-                    label: "#tag2";
-                    ellipsize: end;
-                  }
-
-                  Gtk.Label {
-                    css-classes: ["dimmed"];
-                    label: "#tag3";
-                    ellipsize: end;
-                  }
-
-                }
-              }
-            }
+        content: ScrolledWindow {
+          Gtk.ListView works-list {
+            css-classes: ["works-list"];
           }
         };
       }
     };
 
     content: Adw.NavigationPage {
+      title: "Work viewer";
+
       Adw.ToolbarView {
         [top] Adw.HeaderBar {
           [start] Gtk.Button toggle-sidebar-button {

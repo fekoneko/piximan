@@ -1,0 +1,63 @@
+using Gtk 4.0;
+
+template Gtk.ListItem {
+  child: Gtk.Box {
+    css-classes: ["card", "work-card"];
+    margin-start: 10;
+    margin-end: 10;
+    margin-bottom: 5;
+    spacing: 10;
+
+    Gtk.Image {
+      css-classes: ["work-card-preview"];
+      width-request: 90;
+      pixel-size: 64;
+      icon-name: "image-missing-symbolic";
+    }
+
+    Gtk.Box {
+      orientation: vertical;
+      valign: center;
+      margin-end: 10;
+      margin-top: 10;
+      margin-bottom: 5;
+      spacing: 5;
+
+      Gtk.Label {
+        css-classes: ["title-4"];
+        halign: start;
+        label: bind template.item as <Gtk.StringObject>.string;
+        ellipsize: end;
+      }
+
+      Gtk.Label {
+        css-classes: ["dimmed"];
+        halign: start;
+        label: "Username";
+        ellipsize: end;
+      }
+
+      Gtk.Box {
+        spacing: 10;
+
+        Gtk.Label {
+          css-classes: ["dimmed"];
+          label: "#tag1";
+          ellipsize: end;
+        }
+
+        Gtk.Label {
+          css-classes: ["dimmed"];
+          label: "#tag2";
+          ellipsize: end;
+        }
+
+        Gtk.Label {
+          css-classes: ["dimmed"];
+          label: "#tag3";
+          ellipsize: end;
+        }
+      }
+    }
+  };
+}
