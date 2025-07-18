@@ -9,6 +9,7 @@ Adw.ApplicationWindow window {
 
   Adw.Breakpoint {
     condition("max-width: 650sp")
+
     setters {
       split-view.collapsed: true;
       toggle-sidebar-button.visible: false;
@@ -24,7 +25,7 @@ Adw.ApplicationWindow window {
     sidebar:  Adw.NavigationPage {
       Adw.ToolbarView {
         [top] Adw.HeaderBar {
-          [start] Gtk.Button open-collection-button {
+          [start] Gtk.Button {
             icon-name: "document-open-symbolic";
           }
 
@@ -41,12 +42,14 @@ Adw.ApplicationWindow window {
             }
           };
 
-          [end] Gtk.Button menu-button {
+          [end] Gtk.Button {
             icon-name: "open-menu-symbolic";
           }
         }
 
-        content: Gtk.Box {};
+        content: Gtk.ListView {
+          css-classes: ["works-list"];
+        };
       }
     };
 
@@ -60,13 +63,13 @@ Adw.ApplicationWindow window {
           title-widget: Adw.Clamp {
             maximum-size: 300;
 
-            Gtk.SearchEntry search-entry {
+            Gtk.SearchEntry {
               hexpand: true;
               placeholder-text: "Search";
             }
           };
 
-          [end] Gtk.Button work-menu-button {
+          [end] Gtk.Button {
             icon-name: "view-grid-symbolic";
           }
         }
@@ -74,27 +77,96 @@ Adw.ApplicationWindow window {
         content: Gtk.Box {
           orientation: vertical;
 
-          Adw.Carousel work-carousel {
+          Gtk.Overlay {
             vexpand: true;
 
-            Gtk.Image {
-              hexpand: true;
-              vexpand: true;
-              icon-size: large;
-              icon-name: "image-missing-symbolic";
+            Adw.Carousel work-carousel {
+              Gtk.Image {
+                css-classes: ["card"];
+                hexpand: true;
+                vexpand: true;
+                margin-start: 10;
+                margin-end: 10;
+                margin-bottom: 10;
+                icon-size: large;
+                icon-name: "image-missing-symbolic";
+              }
+
+              Gtk.Image {
+                css-classes: ["card"];
+                hexpand: true;
+                vexpand: true;
+                margin-start: 10;
+                margin-end: 10;
+                margin-bottom: 10;
+                icon-size: large;
+                icon-name: "image-missing-symbolic";
+              }
             }
 
-            Gtk.Image {
-              hexpand: true;
-              vexpand: true;
-              icon-size: large;
-              icon-name: "image-missing-symbolic";
+            [overlay] Adw.CarouselIndicatorLines {
+              carousel: work-carousel;
+              valign: end;
+              margin-bottom: 25;
             }
           }
 
-          Adw.CarouselIndicatorLines {
-            carousel: work-carousel;
-            margin-bottom: 20;
+          Gtk.Box {
+            margin-start: 10;
+            margin-end: 10;
+            margin-bottom: 10;
+            spacing: 5;
+
+            Gtk.Button {
+              css-classes: ["page-button"];
+              valign: start;
+              height-request: 52;
+              icon-name: "go-previous-symbolic";
+            }
+
+            Gtk.ListBox {
+              css-classes: ["boxed-list", "work-details"];
+              selection-mode: none;
+
+              Adw.ExpanderRow {
+                [prefix] Gtk.Label {
+                  css-classes: ["title-4"];
+                  label: "Work Title Work Title";
+                }
+
+                [prefix] Gtk.Box {
+                  css-classes: ["card"];
+                  valign: center;
+
+                  Gtk.Label {
+                    label: "Username";
+                    margin-start: 10;
+                    margin-end: 10;
+                    margin-top: 5;
+                    margin-bottom: 5;
+                  }
+                }
+
+                Gtk.ListBoxRow {
+                  activatable: false;
+                  can-focus: false;
+
+                  Gtk.Label {
+                    margin-top: 5;
+                    margin-bottom: 10;
+                    wrap: true;
+                    label: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+                  }
+                }
+              }
+            }
+
+            Gtk.Button {
+              css-classes: ["page-button"];
+              valign: start;
+              height-request: 52;
+              icon-name: "go-next-symbolic";
+            }
           }
         };
       }

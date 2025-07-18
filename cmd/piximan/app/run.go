@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
+	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -44,6 +45,11 @@ func runApplication(version string) {
 		builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
 		window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
 		app.AddWindow(&window.Window)
+
+		cssProvider := gtk.NewCSSProvider()
+		cssProvider.LoadFromResource(resourcePrefix + "/window.css")
+		priority := uint(gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+		gtk.StyleContextAddProviderForDisplay(gdk.DisplayGetDefault(), cssProvider, priority)
 	})
 
 	if code := app.Run(os.Args); code > 0 {

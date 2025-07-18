@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usege: ./run.sh [<args>]
+# Usage: ./run.sh [<args>]
 
 dirname="$(dirname "$0")" || exit 1
 version="$(git -C "$dirname" describe --always --tags --dirty)" || exit 1

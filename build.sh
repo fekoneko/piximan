@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usege: ./build.sh [<os>] [<arch>] 
+# Usage: ./build.sh [<os>] [<arch>]
 
 dirname="$(dirname "$0")" || exit 1
 version="$(git -C "$dirname" describe --always --tags --dirty)" || exit 1
