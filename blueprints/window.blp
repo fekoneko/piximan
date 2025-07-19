@@ -12,8 +12,10 @@ Adw.ApplicationWindow window {
 
 		setters {
 			split-view.collapsed: true;
+			split-view.show-content: false;
 			sidebar-toggle.visible: false;
 			sidebar-header-stack.visible-child: sidebar-search;
+			content-header.show-back-button: true;
 		}
 	}
 
@@ -27,7 +29,7 @@ Adw.ApplicationWindow window {
 
 			Adw.ToolbarView {
 				[top] Adw.HeaderBar {
-					[start] Gtk.Button {
+					[start] Gtk.Button open-button {
 						icon-name: "document-open-symbolic";
 					}
 
@@ -35,7 +37,7 @@ Adw.ApplicationWindow window {
 						visible-child: collection-title;
 
 						Adw.WindowTitle collection-title {
-							title: "Collection Title";
+							title: "Welcome to piximan";
 						}
 
 						Gtk.SearchEntry sidebar-search {
@@ -57,7 +59,9 @@ Adw.ApplicationWindow window {
 			title: "Work viewer";
 
 			Adw.ToolbarView {
-				[top] Adw.HeaderBar {
+				[top] Adw.HeaderBar content-header {
+					show-back-button: false;
+
 					[start] Gtk.Button sidebar-toggle {
 						icon-name: "sidebar-show-symbolic";
 					}
@@ -72,7 +76,7 @@ Adw.ApplicationWindow window {
 					};
 
 					[end] Gtk.Button {
-						icon-name: "view-grid-symbolic";
+						icon-name: "view-more-symbolic";
 					}
 				}
 

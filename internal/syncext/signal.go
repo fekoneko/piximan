@@ -1,5 +1,7 @@
 package syncext
 
+// TODO: use context package?
+
 // Used to cancel pending operations
 type Signal chan bool
 
