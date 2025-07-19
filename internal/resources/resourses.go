@@ -28,7 +28,7 @@ func LoadResources() {
 // Meant to be used once the app is activated.
 func LoadCss() {
 	cssProvider := gtk.NewCSSProvider()
-	cssProvider.LoadFromResource(ResourcePath("window.css"))
+	cssProvider.LoadFromResource(ResourcePath("main.css"))
 	priority := uint(gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 	gtk.StyleContextAddProviderForDisplay(gdk.DisplayGetDefault(), cssProvider, priority)
 }
