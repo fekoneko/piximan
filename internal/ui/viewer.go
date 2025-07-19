@@ -7,16 +7,17 @@ import (
 
 type Viewer struct {
 	*gtk.Box
+	window *Window
 }
 
-func NewViewer() *Viewer {
+func NewViewer(window *Window) *Viewer {
 	builder := resources.NewBuilder("viewer.ui")
 	container := builder.GetObject("viewer-container").Cast().(*gtk.Box)
 
-	return &Viewer{container}
+	return &Viewer{container, window}
 }
 
-func (w *Viewer) Attach(builder *gtk.Builder) {
+func (v *Viewer) Attach(builder *gtk.Builder) {
 	container := builder.GetObject("viewer-root").Cast().(*gtk.ScrolledWindow)
-	container.SetChild(w)
+	container.SetChild(v)
 }

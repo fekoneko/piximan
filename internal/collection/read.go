@@ -67,6 +67,14 @@ func (c *Collection) Cancel() {
 	c.cancelNoLock()
 }
 
+// Weather collection parsing was cancelled.
+func (c *Collection) Cancelled() bool {
+	c.signalMutex.Lock()
+	defer c.signalMutex.Unlock()
+
+	return c.signal != nil && c.signal.Cancelled()
+}
+
 func (c *Collection) cancelNoLock() {
 	if c.signal != nil && !c.signal.Cancelled() {
 		c.logger.Info("cancelled parsing collection at %v", c.Path())

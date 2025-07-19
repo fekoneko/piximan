@@ -2,23 +2,23 @@ package ui
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/resources"
 )
 
 type Explorer struct {
 	*gtk.ListView
+	window *Window
+	model  *gio.ListStore
 }
 
-func NewExplorer() *Explorer {
+func NewExplorer(window *Window) *Explorer {
 	builder := resources.NewBuilder("explorer.ui")
-	list := builder.GetObject("explorer-list").Cast().(*gtk.ListView)
 
+	list := builder.GetObject("explorer-list").Cast().(*gtk.ListView)
 	model := gio.NewListStore(glib.TypeObject)
 	factory := gtk.NewSignalListItemFactory()
 
@@ -35,9 +35,9 @@ func NewExplorer() *Explorer {
 	factory.ConnectBind(func(object *glib.Object) {
 		item := object.Cast().(*gtk.ListItem)
 		card := CardFromBox(item.Child().(*gtk.Box))
-		index := item.Item().Cast().(*gtk.StringObject).String()
-		title := fmt.Sprintf("Test Work #%v", index)
-		card.Patch(&work.Work{Title: &title})
+		hash := item.Item().Cast().(*gtk.StringObject).String()
+		work := window.Work(hash)
+		card.Patch(work)
 	})
 
 	list.ConnectActivate(func(position uint) {
@@ -47,18 +47,30 @@ func NewExplorer() *Explorer {
 	list.SetModel(gtk.NewSingleSelection(model))
 	list.SetFactory(&factory.ListItemFactory)
 
-	objects := make([]*glib.Object, 0, 10000)
-	for i := range 1000000 {
-		item := gtk.NewStringObject(strconv.Itoa(i))
-		objects = append(objects, item.Object)
-	}
-
-	model.Splice(0, 0, objects)
-
-	return &Explorer{list}
+	return &Explorer{list, window, model}
 }
 
-func (w *Explorer) Attach(builder *gtk.Builder) {
+func (e *Explorer) Attach(builder *gtk.Builder) {
 	container := builder.GetObject("explorer-root").Cast().(*gtk.ScrolledWindow)
-	container.SetChild(w)
+	container.SetChild(e)
+}
+
+// Append work to a list. Provided hash will be used to get the work
+// from the parent window when list item is activated.
+func (e *Explorer) Append(hashes ...string) {
+	if len(hashes) == 1 {
+		object := gtk.NewStringObject(hashes[0]).Object
+		e.model.Append(object)
+	} else if len(hashes) > 1 {
+		objects := make([]*glib.Object, 0, len(hashes))
+		for _, hash := range hashes {
+			object := gtk.NewStringObject(hash).Object
+			objects = append(objects, object)
+		}
+		e.model.Splice(e.model.NItems(), 0, objects)
+	}
+}
+
+func (e *Explorer) Clear() {
+	e.model.RemoveAll()
 }

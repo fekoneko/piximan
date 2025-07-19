@@ -34,17 +34,17 @@ func CardFromBox(box *gtk.Box) *Card {
 }
 
 func (c *Card) Patch(w *work.Work) {
-	if w.Title != nil {
+	if w != nil && w.Title != nil {
 		c.title.SetText(*w.Title)
 	} else {
 		c.title.SetText("Unknown")
 	}
-	if w.UserName != nil {
+	if w != nil && w.UserName != nil {
 		c.userName.SetText(*w.UserName)
 	} else {
 		c.userName.SetText("Unknown")
 	}
-	if w.Tags != nil {
+	if w != nil && w.Tags != nil {
 		c.tags.SetText(strings.Join(*w.Tags, ", "))
 	} else {
 		c.tags.SetText("Unknown")
