@@ -1,7 +1,8 @@
-package app
+package ui
 
 import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/fekoneko/piximan/internal/resources"
 )
 
 type Viewer struct {
@@ -9,7 +10,7 @@ type Viewer struct {
 }
 
 func NewViewer() *Viewer {
-	builder := gtk.NewBuilderFromResource(resourcePrefix + "/viewer.ui")
+	builder := resources.NewBuilder("viewer.ui")
 	container := builder.GetObject("viewer-container").Cast().(*gtk.Box)
 
 	return &Viewer{container}

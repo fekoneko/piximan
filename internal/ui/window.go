@@ -1,8 +1,8 @@
-package app
+package ui
 
 import (
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/fekoneko/piximan/internal/resources"
 )
 
 type Window struct {
@@ -10,7 +10,7 @@ type Window struct {
 }
 
 func NewWindow() *Window {
-	builder := gtk.NewBuilderFromResource(resourcePrefix + "/window.ui")
+	builder := resources.NewBuilder("window.ui")
 	window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
 
 	explorer := NewExplorer()

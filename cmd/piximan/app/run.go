@@ -1,22 +1,16 @@
 package app
 
 import (
-	_ "embed"
 	"fmt"
 	"os"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
-	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
-	"github.com/diamondburned/gotk4/pkg/glib/v2"
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/fekoneko/piximan/internal/resources"
+	"github.com/fekoneko/piximan/internal/ui"
 )
 
 const applicationId = "com.fekoneko.piximan"
-const resourcePrefix = "/com/fekoneko/piximan"
-
-//go:embed piximan.gresource
-var resources []byte
 
 func Run(version string) {
 	if len(os.Args) > 1 {
@@ -24,24 +18,8 @@ func Run(version string) {
 		fmt.Println("providing arguments to the viewer is not yet supported")
 	}
 
-	registerResources()
+	resources.LoadResources()
 	runApplication(version)
-}
-
-func registerResources() {
-	bytes := glib.NewBytes(resources)
-	resource, err := gio.NewResourceFromData(bytes)
-	if err != nil {
-		panic(err)
-	}
-	gio.ResourcesRegister(resource)
-}
-
-func addCssProvider() {
-	cssProvider := gtk.NewCSSProvider()
-	cssProvider.LoadFromResource(resourcePrefix + "/window.css")
-	priority := uint(gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-	gtk.StyleContextAddProviderForDisplay(gdk.DisplayGetDefault(), cssProvider, priority)
 }
 
 func runApplication(version string) {
@@ -49,9 +27,9 @@ func runApplication(version string) {
 	app.SetVersion(version)
 
 	app.ConnectActivate(func() {
-		addCssProvider()
+		resources.LoadCss()
 
-		window := NewWindow()
+		window := ui.NewWindow()
 		window.Attach(app)
 	})
 

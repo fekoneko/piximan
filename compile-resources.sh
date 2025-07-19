@@ -6,7 +6,7 @@ blueprints_path="$dirname/blueprints"
 styles_path="$dirname/styles"
 resources_path="$dirname/resources"
 gresource_xml_path="$resources_path/piximan.gresource.xml"
-gresource_path="$dirname/cmd/piximan/app/piximan.gresource"
+gresource_path="$dirname/internal/resources/piximan.gresource"
 
 # Make resources directory and cleanup
 mkdir -p "$resources_path"          || exit 1

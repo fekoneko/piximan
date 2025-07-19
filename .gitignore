@@ -1,4 +1,4 @@
-.vscode/
-bin/
-resources/
-cmd/piximan/app/piximan.gresource
+/.vscode/
+/bin/
+/resources/
+/internal/resources/piximan.gresource
