@@ -13,6 +13,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/fekoneko/piximan/internal/collection"
 	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/resources"
 )
@@ -111,8 +112,17 @@ func (w *Window) OpenCollection(path string) {
 		glib.IdleAdd(func() {
 			if !c.Cancelled() {
 				w.explorer.Append(buffer...)
+				logger.Info("%v found in the collection", len(works))
 			}
 		})
+
+		// TODO: remove
+		workWorks := make([]*work.Work, 0, len(works))
+		for _, w := range works {
+			workWorks = append(workWorks, w.Work)
+		}
+		l := queue.IgnoreListFromWorks(workWorks)
+		logger.Info("ignore list: %v", l.Len())
 	}()
 }
 

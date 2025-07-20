@@ -67,11 +67,11 @@ func download(options *options) {
 		}
 
 		if options.Path == nil {
-			q := queue.FromMap(idPathMap, kind, size, onlyMeta)
+			q := queue.QueueFromMap(idPathMap, kind, size, onlyMeta)
 			d.ScheduleQueue(q)
 		} else {
 			paths := []string{path}
-			q := queue.FromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
+			q := queue.QueueFromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
 			d.ScheduleQueue(q)
 		}
 
@@ -111,6 +111,8 @@ func download(options *options) {
 		}
 		if len(works) == 0 {
 			logger.Fatal("no works found in the collection")
+		} else {
+			logger.Info("%v found in the collection", len(works))
 		}
 		list := queue.IgnoreListFromWorks(works)
 		d.SetIgnoreList(list)

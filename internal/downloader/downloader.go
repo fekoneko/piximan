@@ -120,7 +120,7 @@ func (d *Downloader) String() string {
 	builder.WriteString("- ignore list: ")
 	numIgnored := 0
 	if d.ignoreList != nil {
-		numIgnored = len(*d.ignoreList)
+		numIgnored = d.ignoreList.Len()
 	}
 	if numIgnored <= 0 {
 		builder.WriteString("none\n")
