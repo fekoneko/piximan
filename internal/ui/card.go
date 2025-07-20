@@ -10,10 +10,10 @@ import (
 
 type Card struct {
 	*gtk.Box
-	image    *gtk.Image
-	title    *gtk.Label
-	userName *gtk.Label
-	tags     *gtk.Label
+	thumbnail *gtk.Picture
+	title     *gtk.Label
+	userName  *gtk.Label
+	tags      *gtk.Label
 }
 
 func NewCard() *Card {
@@ -24,16 +24,22 @@ func NewCard() *Card {
 }
 
 func CardFromBox(box *gtk.Box) *Card {
-	image := box.FirstChild().(*gtk.Image)
-	infoContainer := image.NextSibling().(*gtk.Box)
+	thumbnail := box.FirstChild().(*gtk.Picture)
+	infoContainer := thumbnail.NextSibling().(*gtk.Box)
 	title := infoContainer.FirstChild().(*gtk.Label)
 	username := title.NextSibling().(*gtk.Label)
 	tags := username.NextSibling().(*gtk.Label)
 
-	return &Card{box, image, title, username, tags}
+	return &Card{box, thumbnail, title, username, tags}
 }
 
-func (c *Card) Patch(w *work.Work) {
+func (c *Card) Patch(w *work.StoredWork) {
+	// if w != nil && len(w.AssetNames) > 0 {
+	// 	thumbnailPath := filepath.Join(w.Path, w.AssetNames[0])
+	// 	c.thumbnail.SetFilename(thumbnailPath) // TODO: performant thumbnail decoding
+	// } else {
+	// 	c.thumbnail.SetFile(nil) // TODO: placeholder
+	// }
 	if w != nil && w.Title != nil {
 		c.title.SetText(*w.Title)
 	} else {

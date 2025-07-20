@@ -107,7 +107,7 @@ func download(options *options) {
 		works := make([]*work.Work, 0)
 		c.Read()
 		for w := c.WaitNext(); w != nil; w = c.WaitNext() {
-			works = append(works, w)
+			works = append(works, w.Work)
 		}
 		if len(works) == 0 {
 			logger.Fatal("no works found in the collection")

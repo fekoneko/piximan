@@ -19,19 +19,23 @@ func (c *Collection) Read() {
 		cancelled := false
 		c.logger.Info("parsing collection at %v", collectionPath)
 
-		fsext.WalkWorks(collectionPath, func(path *string, err error) (proceed bool) {
+		fsext.WalkWorks(collectionPath, func(path string, assetNames []string, err error) (proceed bool) {
 			if signal.Cancelled() {
 				cancelled = true
 				return false
-			} else if err != nil || path == nil {
+			} else if err != nil {
 				c.logger.Error("error while parsing collection at %v: %v", collectionPath, err)
-			} else if w, warning, err := fsext.ReadWork(*path); err == nil { // TODO: delegate to goroutines?
+			} else if w, warning, err := fsext.ReadWork(path); err == nil { // TODO: delegate to goroutines?
 				if warning != nil {
-					c.logger.Warning("warning while parsing work at %v: %v", *path, warning)
+					c.logger.Warning("warning while parsing work at %v: %v", path, warning)
 				}
-				c.channel <- w
+				c.channel <- &work.StoredWork{
+					Work:       w,
+					Path:       path,
+					AssetNames: assetNames,
+				}
 			} else {
-				c.logger.Error("error while parsing work at %v: %v", *path, err)
+				c.logger.Error("error while parsing work at %v: %v", path, err)
 			}
 			return true
 		})
@@ -46,7 +50,7 @@ func (c *Collection) Read() {
 
 // Block until next work is parsed. Returns nil if there are no more works to parse or parsing was
 // cancelled. Use WaitNext() or WaitDone() only in one place at a time to receive all the results.
-func (c *Collection) WaitNext() *work.Work {
+func (c *Collection) WaitNext() *work.StoredWork {
 	// TODO: return errors as well
 	return <-c.channel
 }

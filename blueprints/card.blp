@@ -2,12 +2,12 @@ using Gtk 4.0;
 
 Gtk.Box card-container {
 	spacing: 10;
+	height-request: 90;
 
-	Gtk.Image {
-		css-classes: ["card-preview"];
+	Gtk.Picture card-thumbnail {
+		css-classes: ["card-image"];
 		width-request: 90;
-		pixel-size: 64;
-		icon-name: "image-missing-symbolic";
+		height-request: 90;
 	}
 
 	Gtk.Box {

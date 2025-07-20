@@ -27,7 +27,7 @@ type Window struct {
 	viewer    *Viewer
 
 	collection *collection.Collection
-	works      map[string]*work.Work // TODO: mutex?
+	works      map[string]*work.StoredWork // TODO: mutex?
 	worksMutex *sync.Mutex
 }
 
@@ -37,7 +37,7 @@ func NewWindow() *Window {
 	window := builder.GetObject("window").Cast().(*adw.ApplicationWindow)
 	splitView := builder.GetObject("split-view").Cast().(*adw.NavigationSplitView)
 	collectionTitle := builder.GetObject("title").Cast().(*adw.WindowTitle)
-	works := make(map[string]*work.Work)
+	works := make(map[string]*work.StoredWork)
 	worksMutex := &sync.Mutex{}
 
 	w := &Window{window, splitView, collectionTitle, nil, nil, nil, works, worksMutex}
@@ -81,7 +81,7 @@ func (w *Window) OpenCollection(path string) {
 	}
 
 	c := collection.New(path, logger.DefaultLogger)
-	works := make(map[string]*work.Work)
+	works := make(map[string]*work.StoredWork)
 	w.collection = c
 	w.works = works
 
@@ -122,7 +122,7 @@ func (w *Window) ToggleSidebar() {
 	w.splitView.SetCollapsed(!collapsed)
 }
 
-func (w *Window) Work(hash string) *work.Work {
+func (w *Window) Work(hash string) *work.StoredWork {
 	w.worksMutex.Lock()
 	defer w.worksMutex.Unlock()
 	return w.works[hash]
