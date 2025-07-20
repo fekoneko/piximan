@@ -16,7 +16,7 @@ func interactive() {
 	withBookmarks := bookmarks != nil
 
 	kind := selectKind(withQueue)
-	tag := promptTag(withBookmarks)
+	tags := promptTags(withBookmarks)
 	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withQueue)
 	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
@@ -38,7 +38,7 @@ func interactive() {
 		OnlyMeta:   &onlyMeta,
 		Rules:      rules,
 		Collection: collection,
-		Tag:        tag,
+		Tags:       tags,
 		FromOffset: fromOffset,
 		ToOffset:   toOffset,
 		Private:    private,
@@ -104,17 +104,18 @@ func selectKind(withQueue bool) string {
 	}
 }
 
-func promptTag(withBookmarks bool) *string {
+func promptTags(withBookmarks bool) *[]string {
 	if !withBookmarks {
 		return nil
 	}
 
-	tag, err := tagPrompt.Run()
-	logger.MaybeFatal(err, "failed to read tag")
-	if tag == "" {
+	tagsString, err := tagsPrompts.Run()
+	logger.MaybeFatal(err, "failed to read tags")
+	tags := parseStrings(tagsString)
+	if len(tags) == 0 {
 		return nil
 	}
-	return &tag
+	return &tags
 }
 
 func promptRange(withBookmarks bool) (fromOffset *uint64, toOffset *uint64) {
