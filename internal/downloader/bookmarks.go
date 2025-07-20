@@ -16,7 +16,7 @@ import (
 // If untilIgnored is true, the crawler will stop fetching new bookmark pages once it encounters
 // a fully ignored one. Use this to conserve requests when synching freshly bookmarked works.
 func (d *Downloader) ScheduleMyBookmarks(
-	kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
+	kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
 	size imageext.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
@@ -30,7 +30,7 @@ func (d *Downloader) ScheduleMyBookmarks(
 			return err
 		}
 
-		d.ScheduleBookmarks(userId, kind, tag, from, to, private, size, onlyMeta, lowMeta, untilIgnored, paths)
+		d.ScheduleBookmarks(userId, kind, tags, from, to, private, size, onlyMeta, lowMeta, untilIgnored, paths)
 		return nil
 	})
 	d.logger.Info("created crawl task to fetch authorizeed user id")
@@ -41,6 +41,32 @@ func (d *Downloader) ScheduleMyBookmarks(
 // If untilIgnored is true, the crawler will stop fetching new bookmark pages once it encounters
 // a fully ignored one. Use this to conserve requests when synching freshly bookmarked works.
 func (d *Downloader) ScheduleBookmarks(
+	userId uint64, kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
+	size imageext.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
+) {
+	if tags == nil {
+		d.scheduleBookmarks(
+			userId, kind, nil, from, to, private,
+			size, onlyMeta, lowMeta, untilIgnored, paths,
+		)
+	} else {
+		seen := make(map[string]bool)
+		for _, tag := range *tags {
+			if seen[tag] {
+				continue
+			}
+			d.scheduleBookmarks(
+				userId, kind, &tag, from, to, private,
+				size, onlyMeta, lowMeta, untilIgnored, paths,
+			)
+			seen[tag] = true
+		}
+	}
+}
+
+// Schedule the task that will fetch total bookmarks count from the first page and then create tasks
+// for the rest of the pages.
+func (d *Downloader) scheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
 	size imageext.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
 ) {
@@ -51,7 +77,7 @@ func (d *Downloader) ScheduleBookmarks(
 
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		limit := min(100, utils.FromPtr(to, math.MaxUint64)-fromOffset)
-		total, allIngored, err := d.scheduleBookmarksPage(
+		total, allIngored, err := d.fetchBookmarksPageAndSchedule(
 			userId, kind, tag, fromOffset, limit, private, size, onlyMeta, lowMeta, paths, nil,
 		)
 		if err != nil {
@@ -73,7 +99,7 @@ func (d *Downloader) ScheduleBookmarks(
 			limit := min(100, toOffset-offset)
 			currentOffset := offset
 			d.crawlQueue = append(d.crawlQueue, func() error {
-				_, allIngored, err := d.scheduleBookmarksPage(
+				_, allIngored, err := d.fetchBookmarksPageAndSchedule(
 					userId, kind, tag, currentOffset, limit, private, size, onlyMeta, lowMeta, paths, &signal,
 				)
 				if untilIgnored && allIngored {
@@ -102,7 +128,7 @@ func (d *Downloader) ScheduleBookmarks(
 
 // Fetch bookmarks and then schedule the works for download, returns total count of bookmarks
 // Can be cancelled with provided signal until work download tasks were scheduled.
-func (d *Downloader) scheduleBookmarksPage(
+func (d *Downloader) fetchBookmarksPageAndSchedule(
 	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64, private bool,
 	size imageext.Size, onlyMeta bool, lowMeta bool, paths []string, signal *syncext.Signal,
 ) (total uint64, allIngored bool, err error) {

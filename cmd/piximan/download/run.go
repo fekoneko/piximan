@@ -12,7 +12,7 @@ type options struct {
 	OnlyMeta   *bool     `short:"m" long:"only-meta"`
 	Rules      *string   `short:"r" long:"rules"`
 	Collection *string   `short:"c" long:"collection"`
-	Tag        *string   `short:"G" long:"tag"`
+	Tags       *[]string `short:"G" long:"tag"`
 	FromOffset *uint64   `short:"F" long:"from"`
 	ToOffset   *uint64   `short:"T" long:"to"`
 	Private    *bool     `short:"R" long:"private"`

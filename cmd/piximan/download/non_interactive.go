@@ -35,7 +35,7 @@ func nonInteractive() {
 		fmt.Println("invalid argument for flag `-s, --size'")
 		os.Exit(2)
 	}
-	if options.Tag != nil && options.Bookmarks == nil {
+	if options.Tags != nil && options.Bookmarks == nil {
 		fmt.Println("`-G, --tag' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}

@@ -67,13 +67,13 @@ const downloadHelp = //
 --collection If provided, all works already present in the collection directory will
  -c          be skipped when downloading.
              If you don't use metadata.yaml files in your collection, you can also provide
-             infer ID pattern here (see --infer-id). Note that this way, the type of the ignored
-             works will be assumed to be the same as provided with --type flag.
+             infer ID pattern here (see --infer-id). Note that this way, the type of the
+             ignored works will be assumed to be the same as provided with --type flag.
 
                          Bookmarks-specific options
                          --------------------------
---tag        User-assigned tag to filter the bookmarks by. You can see those on the
- -G          bookmarks page. You can only specify one tag or omit to download all.
+--tag        User-assigned tags to filter the bookmarks by. You can see these on the bookmarks
+ -G          page. You may specify this option multiple times or omit to download all.
 
 --from       Crawl bookmarks starting with N'th latest bookmark. Zero-based.
  -F          Omit this option to crawl from the latest bookmark.
