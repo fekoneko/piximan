@@ -20,7 +20,7 @@ func (l *Logger) log(message string, args ...any) {
 type RemoveBarFunc func()
 type UpdateBarFunc func(int, int)
 
-// track request internally and return handlers to update its state
+// Track request internally and return handlers to update its state.
 func (l *Logger) registerRequest(url string, authorized bool) (RemoveBarFunc, UpdateBarFunc) {
 	l.mutex.Lock()
 	l.numRequests++
