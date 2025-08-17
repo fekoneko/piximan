@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-func parseIds(idsString string) ([]uint64, error) {
-	idSubstrs := strings.Split(idsString, ",")
+func parseIds(input string) ([]uint64, error) {
+	parts := strings.Split(input, ",")
 	ids := []uint64{}
 
-	for _, idSubstr := range idSubstrs {
-		trimmed := strings.TrimSpace(idSubstr)
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
 		if trimmed == "" {
 			continue
 		}
@@ -25,17 +25,29 @@ func parseIds(idsString string) ([]uint64, error) {
 	if len(ids) == 0 {
 		return nil, fmt.Errorf("no IDs provided")
 	}
-
 	return ids, nil
 }
 
-func parseRange(rangeString string) (fromOffset *uint64, toOffset *uint64, err error) {
-	trimmed := strings.TrimSpace(rangeString)
+func parseStrings(input string) []string {
+	parts := strings.Split(input, ",")
+	strs := []string{}
+
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			strs = append(strs, trimmed)
+		}
+	}
+	return strs
+}
+
+func parseRange(input string) (from *uint64, to *uint64, err error) {
+	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
 		return nil, nil, nil
 	}
 
-	parts := strings.Split(rangeString, ":")
+	parts := strings.Split(input, ":")
 	if len(parts) != 2 {
 		return nil, nil, fmt.Errorf("the range must contain exactly one ':'")
 	}
@@ -44,23 +56,23 @@ func parseRange(rangeString string) (fromOffset *uint64, toOffset *uint64, err e
 	if trimmedFromString != "" {
 		parsed, err := strconv.ParseUint(trimmedFromString, 10, 64)
 		if err != nil {
-			return nil, nil, fmt.Errorf("invalid 'from' value: %v", fromOffset)
+			return nil, nil, fmt.Errorf("invalid 'from' value: %v", from)
 		}
-		fromOffset = &parsed
+		from = &parsed
 	}
 
 	trimmedToString := strings.TrimSpace(parts[1])
 	if trimmedToString != "" {
 		parsed, err := strconv.ParseUint(trimmedToString, 10, 64)
 		if err != nil {
-			return nil, nil, fmt.Errorf("invalid 'to' value: %v", toOffset)
+			return nil, nil, fmt.Errorf("invalid 'to' value: %v", to)
 		}
-		toOffset = &parsed
+		to = &parsed
 	}
 
-	if fromOffset != nil && toOffset != nil && *fromOffset >= *toOffset {
+	if from != nil && to != nil && *from >= *to {
 		return nil, nil, fmt.Errorf("'from' value must be less than 'to' value")
 	}
 
-	return fromOffset, toOffset, nil
+	return from, to, nil
 }

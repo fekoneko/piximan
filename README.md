@@ -110,7 +110,7 @@ piximan download \
   --path './bookmarks/{user} ({user-id})/{title} ({id})'
 ```
 
-You can also specify a user-assigned tag or download only a specified chunk. This example
+You can also specify a user-assigned tag or download only a specified range. This example
 will download your public bookmarks with tag 'お気に入り' from 101th to 200th latest:
 
 ```shell

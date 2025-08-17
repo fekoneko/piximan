@@ -22,7 +22,7 @@ var configPath = filepath.Join(homePath, ".piximan", "config.yaml")
 
 // Stores and reads configuration. You can directly access and modify public fields and then
 // call Write() to save the changes on the disk.
-// SessionId() is decrypted lazily and cached in the Storage. WriteSessionId() writes the
+// SessionId() is decrypted lazily and cached in the Storage.WriteSessionId() writes the
 // encrypted session id to the disk separately from other fields.
 type Storage struct {
 	cipher            cipher.Block
