@@ -191,7 +191,7 @@ func combineAssets(
 
 // Get only the first page of artwork. Used for novel embedded illustrations.
 // Doesn't store anything, just returns the work and the asset.
-// This operation cannot be ignored with download rules or ignore list.
+// This operation cannot be ignored with download rules or skip list.
 func (d *Downloader) novelPixivImage(
 	novelId uint64, imageIndex int, artworkId uint64, size imageext.Size,
 ) (*fsext.Asset, error) {

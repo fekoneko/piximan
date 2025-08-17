@@ -69,13 +69,13 @@ func nonInteractive() {
 		fmt.Println("`-f, --fresh' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
-	if options.Fresh != nil && options.Collection == nil {
-		fmt.Println("`-f, --fresh' flag can only be used when `-c, --collection' was provided")
+	if options.Fresh != nil && options.Skip == nil {
+		fmt.Println("`-f, --fresh' flag can only be used when `-S, --skip' was provided")
 		os.Exit(2)
 	}
-	if options.Collection != nil && fsext.CanBeInferIdPath(*options.Collection) {
-		if err := fsext.InferIdPathValid(*options.Collection); err != nil {
-			fmt.Printf("invalid argument for flag `-c, --collection': "+
+	if options.Skip != nil && fsext.CanBeInferIdPath(*options.Skip) {
+		if err := fsext.InferIdPathValid(*options.Skip); err != nil {
+			fmt.Printf("invalid argument for flag `-S, --skip': "+
 				"infer id pattern found but it's invalid: %v\n", err)
 			os.Exit(2)
 		}

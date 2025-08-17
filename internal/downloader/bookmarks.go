@@ -13,11 +13,11 @@ import (
 )
 
 // Schedule bookmarks of authorized user for download. Run() to start downloading.
-// If untilIgnored is true, the crawler will stop fetching new bookmark pages once it encounters
-// a fully ignored one. Use this to conserve requests when synching freshly bookmarked works.
+// If untilSkipped is true, the crawler will stop fetching new bookmark pages once it encounters
+// a fully skipped one. Use this to conserve requests when synching freshly bookmarked works.
 func (d *Downloader) ScheduleMyBookmarks(
 	kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
+	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -30,7 +30,7 @@ func (d *Downloader) ScheduleMyBookmarks(
 			return err
 		}
 
-		d.ScheduleBookmarks(userId, kind, tags, from, to, private, size, onlyMeta, lowMeta, untilIgnored, paths)
+		d.ScheduleBookmarks(userId, kind, tags, from, to, private, size, onlyMeta, lowMeta, untilSkipped, paths)
 		return nil
 	})
 	d.logger.Info("created crawl task to fetch authorizeed user id")
@@ -38,16 +38,16 @@ func (d *Downloader) ScheduleMyBookmarks(
 }
 
 // Schedule bookmarks for download. Run() to start downloading.
-// If untilIgnored is true, the crawler will stop fetching new bookmark pages once it encounters
-// a fully ignored one. Use this to conserve requests when synching freshly bookmarked works.
+// If untilSkipped is true, the crawler will stop fetching new bookmark pages once it encounters
+// a fully skipped one. Use this to conserve requests when synching freshly bookmarked works.
 func (d *Downloader) ScheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
+	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
 ) {
 	if tags == nil {
 		d.scheduleBookmarks(
 			userId, kind, nil, from, to, private,
-			size, onlyMeta, lowMeta, untilIgnored, paths,
+			size, onlyMeta, lowMeta, untilSkipped, paths,
 		)
 	} else {
 		seen := make(map[string]bool)
@@ -57,7 +57,7 @@ func (d *Downloader) ScheduleBookmarks(
 			}
 			d.scheduleBookmarks(
 				userId, kind, &tag, from, to, private,
-				size, onlyMeta, lowMeta, untilIgnored, paths,
+				size, onlyMeta, lowMeta, untilSkipped, paths,
 			)
 			seen[tag] = true
 		}
@@ -68,7 +68,7 @@ func (d *Downloader) ScheduleBookmarks(
 // for the rest of the pages.
 func (d *Downloader) scheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilIgnored bool, paths []string,
+	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -82,8 +82,8 @@ func (d *Downloader) scheduleBookmarks(
 		)
 		if err != nil {
 			return err
-		} else if untilIgnored && allIngored {
-			d.logger.Info(stopIgnoredMessage)
+		} else if untilSkipped && allIngored {
+			d.logger.Info(fullySkippedMessage)
 			return nil
 		}
 
@@ -102,8 +102,8 @@ func (d *Downloader) scheduleBookmarks(
 				_, allIngored, err := d.fetchBookmarksPageAndSchedule(
 					userId, kind, tag, currentOffset, limit, private, size, onlyMeta, lowMeta, paths, &signal,
 				)
-				if untilIgnored && allIngored {
-					d.logger.Info(stopIgnoredMessage)
+				if untilSkipped && allIngored {
+					d.logger.Info(fullySkippedMessage)
 					signal.Cancel()
 				}
 				return err
@@ -170,29 +170,29 @@ func (d *Downloader) fetchBookmarksPageAndSchedule(
 		return 0, false, nil
 	}
 
-	numIgnored := 0
+	numSkipped := 0
 	for _, result := range results {
 		if result.Work.Id == nil {
 			err := fmt.Errorf("work id is missing in %v", result.Work)
 			d.logger.Error(
 				"%v %v: %v", bookmarksLogMessage("failed to schedule", userId, tag, &offset), kind, err,
 			)
-		} else if !d.ignored(*result.Work.Id, kind, true) {
+		} else if !d.skipped(*result.Work.Id, kind, true) {
 			d.ScheduleWithKnown(
 				[]uint64{*result.Work.Id}, kind, size, onlyMeta, paths,
 				result.Work, result.ImageUrl, lowMeta,
 			)
 		} else {
-			numIgnored++
+			numSkipped++
 		}
 	}
-	if numIgnored > 0 {
+	if numSkipped > 0 {
 		d.logger.Info(
-			"skipping %v %v%v as %v already downloaded", numIgnored, kind.String(),
-			utils.If(numIgnored == 1, "", "s"), utils.If(numIgnored == 1, "it was", "they were"),
+			"skipping %v %v%v as %v already downloaded", numSkipped, kind.String(),
+			utils.If(numSkipped == 1, "", "s"), utils.If(numSkipped == 1, "it was", "they were"),
 		)
 	}
-	return total, numIgnored >= len(results), nil
+	return total, numSkipped >= len(results), nil
 }
 
 func bookmarksLogMessage(prefix string, userId uint64, tag *string, offset *uint64) string {
@@ -209,4 +209,4 @@ func bookmarksLogMessage(prefix string, userId uint64, tag *string, offset *uint
 	return builder.String()
 }
 
-var stopIgnoredMessage = "found fully ignored bookmarks page, stopped crawling new pages to conserve requests"
+var fullySkippedMessage = "found fully skipped bookmarks page, stopped crawling new pages to conserve requests"

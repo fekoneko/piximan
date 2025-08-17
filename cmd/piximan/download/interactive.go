@@ -20,9 +20,9 @@ func interactive() {
 	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withQueue)
 	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
-	collection := promptCollection(withBookmarks)
-	withCollection := collection != nil
-	fresh := selectFresh(withCollection)
+	skip := promptSkip(withBookmarks)
+	withSkip := skip != nil
+	fresh := selectFresh(withSkip)
 	size := selectSize(withQueue, onlyMeta)
 	path := promptPath(withInferId, withQueue)
 	rules := promptRules()
@@ -37,7 +37,7 @@ func interactive() {
 		Size:       size,
 		OnlyMeta:   &onlyMeta,
 		Rules:      rules,
-		Collection: collection,
+		Skip:       skip,
 		Tags:       tags,
 		FromOffset: fromOffset,
 		ToOffset:   toOffset,
@@ -164,20 +164,20 @@ func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
 	}
 }
 
-func promptCollection(withBookmarks bool) *string {
+func promptSkip(withBookmarks bool) *string {
 	if !withBookmarks {
 		return nil
 	}
-	collection, err := collectionPrompt.Run()
+	skip, err := skipPrompt.Run()
 	logger.MaybeFatal(err, "failed to read collection")
-	if collection == "" {
+	if skip == "" {
 		return nil
 	}
-	return &collection
+	return &skip
 }
 
-func selectFresh(withCollection bool) *bool {
-	if !withCollection {
+func selectFresh(withSkip bool) *bool {
+	if !withSkip {
 		return nil
 	}
 	_, option, err := freshSelect.Run()

@@ -93,17 +93,17 @@ func download(options *options) {
 		d.SetRules(rules)
 	}
 
-	if options.Collection != nil && fsext.CanBeInferIdPath(*options.Collection) {
-		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.Collection)
-		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.Collection)
+	if options.Skip != nil && fsext.CanBeInferIdPath(*options.Skip) {
+		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.Skip)
+		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.Skip)
 		if len(*idPathMap) == 0 {
-			logger.Warning("no ids could be inferred from pattern %v", *options.Collection)
+			logger.Warning("no ids could be inferred from pattern %v", *options.Skip)
 			return
 		}
-		list := queue.IgnoreListFromMap(idPathMap, kind)
-		d.SetIgnoreList(list)
-	} else if options.Collection != nil {
-		c := collection.New(*options.Collection, logger.DefaultLogger)
+		list := queue.SkipListFromMap(idPathMap, kind)
+		d.SetSkipList(list)
+	} else if options.Skip != nil {
+		c := collection.New(*options.Skip, logger.DefaultLogger)
 		works := make([]*work.Work, 0)
 		c.Read()
 		for w := c.WaitNext(); w != nil; w = c.WaitNext() {
@@ -112,8 +112,8 @@ func download(options *options) {
 		if len(works) == 0 {
 			logger.Fatal("no works found in the collection")
 		}
-		list := queue.IgnoreListFromWorks(works)
-		d.SetIgnoreList(list)
+		list := queue.SkipListFromWorks(works)
+		d.SetSkipList(list)
 	}
 
 	logger.Info("created downloader:\n%v", d.String())

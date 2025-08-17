@@ -11,7 +11,7 @@ type options struct {
 	Size       *uint     `short:"s" long:"size"`
 	OnlyMeta   *bool     `short:"m" long:"only-meta"`
 	Rules      *string   `short:"r" long:"rules"`
-	Collection *string   `short:"c" long:"collection"`
+	Skip       *string   `short:"S" long:"skip"`
 	Tags       *[]string `short:"G" long:"tag"`
 	FromOffset *uint64   `short:"F" long:"from"`
 	ToOffset   *uint64   `short:"T" long:"to"`

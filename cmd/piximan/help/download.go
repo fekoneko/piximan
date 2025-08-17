@@ -11,11 +11,11 @@ import (
 const downloadHelp = //
 `Run without arguments to enter interactive mode.
 
-> piximan download [--id        ...] [--type  ...]      [--tag   ...] [--path     ...]
-                   [--bookmarks ...] [--size  ...]      [--from  ...] [--password ...]
-                   [--list      ...] [--only-meta]      [--to    ...]
-                   [--infer-id  ...] [--rules ...]      [--low-meta ]
-                                     [--collection ...] [--fresh    ]
+> piximan download [--id        ...] [--type  ...] [--tag   ...] [--path     ...]
+                   [--bookmarks ...] [--size  ...] [--from  ...] [--password ...]
+                   [--list      ...] [--only-meta] [--to    ...]
+                   [--infer-id  ...] [--rules ...] [--low-meta ]
+                                     [--skip  ...] [--fresh    ]
 
                               Download sources
                               ----------------
@@ -41,7 +41,8 @@ const downloadHelp = //
 
 --infer-id   Infer the IDs of works from the given path. Useful for updating
  -I          the metadata in existing collection when coupled with -only-meta flag.
-             The path may contain the following patterns:
+             If this flag is provided, --path can be omitted and downloaded works will replace
+             ones in the original location. The path may contain the following patterns:
              - {id}         : the ID of the work - required.
              - *            : matches any sequence of non-separator characters.
              - {<anything>} : will be treated as *.
@@ -53,7 +54,7 @@ const downloadHelp = //
              - artwork      - novel
 
 --size       Size (resolution) of downloaded images. This Option doesn't apply to ugoira.
- -           Defaults to original size.
+ -s          Defaults to original size.
              Available options are:
              - 0 thumbnail  - 2 medium
              - 1 small      - 3 original
@@ -64,11 +65,11 @@ const downloadHelp = //
 --rules      Path to YAML file with download rules. The download rules are used to
  -r          filter wich works should be downloaded. Run 'piximan help rules' for more info.
 
---collection If provided, all works already present in the collection directory will
- -c          be skipped when downloading.
-             If you don't use metadata.yaml files in your collection, you can also provide
-             infer ID pattern here (see --infer-id). Note that this way, the type of the
-             ignored works will be assumed to be the same as provided with --type flag.
+--skip       All works already present in the provided directory will be skipped when downloading.
+ -S          The search is recursive. If you don't use metadata.yaml files in your collection,
+             you can also provide infer ID pattern here (see --infer-id). Note that this way, the
+             type of the inferred works will be assumed to be the same as provided with --type flag.
+             Can be provided multiple times.
 
                          Bookmarks-specific options
                          --------------------------
@@ -95,13 +96,13 @@ const downloadHelp = //
 
 --fresh      Useful if you already have all of your bookmarks downloaded in the collection and
  -f          only want to sync the new ones. This option tells the downloader to stop crawling
-             new bookmark pages once it encounters a fully ignored one. This may greatly reduce
+             new bookmark pages once it encounters a fully skipped one. This may greatly reduce
              the number of authorized requests to pixiv.net.
 
                               Other parameters
                               ----------------
---path       Directory to save the files into. Defaults to the current directory
- -p          or the one found with -infer-id flag.
+--path       Directory to save the files into. This flag is required unless the argument can
+ -p          be inferred from provided --infer-id.
              You can use these substitutions in the pathname:
              - {title}       : the title of the work
              - {id}          : the ID of the work
@@ -149,7 +150,7 @@ const downloadHelp = //
 > piximan download --bookmarks 12345 --rules './rules.yaml' --path './{user-id}/{id}'
 
 # Sync your bookmarks with the existing collection
-> piximan download --bookmarks my --collection '.' --fresh --path './{user-id}/{id}'
+> piximan download --bookmarks my --skip '.' --fresh --path './{user-id}/{id}'
 `
 
 const downloadRulesHelp = //
@@ -208,7 +209,7 @@ func RunDownload() {
 	}
 }
 
-// TODO: ability to pass collection path to --infer-id like you can pattern to --collection
+// TODO: ability to pass collection path to --infer-id like you can pattern to --skip
 // TODO: merge --id and --infer-id flags (automatically detect if path, pattern or id is provided)
 
 // TODO: download user's works ('my' or by id)
@@ -226,3 +227,5 @@ func RunDownload() {
 //       piximan download --id 12345 --path "./{id}" \
 //                        --bookmarks my --path "./{id}"
 //       or in list.yaml
+
+// TODO: configure substitutions words

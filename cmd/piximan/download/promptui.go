@@ -101,10 +101,10 @@ var lowMetaSelect = promptui.Select{
 	Items: []string{lowMetaOption, fullMetaOption},
 }
 
-var collectionPromptLabel = "Ignore works present in the collection (path, infer id pattern or nothing)"
+var skipPromptLabel = "Skip works present in the directory (path, infer id pattern or nothing)"
 
-var collectionPrompt = promptui.Prompt{
-	Label: collectionPromptLabel,
+var skipPrompt = promptui.Prompt{
+	Label: skipPromptLabel,
 	Validate: func(input string) error {
 		if fsext.CanBeInferIdPath(input) {
 			return fsext.InferIdPathValid(input)

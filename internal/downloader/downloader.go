@@ -44,8 +44,8 @@ type Downloader struct {
 	rules      *queue.Rules
 	rulesMutex *sync.Mutex
 
-	ignoreList      *queue.IgnoreList
-	ignoreListMutex *sync.Mutex
+	skipList      *queue.SkipList
+	skipListMutex *sync.Mutex
 }
 
 func New(client *client.Client, logger *logger.Logger) *Downloader {
@@ -61,7 +61,7 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 		crawlQueueMutex:    &sync.Mutex{},
 		crawlingCond:       sync.NewCond(&sync.Mutex{}),
 		rulesMutex:         &sync.Mutex{},
-		ignoreListMutex:    &sync.Mutex{},
+		skipListMutex:      &sync.Mutex{},
 	}
 }
 
@@ -116,19 +116,19 @@ func (d *Downloader) String() string {
 	}
 	d.rulesMutex.Unlock()
 
-	d.ignoreListMutex.Lock()
-	builder.WriteString("- ignore list: ")
-	numIgnored := 0
-	if d.ignoreList != nil {
-		numIgnored = len(*d.ignoreList)
+	d.skipListMutex.Lock()
+	builder.WriteString("- skip list: ")
+	numSkipped := 0
+	if d.skipList != nil {
+		numSkipped = len(*d.skipList)
 	}
-	if numIgnored <= 0 {
+	if numSkipped <= 0 {
 		builder.WriteString("none\n")
 	} else {
-		builder.WriteString(strconv.FormatInt(int64(numIgnored), 10))
-		builder.WriteString(utils.If(numIgnored == 1, " work\n", " works\n"))
+		builder.WriteString(strconv.FormatInt(int64(numSkipped), 10))
+		builder.WriteString(utils.If(numSkipped == 1, " work\n", " works\n"))
 	}
-	d.ignoreListMutex.Unlock()
+	d.skipListMutex.Unlock()
 
 	return builder.String()
 }
