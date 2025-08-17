@@ -8,6 +8,8 @@ import (
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
+	"github.com/fekoneko/piximan/internal/downloader/skiplist"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/utils"
 )
@@ -41,10 +43,10 @@ type Downloader struct {
 	crawling        bool
 	crawlingCond    *sync.Cond
 
-	rules      *queue.Rules
+	rules      *rules.Rules
 	rulesMutex *sync.Mutex
 
-	skipList      *queue.SkipList
+	skipList      *skiplist.SkipList
 	skipListMutex *sync.Mutex
 }
 

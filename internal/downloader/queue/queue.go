@@ -10,7 +10,7 @@ import (
 
 type Queue []Item
 
-func QueueFromMap(
+func FromMap(
 	m *map[uint64][]string, kind ItemKind, size imageext.Size, onlyMeta bool,
 ) *Queue {
 	queue := make(Queue, len(*m))
@@ -24,7 +24,7 @@ func QueueFromMap(
 	return &queue
 }
 
-func QueueFromMapWithPaths(
+func FromMapWithPaths(
 	m *map[uint64][]string, kind ItemKind, size imageext.Size, onlyMeta bool, paths []string,
 ) *Queue {
 	queue := make(Queue, len(*m))

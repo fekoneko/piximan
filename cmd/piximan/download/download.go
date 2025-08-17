@@ -10,6 +10,7 @@ import (
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/downloader/skiplist"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
@@ -67,11 +68,11 @@ func download(options *options) {
 		}
 
 		if options.Path == nil {
-			q := queue.QueueFromMap(idPathMap, kind, size, onlyMeta)
+			q := queue.FromMap(idPathMap, kind, size, onlyMeta)
 			d.ScheduleQueue(q)
 		} else {
 			paths := []string{path}
-			q := queue.QueueFromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
+			q := queue.FromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
 			d.ScheduleQueue(q)
 		}
 
@@ -83,7 +84,6 @@ func download(options *options) {
 			logger.Warning("no works found in the list %v", *options.List)
 			return
 		}
-
 		d.ScheduleQueue(q)
 	}
 
@@ -100,8 +100,13 @@ func download(options *options) {
 			logger.Warning("no ids could be inferred from pattern %v", *options.Skip)
 			return
 		}
-		list := queue.SkipListFromMap(idPathMap, kind)
+
+		list := skiplist.New()
+		for id := range *idPathMap {
+			list.Add(id, kind)
+		}
 		d.SetSkipList(list)
+
 	} else if options.Skip != nil {
 		c := collection.New(*options.Skip, logger.DefaultLogger)
 		works := make([]*work.Work, 0)
@@ -111,10 +116,12 @@ func download(options *options) {
 		}
 		if len(works) == 0 {
 			logger.Fatal("no works found in the collection")
-		} else {
-			logger.Info("%v found in the collection", len(works))
 		}
-		list := queue.SkipListFromWorks(works)
+
+		list := skiplist.New()
+		for _, w := range works {
+			list.AddWork(w)
+		}
 		d.SetSkipList(list)
 	}
 

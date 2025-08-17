@@ -1,8 +1,8 @@
-package queue
+package skiplist
 
 import (
 	"github.com/fekoneko/piximan/internal/collection/work"
-	"github.com/fekoneko/piximan/internal/logger"
+	"github.com/fekoneko/piximan/internal/downloader/queue"
 )
 
 // Should be used to skip downloading works already present in the collection.
@@ -14,44 +14,29 @@ type SkipList struct {
 	novels   map[uint64]bool
 }
 
-func NewSkipList() *SkipList {
+func New() *SkipList {
 	return &SkipList{
 		artworks: make(map[uint64]bool),
 		novels:   make(map[uint64]bool),
 	}
 }
 
-func SkipListFromWorks(works []*work.Work) *SkipList {
-	list := NewSkipList()
-
-	for _, w := range works {
-		if w.Id != nil && w.Kind != nil {
-			switch *w.Kind {
-			case work.KindIllust, work.KindManga, work.KindUgoira:
-				list.AddArtwork(*w.Id)
-			case work.KindNovel:
-				list.AddNovel(*w.Id)
-			}
-		} else {
-			logger.Info("%v: %v", *w.Id, w.Kind)
+func (l *SkipList) AddWork(w *work.Work) {
+	if w.Id != nil && w.Kind != nil {
+		switch *w.Kind {
+		case work.KindIllust, work.KindManga, work.KindUgoira:
+			l.AddArtwork(*w.Id)
+		case work.KindNovel:
+			l.AddNovel(*w.Id)
 		}
 	}
-	return list
 }
 
-func SkipListFromMap[T any](m *map[uint64]T, kind ItemKind) *SkipList {
-	list := NewSkipList()
-	for id := range *m {
-		list.Add(id, kind)
-	}
-	return list
-}
-
-func (l *SkipList) Add(id uint64, kind ItemKind) {
+func (l *SkipList) Add(id uint64, kind queue.ItemKind) {
 	switch kind {
-	case ItemKindArtwork:
+	case queue.ItemKindArtwork:
 		l.AddArtwork(id)
-	case ItemKindNovel:
+	case queue.ItemKindNovel:
 		l.AddNovel(id)
 	}
 }
@@ -64,11 +49,11 @@ func (l *SkipList) AddNovel(id uint64) {
 	l.novels[id] = true
 }
 
-func (l *SkipList) Remove(id uint64, kind ItemKind) {
+func (l *SkipList) Remove(id uint64, kind queue.ItemKind) {
 	switch kind {
-	case ItemKindArtwork:
+	case queue.ItemKindArtwork:
 		l.RemoveArtwork(id)
-	case ItemKindNovel:
+	case queue.ItemKindNovel:
 		l.RemoveNovel(id)
 	}
 }
@@ -81,11 +66,11 @@ func (l *SkipList) RemoveNovel(id uint64) {
 	delete(l.novels, id)
 }
 
-func (l *SkipList) Contains(id uint64, kind ItemKind) bool {
+func (l *SkipList) Contains(id uint64, kind queue.ItemKind) bool {
 	switch kind {
-	case ItemKindArtwork:
+	case queue.ItemKindArtwork:
 		return l.ContainsArtwork(id)
-	case ItemKindNovel:
+	case queue.ItemKindNovel:
 		return l.ContainsNovel(id)
 	default:
 		return false

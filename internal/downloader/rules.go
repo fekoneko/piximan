@@ -2,14 +2,20 @@ package downloader
 
 import (
 	"github.com/fekoneko/piximan/internal/collection/work"
-	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
 )
 
-// Set rules that will be used to filter downloaded works.
-func (d *Downloader) SetRules(rules *queue.Rules) {
+// Get rules that are used to filter downloaded works. Thread-safe, may be nil.
+func (d *Downloader) Rules() *rules.Rules {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
+	return d.rules
+}
 
+// Set rules that will be used to filter downloaded works. Thread-safe.
+func (d *Downloader) SetRules(rules *rules.Rules) {
+	d.rulesMutex.Lock()
+	defer d.rulesMutex.Unlock()
 	d.rules = rules
 }
 
