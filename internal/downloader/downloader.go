@@ -120,7 +120,7 @@ func (d *Downloader) String() string {
 	builder.WriteString("- skip list: ")
 	numSkipped := 0
 	if d.skipList != nil {
-		numSkipped = len(*d.skipList)
+		numSkipped = d.skipList.Len()
 	}
 	if numSkipped <= 0 {
 		builder.WriteString("none\n")
