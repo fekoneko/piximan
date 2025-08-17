@@ -209,6 +209,7 @@ func RunDownload() {
 }
 
 // TODO: ability to pass collection path to --infer-id like you can pattern to --collection
+// TODO: merge --id and --infer-id flags (automatically detect if path, pattern or id is provided)
 
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list
