@@ -80,6 +80,10 @@ func nonInteractive() {
 			os.Exit(2)
 		}
 	}
+	if options.Path == nil && options.InferId == nil {
+		fmt.Println("`-p, --path' flag is required unless `-I, --infer-id' is provided")
+		os.Exit(2)
+	}
 	if options.Path != nil {
 		if err := fsext.WorkPathValid(*options.Path); err != nil {
 			fmt.Printf("invalid argument for flag `-p, --path': %v\n", err)
