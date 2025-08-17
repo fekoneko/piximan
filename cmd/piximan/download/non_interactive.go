@@ -78,7 +78,7 @@ func nonInteractive() {
 			if fsext.IsInferIdPattern(skip) {
 				if err := fsext.InferIdPatternValid(skip); err != nil {
 					fmt.Printf("invalid argument for flag `-S, --skip': "+
-						"infer id pattern found but is invalid: %v\n", err)
+						"invalid infer id pattern %v: %v\n", skip, err)
 					os.Exit(2)
 				}
 			}

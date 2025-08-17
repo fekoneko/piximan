@@ -2,7 +2,9 @@ package download
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
+	"sync"
 
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/collection"
@@ -62,8 +64,7 @@ func download(options *options) {
 		idPathMap, errs := fsext.InferIdsFromPattern(*options.InferId)
 		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferId)
 		if len(*idPathMap) == 0 {
-			logger.Warning("no ids could be inferred from pattern %v", *options.InferId)
-			return
+			logger.Fatal("no ids could be inferred from pattern %v", *options.InferId)
 		}
 
 		if options.Path == nil {
@@ -94,33 +95,51 @@ func download(options *options) {
 
 	if options.Skip != nil && len(*options.Skip) != 0 {
 		list := skiplist.New()
+		mutex := &sync.Mutex{}
+		waitGroup := &sync.WaitGroup{}
+		seen := make(map[string]bool, len(*options.Skip))
 
-		for _, skipPath := range *options.Skip {
-			if fsext.IsInferIdPattern(skipPath) {
-				idPathMap, errs := fsext.InferIdsFromPattern(skipPath)
-				logger.MaybeErrors(errs, "error while inferring work id from pattern %v", skipPath)
-				if len(*idPathMap) == 0 {
-					logger.Warning("no ids could be inferred from pattern %v", skipPath)
-					return
-				}
-				for id := range *idPathMap {
-					list.Add(id, kind)
-				}
-			} else {
-				c := collection.New(skipPath, logger.DefaultLogger)
-				c.Read()
-				numWorks := 0
-				for w := c.WaitNext(); w != nil; w = c.WaitNext() {
-					list.AddWork(w)
-					numWorks++
-				}
-				if numWorks == 0 {
-					logger.Fatal("no works found in the directory %v", skipPath)
-					return
-				}
+		for _, rawSkipPath := range *options.Skip {
+			skipPath := filepath.Clean(rawSkipPath)
+			if seen[skipPath] {
+				continue
 			}
+			seen[skipPath] = true
+			waitGroup.Add(1)
+
+			go func() {
+				defer waitGroup.Done()
+
+				if fsext.IsInferIdPattern(skipPath) {
+					idPathMap, errs := fsext.InferIdsFromPattern(skipPath)
+					logger.MaybeErrors(errs, "error while inferring work id from pattern %v", skipPath)
+					if len(*idPathMap) == 0 {
+						logger.Fatal("no ids could be inferred from pattern %v", skipPath)
+					}
+					mutex.Lock()
+					for id := range *idPathMap {
+						list.Add(id, kind)
+					}
+					mutex.Unlock()
+
+				} else {
+					c := collection.New(skipPath, logger.DefaultLogger)
+					c.Read()
+					numWorks := 0
+					for w := c.WaitNext(); w != nil; w = c.WaitNext() {
+						mutex.Lock()
+						list.AddWork(w)
+						mutex.Unlock()
+						numWorks++
+					}
+					if numWorks == 0 {
+						logger.Fatal("no works found in the directory %v", skipPath)
+					}
+				}
+			}()
 		}
 
+		waitGroup.Wait()
 		d.SetSkipList(list)
 	}
 
