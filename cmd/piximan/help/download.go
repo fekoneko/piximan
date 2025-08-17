@@ -95,10 +95,10 @@ const downloadHelp = //
              downloaded without any request overhead, so --low-meta should be omitted.
 
 --until-skip Useful if you already have all of your bookmarks downloaded in the collection and
- -U          only want to sync the new ones. This option tells the downloader to stop crawling
+ -U          only want to sync new ones. This option tells the downloader to stop crawling
              new bookmark pages once it encounters a fully skipped one. This may greatly reduce
              the number of authorized requests to pixiv.net.
-             Only useful coupled with --skip flag.
+             May only be used when coupled with --skip flag.
 
                               Other parameters
                               ----------------
