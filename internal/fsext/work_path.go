@@ -10,7 +10,7 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-func FormatWorkPath(pattern string, w *work.Work) (string, error) {
+func WorkPathFromPattern(pattern string, w *work.Work) (string, error) {
 	path, err := filepath.Abs(pattern)
 	if err != nil {
 		return "", err
@@ -32,10 +32,10 @@ func FormatWorkPath(pattern string, w *work.Work) (string, error) {
 	return filepath.Join(sections...), nil
 }
 
-func FormatWorkPaths(patterns []string, w *work.Work) ([]string, error) {
+func WorkPathsFromPatterns(patterns []string, w *work.Work) ([]string, error) {
 	paths := make([]string, len(patterns))
 	for i, pattern := range patterns {
-		path, err := FormatWorkPath(pattern, w)
+		path, err := WorkPathFromPattern(pattern, w)
 		if err != nil {
 			return nil, err
 		}
@@ -44,7 +44,7 @@ func FormatWorkPaths(patterns []string, w *work.Work) ([]string, error) {
 	return paths, nil
 }
 
-func WorkPathValid(pattern string) error {
+func WorkPathPatternValid(pattern string) error {
 	for _, match := range pathSubstitutionRegexp.FindAllString(pattern, -1) {
 		if _, ok := workPathSubstitutions[match]; !ok {
 			return fmt.Errorf("pattern contains unknown substitution %q", match)

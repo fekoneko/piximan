@@ -11,7 +11,7 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-func InferIdsFromWorkPath(pattern string) (idPathMap *map[uint64][]string, errs []error) {
+func InferIdsFromPattern(pattern string) (idPathMap *map[uint64][]string, errs []error) {
 	pattern = filepath.Clean(pattern)
 	r := inferIdRegexp(pattern)
 	root, depth, err := inferIdWalkParams(pattern)
@@ -26,7 +26,7 @@ func InferIdsFromWorkPath(pattern string) (idPathMap *map[uint64][]string, errs 
 	return idPathMap, errs
 }
 
-func InferIdPathValid(pattern string) error {
+func InferIdPatternValid(pattern string) error {
 	patternIdIndex := strings.Index(pattern, "{id}")
 	if patternIdIndex == -1 {
 		return fmt.Errorf("pattern must contain {id}")
@@ -38,7 +38,7 @@ func InferIdPathValid(pattern string) error {
 }
 
 // Returns weather the string could be an infer id pattern. This still doesn't mean it's valid.
-func CanBeInferIdPath(pattern string) bool {
+func IsInferIdPattern(pattern string) bool {
 	return inferIdSubstitutionRegexp.MatchString(pattern)
 }
 

@@ -59,7 +59,7 @@ func download(options *options) {
 		)
 
 	} else if options.InferId != nil {
-		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.InferId)
+		idPathMap, errs := fsext.InferIdsFromPattern(*options.InferId)
 		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferId)
 		if len(*idPathMap) == 0 {
 			logger.Warning("no ids could be inferred from pattern %v", *options.InferId)
@@ -93,8 +93,8 @@ func download(options *options) {
 		d.SetRules(rules)
 	}
 
-	if options.Skip != nil && fsext.CanBeInferIdPath(*options.Skip) {
-		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.Skip)
+	if options.Skip != nil && fsext.IsInferIdPattern(*options.Skip) {
+		idPathMap, errs := fsext.InferIdsFromPattern(*options.Skip)
 		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.Skip)
 		if len(*idPathMap) == 0 {
 			logger.Warning("no ids could be inferred from pattern %v", *options.Skip)

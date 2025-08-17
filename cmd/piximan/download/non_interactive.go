@@ -73,8 +73,8 @@ func nonInteractive() {
 		fmt.Println("`-f, --fresh' flag can only be used when `-S, --skip' was provided")
 		os.Exit(2)
 	}
-	if options.Skip != nil && fsext.CanBeInferIdPath(*options.Skip) {
-		if err := fsext.InferIdPathValid(*options.Skip); err != nil {
+	if options.Skip != nil && fsext.IsInferIdPattern(*options.Skip) {
+		if err := fsext.InferIdPatternValid(*options.Skip); err != nil {
 			fmt.Printf("invalid argument for flag `-S, --skip': "+
 				"infer id pattern found but it's invalid: %v\n", err)
 			os.Exit(2)
@@ -85,13 +85,13 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 	if options.Path != nil {
-		if err := fsext.WorkPathValid(*options.Path); err != nil {
+		if err := fsext.WorkPathPatternValid(*options.Path); err != nil {
 			fmt.Printf("invalid argument for flag `-p, --path': %v\n", err)
 			os.Exit(2)
 		}
 	}
 	if options.InferId != nil {
-		if err := fsext.InferIdPathValid(*options.InferId); err != nil {
+		if err := fsext.InferIdPatternValid(*options.InferId); err != nil {
 			fmt.Printf("invalid argument for flag `-I, --infer-id': %v\n", err)
 			os.Exit(2)
 		}

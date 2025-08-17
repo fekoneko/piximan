@@ -43,7 +43,7 @@ var inferIdPromptLabel = "Path pattern"
 
 var inferIdPrompt = promptui.Prompt{
 	Label:    inferIdPromptLabel,
-	Validate: fsext.InferIdPathValid,
+	Validate: fsext.InferIdPatternValid,
 }
 
 var listPromptLabel = "Path to download list file"
@@ -106,8 +106,8 @@ var skipPromptLabel = "Skip works present in the directory (path, infer id patte
 var skipPrompt = promptui.Prompt{
 	Label: skipPromptLabel,
 	Validate: func(input string) error {
-		if fsext.CanBeInferIdPath(input) {
-			return fsext.InferIdPathValid(input)
+		if fsext.IsInferIdPattern(input) {
+			return fsext.InferIdPatternValid(input)
 		}
 		return nil
 	},
@@ -152,7 +152,7 @@ var pathPromptWithQueueLabel = "Default saving path"
 func pathPrompt(withQueue bool) *promptui.Prompt {
 	return &promptui.Prompt{
 		Label:    utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
-		Validate: fsext.WorkPathValid,
+		Validate: fsext.WorkPathPatternValid,
 	}
 }
 
