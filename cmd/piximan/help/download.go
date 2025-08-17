@@ -15,7 +15,7 @@ const downloadHelp = //
                    [--bookmarks ...] [--size  ...] [--from  ...] [--password ...]
                    [--list      ...] [--only-meta] [--to    ...]
                    [--infer-id  ...] [--rules ...] [--low-meta ]
-                                     [--skip  ...] [--fresh    ]
+                                     [--skip  ...] [--until-skip    ]
 
                               Download sources
                               ----------------
@@ -94,15 +94,16 @@ const downloadHelp = //
              When downloading novels without --low-meta flag, the full metadata will be
              downloaded without any request overhead, so --low-meta should be omitted.
 
---fresh      Useful if you already have all of your bookmarks downloaded in the collection and
- -f          only want to sync the new ones. This option tells the downloader to stop crawling
+--until-skip Useful if you already have all of your bookmarks downloaded in the collection and
+ -U          only want to sync the new ones. This option tells the downloader to stop crawling
              new bookmark pages once it encounters a fully skipped one. This may greatly reduce
              the number of authorized requests to pixiv.net.
+             Only useful coupled with --skip flag.
 
                               Other parameters
                               ----------------
---path       Directory to save the files into. This flag is required unless the argument can
- -p          be inferred from provided --infer-id.
+--path       Directory to save the files into. This flag is required unless the argument
+ -p          can be inferred from provided --infer-id.
              You can use these substitutions in the pathname:
              - {title}       : the title of the work
              - {id}          : the ID of the work
@@ -146,11 +147,11 @@ const downloadHelp = //
 # Update metadata for artworks in the collection saved earlier
 > piximan download --infer-id --only-meta "$HOME/My Collection/*/{id}"
 
-# Use download rulesto filter user's bookmarks
+# Use download rules to filter user's bookmarks
 > piximan download --bookmarks 12345 --rules './rules.yaml' --path './{user-id}/{id}'
 
 # Sync your bookmarks with the existing collection
-> piximan download --bookmarks my --skip '.' --fresh --path './{user-id}/{id}'
+> piximan download --bookmarks my --skip '.' --until-skip --path './{user-id}/{id}'
 `
 
 const downloadRulesHelp = //
@@ -228,4 +229,4 @@ func RunDownload() {
 //                        --bookmarks my --path "./{id}"
 //       or in list.yaml
 
-// TODO: configure substitutions words
+// TODO: configure substitution words

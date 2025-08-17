@@ -22,7 +22,7 @@ func interactive() {
 	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
 	skip := promptSkip(withBookmarks)
 	withSkip := skip != nil
-	fresh := selectFresh(withSkip)
+	untilSkip := selectUntilSkip(withSkip)
 	size := selectSize(withQueue, onlyMeta)
 	path := promptPath(withInferId, withQueue)
 	rules := promptRules()
@@ -43,7 +43,7 @@ func interactive() {
 		ToOffset:   toOffset,
 		Private:    private,
 		LowMeta:    lowMeta,
-		Fresh:      fresh,
+		UntilSkip:  untilSkip,
 		Path:       path,
 	})
 }
@@ -177,20 +177,20 @@ func promptSkip(withBookmarks bool) *[]string {
 	return &skip
 }
 
-func selectFresh(withSkip bool) *bool {
+func selectUntilSkip(withSkip bool) *bool {
 	if !withSkip {
 		return nil
 	}
-	_, option, err := freshSelect.Run()
-	logger.MaybeFatal(err, "failed to read fresh flag")
+	_, option, err := untilSkipSelect.Run()
+	logger.MaybeFatal(err, "failed to read until skip flag")
 
 	switch option {
-	case freshPagesOption:
+	case untilSkipOption:
 		return utils.ToPtr(true)
 	case allPagesOption:
 		return utils.ToPtr(false)
 	default:
-		logger.Fatal("incorrect fresh flag choice: %v", option)
+		logger.Fatal("incorrect until skip flag choice: %v", option)
 		panic("unreachable")
 	}
 }

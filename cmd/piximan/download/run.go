@@ -17,7 +17,7 @@ type options struct {
 	ToOffset   *uint64   `short:"T" long:"to"`
 	Private    *bool     `short:"R" long:"private"`
 	LowMeta    *bool     `short:"M" long:"low-meta"`
-	Fresh      *bool     `short:"f" long:"fresh"`
+	UntilSkip  *bool     `short:"U" long:"until-skip"`
 	Path       *string   `short:"p" long:"path"`
 	Password   *string   `short:"P" long:"password"`
 }

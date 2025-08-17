@@ -65,12 +65,12 @@ func nonInteractive() {
 		fmt.Println("`-R, --private' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
-	if options.Fresh != nil && options.Bookmarks == nil {
-		fmt.Println("`-f, --fresh' flag can only be used with `-b, --bookmarks' source")
+	if options.UntilSkip != nil && options.Bookmarks == nil {
+		fmt.Println("`-U, --until-skip' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
-	if options.Fresh != nil && options.Skip == nil {
-		fmt.Println("`-f, --fresh' flag can only be used when `-S, --skip' was provided")
+	if options.UntilSkip != nil && options.Skip == nil {
+		fmt.Println("`-U, --until-skip' flag can only be used when `-S, --skip' was provided")
 		os.Exit(2)
 	}
 	if options.Skip != nil {

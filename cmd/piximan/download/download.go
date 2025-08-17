@@ -25,7 +25,7 @@ func download(options *options) {
 	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
-	fresh := utils.FromPtr(options.Fresh, false)
+	untilSkip := utils.FromPtr(options.UntilSkip, false)
 	path := utils.FromPtr(options.Path, "")
 
 	storage, sessionId := configAndSession(options.Password)
@@ -47,7 +47,7 @@ func download(options *options) {
 		paths := []string{path}
 		d.ScheduleMyBookmarks(
 			kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, fresh, paths,
+			size, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.Bookmarks != nil {
@@ -57,7 +57,7 @@ func download(options *options) {
 		paths := []string{path}
 		d.ScheduleBookmarks(
 			userId, kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, fresh, paths,
+			size, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.InferId != nil {

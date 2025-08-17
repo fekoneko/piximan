@@ -14,7 +14,7 @@ import (
 
 // Schedule bookmarks of authorized user for download. Run() to start downloading.
 // If untilSkipped is true, the crawler will stop fetching new bookmark pages once it encounters
-// a fully skipped one. Use this to conserve requests when synching freshly bookmarked works.
+// a fully skipped one. Use this to conserve requests when synching only new bookmarks.
 func (d *Downloader) ScheduleMyBookmarks(
 	kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
 	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
@@ -39,7 +39,7 @@ func (d *Downloader) ScheduleMyBookmarks(
 
 // Schedule bookmarks for download. Run() to start downloading.
 // If untilSkipped is true, the crawler will stop fetching new bookmark pages once it encounters
-// a fully skipped one. Use this to conserve requests when synching freshly bookmarked works.
+// a fully skipped one. Use this to conserve requests when synching only new bookmarks.
 func (d *Downloader) ScheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
 	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,

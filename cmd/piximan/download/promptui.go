@@ -113,13 +113,13 @@ var skipPrompt = promptui.Prompt{
 	},
 }
 
-var freshSelectLabel = "Pick bookmark pages fetching strategy"
-var freshPagesOption = "Fetch new bookmarks until fully downloaded bookmark page is reached"
+var untilSkipSelectLabel = "Pick bookmark pages fetching strategy"
+var untilSkipOption = "Fetch new bookmarks until fully downloaded bookmark page is reached"
 var allPagesOption = "Fetch and check all bookmarks"
 
-var freshSelect = promptui.Select{
-	Label: freshSelectLabel,
-	Items: []string{freshPagesOption, allPagesOption},
+var untilSkipSelect = promptui.Select{
+	Label: untilSkipSelectLabel,
+	Items: []string{untilSkipOption, allPagesOption},
 }
 
 var sizeSelectLabel = "Size of downloaded images"
