@@ -6,7 +6,6 @@ import (
 
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/collection"
-	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
@@ -93,35 +92,35 @@ func download(options *options) {
 		d.SetRules(rules)
 	}
 
-	if options.Skip != nil && fsext.IsInferIdPattern(*options.Skip) {
-		idPathMap, errs := fsext.InferIdsFromPattern(*options.Skip)
-		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.Skip)
-		if len(*idPathMap) == 0 {
-			logger.Warning("no ids could be inferred from pattern %v", *options.Skip)
-			return
-		}
-
+	if options.Skip != nil && len(*options.Skip) != 0 {
 		list := skiplist.New()
-		for id := range *idPathMap {
-			list.Add(id, kind)
-		}
-		d.SetSkipList(list)
 
-	} else if options.Skip != nil {
-		c := collection.New(*options.Skip, logger.DefaultLogger)
-		works := make([]*work.Work, 0)
-		c.Read()
-		for w := c.WaitNext(); w != nil; w = c.WaitNext() {
-			works = append(works, w)
-		}
-		if len(works) == 0 {
-			logger.Fatal("no works found in the collection")
+		for _, skipPath := range *options.Skip {
+			if fsext.IsInferIdPattern(skipPath) {
+				idPathMap, errs := fsext.InferIdsFromPattern(skipPath)
+				logger.MaybeErrors(errs, "error while inferring work id from pattern %v", skipPath)
+				if len(*idPathMap) == 0 {
+					logger.Warning("no ids could be inferred from pattern %v", skipPath)
+					return
+				}
+				for id := range *idPathMap {
+					list.Add(id, kind)
+				}
+			} else {
+				c := collection.New(skipPath, logger.DefaultLogger)
+				c.Read()
+				numWorks := 0
+				for w := c.WaitNext(); w != nil; w = c.WaitNext() {
+					list.AddWork(w)
+					numWorks++
+				}
+				if numWorks == 0 {
+					logger.Fatal("no works found in the directory %v", skipPath)
+					return
+				}
+			}
 		}
 
-		list := skiplist.New()
-		for _, w := range works {
-			list.AddWork(w)
-		}
 		d.SetSkipList(list)
 	}
 

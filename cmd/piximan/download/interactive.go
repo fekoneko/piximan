@@ -109,7 +109,7 @@ func promptTags(withBookmarks bool) *[]string {
 		return nil
 	}
 
-	tagsString, err := tagsPrompts.Run()
+	tagsString, err := tagsPrompt.Run()
 	logger.MaybeFatal(err, "failed to read tags")
 	tags := parseStrings(tagsString)
 	if len(tags) == 0 {
@@ -164,13 +164,14 @@ func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
 	}
 }
 
-func promptSkip(withBookmarks bool) *string {
+func promptSkip(withBookmarks bool) *[]string {
 	if !withBookmarks {
 		return nil
 	}
-	skip, err := skipPrompt.Run()
-	logger.MaybeFatal(err, "failed to read collection")
-	if skip == "" {
+	skipString, err := skipPrompt.Run()
+	logger.MaybeFatal(err, "failed to read skip option")
+	skip := parseStrings(skipString)
+	if len(skip) == 0 {
 		return nil
 	}
 	return &skip

@@ -66,7 +66,7 @@ func kindSelect(withQueue bool) *promptui.Select {
 
 var tagsPromptLabel = "User-assigned tags (comma-separated or empty)"
 
-var tagsPrompts = promptui.Prompt{
+var tagsPrompt = promptui.Prompt{
 	Label: tagsPromptLabel,
 }
 

@@ -7,15 +7,11 @@ import (
 )
 
 func parseIds(input string) ([]uint64, error) {
-	parts := strings.Split(input, ",")
+	strs := parseStrings(input)
 	ids := []uint64{}
 
-	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed == "" {
-			continue
-		}
-		id, err := strconv.ParseUint(trimmed, 10, 64)
+	for _, str := range strs {
+		id, err := strconv.ParseUint(str, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("IDs must be a comma-separated list of numbers")
 		}
@@ -29,15 +25,21 @@ func parseIds(input string) ([]uint64, error) {
 }
 
 func parseStrings(input string) []string {
-	parts := strings.Split(input, ",")
 	strs := []string{}
+	strStart := 0
 
-	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed != "" {
-			strs = append(strs, trimmed)
+	for i, r := range input {
+		if (r == ',' || r == ';' || r == '、' || r == '；') && (i == 0 || input[i-1] != '\\') {
+			if strStart < i {
+				strs = append(strs, input[strStart:i])
+			}
+			strStart = i + 1
 		}
 	}
+	if strStart < len(input) {
+		strs = append(strs, input[strStart:])
+	}
+
 	return strs
 }
 
