@@ -115,6 +115,7 @@ func download(options *options) {
 			logger.Info("%v found in the collection", len(works))
 		}
 		list := queue.IgnoreListFromWorks(works)
+		logger.Info("%v of %v parsed works will be ignored", list.Len(), len(works))
 		d.SetIgnoreList(list)
 	}
 
