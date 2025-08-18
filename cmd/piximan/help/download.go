@@ -11,11 +11,11 @@ import (
 const downloadHelp = //
 `Run without arguments to enter interactive mode.
 
-> piximan download [--id        ...] [--type  ...] [--tag   ...] [--path     ...]
-                   [--bookmarks ...] [--size  ...] [--from  ...] [--password ...]
-                   [--list      ...] [--only-meta] [--to    ...]
-                   [--infer-id  ...] [--rules ...] [--low-meta ]
-                                     [--skip  ...] [--until-skip    ]
+> piximan download [--id        ...] [--type  ...] [--tag    ...] [--path     ...]
+                   [--bookmarks ...] [--size  ...] [--from   ...] [--password ...]
+                   [--list      ...] [--only-meta] [--to     ...]
+                   [--infer-id  ...] [--rules ...] [--low-meta  ]
+                                     [--skip  ...] [--until-skip]
 
                               Download sources
                               ----------------
