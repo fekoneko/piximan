@@ -61,20 +61,58 @@ func download(options *options) {
 		)
 
 	} else if options.InferId != nil {
-		idPathMap, errs := fsext.InferIdsFromPattern(*options.InferId)
-		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferId)
-		if len(*idPathMap) == 0 {
-			logger.Fatal("no ids could be inferred from pattern %v", *options.InferId)
-		}
+		q := make(queue.Queue, 0)
+		mutex := &sync.Mutex{}
+		waitGroup := &sync.WaitGroup{}
 
-		if options.Path == nil {
-			q := queue.QueueFromMap(idPathMap, kind, size, onlyMeta)
-			d.ScheduleQueue(q)
-		} else {
-			paths := []string{path}
-			q := queue.QueueFromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
-			d.ScheduleQueue(q)
-		}
+		waitGroup.Add(1)
+
+		go func() {
+			defer waitGroup.Done()
+
+			withProvidedPaths := options.Path != nil
+			providedPaths := []string{path}
+			var idPathsMap *map[uint64][]string
+
+			if fsext.IsInferIdPattern(*options.InferId) {
+				var errs []error
+				idPathsMap, errs = fsext.InferIdsFromPattern(*options.InferId)
+				logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferId)
+				if len(*idPathsMap) == 0 {
+					logger.Fatal("no ids could be inferred from pattern %v", *options.InferId)
+				}
+
+			} else {
+				c := collection.New(*options.InferId, logger.DefaultLogger)
+				c.Read()
+				idPathsMap = utils.ToPtr(make(map[uint64][]string))
+				for w := c.WaitNext(); w != nil; w = c.WaitNext() {
+					if w.Work.Id != nil {
+						(*idPathsMap)[*w.Id] = append((*idPathsMap)[*w.Work.Id], w.Path)
+					}
+				}
+				if len(*idPathsMap) == 0 {
+					logger.Fatal("no works found in the directory %v", *options.InferId)
+				}
+			}
+
+			items := make([]queue.Item, 0, len(*idPathsMap))
+			for id, paths := range *idPathsMap {
+				items = append(items, queue.Item{
+					Id:       id,
+					Kind:     kind,
+					Size:     size,
+					OnlyMeta: onlyMeta,
+					Paths:    utils.If(withProvidedPaths, providedPaths, paths),
+				})
+			}
+			mutex.Lock()
+			q = append(q, items...)
+			mutex.Unlock()
+		}()
+
+		waitGroup.Wait()
+		d.ScheduleQueue(&q)
 
 	} else if options.List != nil {
 		paths := []string{path}
@@ -128,7 +166,7 @@ func download(options *options) {
 					numWorks := 0
 					for w := c.WaitNext(); w != nil; w = c.WaitNext() {
 						mutex.Lock()
-						list.AddWork(w)
+						list.AddWork(w.Work)
 						mutex.Unlock()
 						numWorks++
 					}
@@ -140,7 +178,6 @@ func download(options *options) {
 		}
 
 		waitGroup.Wait()
-		logger.Info("%v of %v parsed works will be ignored", list.Len(), len(works))
 		d.SetSkipList(list)
 	}
 

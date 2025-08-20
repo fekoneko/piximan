@@ -39,11 +39,16 @@ var userIdPrompt = promptui.Prompt{
 	Validate: utils.ValidateNumber("user ID must be a number"),
 }
 
-var inferIdPromptLabel = "Path pattern"
+var inferIdPromptLabel = "Path to directory or pattern to infer IDs from"
 
 var inferIdPrompt = promptui.Prompt{
-	Label:    inferIdPromptLabel,
-	Validate: fsext.InferIdPatternValid,
+	Label: inferIdPromptLabel,
+	Validate: func(input string) error {
+		if fsext.IsInferIdPattern(input) {
+			fsext.InferIdPatternValid(input)
+		}
+		return nil
+	},
 }
 
 var listPromptLabel = "Path to download list file"

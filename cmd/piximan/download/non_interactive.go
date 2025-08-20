@@ -94,9 +94,12 @@ func nonInteractive() {
 		}
 	}
 	if options.InferId != nil {
-		if err := fsext.InferIdPatternValid(*options.InferId); err != nil {
-			fmt.Printf("invalid argument for flag `-I, --infer-id': %v\n", err)
-			os.Exit(2)
+		if fsext.IsInferIdPattern(*options.InferId) {
+			if err := fsext.InferIdPatternValid(*options.InferId); err != nil {
+				fmt.Printf("invalid argument for flag `-I, --infer-id': "+
+					"invalid infer id pattern %v: %v\n", *options.InferId, err)
+				os.Exit(2)
+			}
 		}
 	}
 

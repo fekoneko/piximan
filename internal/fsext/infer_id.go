@@ -11,7 +11,7 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-func InferIdsFromPattern(pattern string) (idPathMap *map[uint64][]string, errs []error) {
+func InferIdsFromPattern(pattern string) (idPathsMap *map[uint64][]string, errs []error) {
 	pattern = filepath.Clean(pattern)
 	r := inferIdRegexp(pattern)
 	root, depth, err := inferIdWalkParams(pattern)
@@ -20,10 +20,10 @@ func InferIdsFromPattern(pattern string) (idPathMap *map[uint64][]string, errs [
 		return nil, errs
 	}
 
-	idPathMap = utils.ToPtr(make(map[uint64][]string))
-	inferIdWalk(root, r, 1, depth, idPathMap, &errs)
+	idPathsMap = utils.ToPtr(make(map[uint64][]string))
+	inferIdWalk(root, r, 1, depth, idPathsMap, &errs)
 
-	return idPathMap, errs
+	return idPathsMap, errs
 }
 
 func InferIdPatternValid(pattern string) error {

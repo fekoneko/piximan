@@ -43,9 +43,11 @@ const downloadHelp = //
  -I          the metadata in existing collection when coupled with -only-meta flag.
              If this flag is provided, --path can be omitted and downloaded works will replace
              ones in the original location. The path may contain the following patterns:
-             - {id}         : the ID of the work - required.
-             - *            : matches any sequence of non-separator characters.
-             - {<anything>} : will be treated as *.
+             - {id}         : the ID of the work
+             - *            : matches any sequence of non-separator characters
+             - {<anything>} : will be treated as *
+             If the provided argument doesn't contain any patterns, piximan will recursively
+             look for metadata.yaml files in the provided directory and infer IDs from there.
 
                               Download options
                               ----------------
@@ -210,10 +212,8 @@ func RunDownload() {
 	}
 }
 
-// TODO: ability to pass collection path to --infer-id like you can pattern to --skip
 // TODO: providing --infer-id multiple times
-// TODO: merge --id and --infer-id flags (automatically detect if path, pattern or id is provided)
-// TODO: combine sources
+// TODO: providing --list multiple times
 
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list
