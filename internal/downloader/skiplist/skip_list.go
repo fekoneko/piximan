@@ -1,6 +1,8 @@
 package skiplist
 
 import (
+	"fmt"
+
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 )
@@ -21,15 +23,17 @@ func New() *SkipList {
 	}
 }
 
-func (l *SkipList) AddWork(w *work.Work) {
-	if w.Id != nil && w.Kind != nil {
-		switch *w.Kind {
-		case work.KindIllust, work.KindManga, work.KindUgoira:
-			l.AddArtwork(*w.Id)
-		case work.KindNovel:
-			l.AddNovel(*w.Id)
-		}
+func (l *SkipList) AddWork(w *work.Work) error {
+	if w.Id == nil || w.Kind == nil {
+		return fmt.Errorf("work id or kind is missing")
 	}
+	switch *w.Kind {
+	case work.KindIllust, work.KindManga, work.KindUgoira:
+		l.AddArtwork(*w.Id)
+	case work.KindNovel:
+		l.AddNovel(*w.Id)
+	}
+	return nil
 }
 
 func (l *SkipList) Add(id uint64, kind queue.ItemKind) {

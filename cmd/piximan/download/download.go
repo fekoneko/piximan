@@ -8,6 +8,7 @@ import (
 
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/collection"
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
@@ -78,41 +79,74 @@ func download(options *options) {
 				defer waitGroup.Done()
 
 				withProvidedPaths := options.Path != nil
+				withProvidedKind := options.Kind != nil
 				providedPaths := []string{path}
-				var idPathsMap *map[uint64][]string
+				var items []queue.Item
 
 				if fsext.IsInferIdPattern(inferId) {
-					var errs []error
-					idPathsMap, errs = fsext.InferIdsFromPattern(inferId)
+					idPathsMap, errs := fsext.InferIdsFromPattern(inferId)
 					logger.MaybeErrors(errs, "error while inferring work id from pattern %v", inferId)
 					if len(*idPathsMap) == 0 {
 						logger.Fatal("no ids could be inferred from pattern %v", inferId)
 					}
 
+					items = make([]queue.Item, 0, len(*idPathsMap))
+					for id, paths := range *idPathsMap {
+						items = append(items, queue.Item{
+							Id:       id,
+							Kind:     kind,
+							Size:     size,
+							OnlyMeta: onlyMeta,
+							Paths:    utils.If(withProvidedPaths, providedPaths, paths),
+						})
+					}
+
 				} else {
 					c := collection.New(inferId, logger.DefaultLogger)
+					// TODO: collection.ReadQueue() that will only care aboout id and kind in metadata.yaml and ignore assets
 					c.Read()
-					idPathsMap = utils.ToPtr(make(map[uint64][]string))
+					artworksIdPathsMap := utils.ToPtr(make(map[uint64][]string))
+					novelsIdPathsMap := utils.ToPtr(make(map[uint64][]string))
 					for w := c.WaitNext(); w != nil; w = c.WaitNext() {
-						if w.Work.Id != nil {
-							(*idPathsMap)[*w.Id] = append((*idPathsMap)[*w.Work.Id], w.Path)
+						if w.Id != nil && w.Kind != nil {
+							// TODO: work.Kind.IsArtwork() / work.Kind.IsNovel()
+							switch *w.Kind {
+							case work.KindIllust, work.KindManga, work.KindUgoira:
+								(*artworksIdPathsMap)[*w.Id] = append((*artworksIdPathsMap)[*w.Id], w.Path)
+							case work.KindNovel:
+								(*novelsIdPathsMap)[*w.Id] = append((*novelsIdPathsMap)[*w.Id], w.Path)
+							}
 						}
 					}
-					if len(*idPathsMap) == 0 {
-						logger.Fatal("no works found in the directory %v", inferId)
+					if len(*artworksIdPathsMap) == 0 {
+						logger.Fatal("no works with id and kind found in the directory %v", inferId)
+					}
+
+					items = make([]queue.Item, 0, len(*artworksIdPathsMap))
+					if !withProvidedKind || kind == queue.ItemKindArtwork {
+						for id, paths := range *artworksIdPathsMap {
+							items = append(items, queue.Item{
+								Id:       id,
+								Kind:     queue.ItemKindArtwork,
+								Size:     size,
+								OnlyMeta: onlyMeta,
+								Paths:    utils.If(withProvidedPaths, providedPaths, paths),
+							})
+						}
+					}
+					if !withProvidedKind || kind == queue.ItemKindNovel {
+						for id, paths := range *novelsIdPathsMap {
+							items = append(items, queue.Item{
+								Id:       id,
+								Kind:     queue.ItemKindNovel,
+								Size:     size,
+								OnlyMeta: onlyMeta,
+								Paths:    utils.If(withProvidedPaths, providedPaths, paths),
+							})
+						}
 					}
 				}
 
-				items := make([]queue.Item, 0, len(*idPathsMap))
-				for id, paths := range *idPathsMap {
-					items = append(items, queue.Item{
-						Id:       id,
-						Kind:     kind,
-						Size:     size,
-						OnlyMeta: onlyMeta,
-						Paths:    utils.If(withProvidedPaths, providedPaths, paths),
-					})
-				}
 				mutex.Lock()
 				q = append(q, items...)
 				mutex.Unlock()
@@ -124,7 +158,15 @@ func download(options *options) {
 
 	} else if options.List != nil {
 		paths := []string{path}
-		for _, listPath := range *options.List {
+		seen := make(map[string]bool, len(*options.List))
+
+		for _, rawListPath := range *options.List {
+			listPath := filepath.Clean(rawListPath)
+			if seen[listPath] {
+				continue
+			}
+			seen[listPath] = true
+
 			q, err := fsext.ReadList(listPath, kind, size, onlyMeta, paths)
 			logger.MaybeFatal(err, "cannot read download list from %v", listPath)
 			if len(*q) == 0 {
@@ -171,16 +213,19 @@ func download(options *options) {
 
 				} else {
 					c := collection.New(skipPath, logger.DefaultLogger)
+					// TODO: collection.ReadQueue() that will only care aboout id and kind in metadata.yaml and ignore assets
 					c.Read()
 					numWorks := 0
 					for w := c.WaitNext(); w != nil; w = c.WaitNext() {
-						mutex.Lock()
-						list.AddWork(w.Work)
-						mutex.Unlock()
-						numWorks++
+						if w.Id != nil && w.Kind != nil {
+							mutex.Lock()
+							list.AddWork(w.Work)
+							mutex.Unlock()
+							numWorks++
+						}
 					}
 					if numWorks == 0 {
-						logger.Fatal("no works found in the directory %v", skipPath)
+						logger.Fatal("no works with id and kind found in the directory %v", skipPath)
 					}
 				}
 			}()
