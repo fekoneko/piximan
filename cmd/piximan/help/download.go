@@ -38,6 +38,7 @@ const downloadHelp = //
                paths: ['./{user-id}/{id}'] # defaults to the --path argument
              - id: 23456
                type: novel
+             May be provided multiple times.
 
 --infer-id   Infer the IDs of works from the given path. Useful for updating
  -I          the metadata in existing collection when coupled with -only-meta flag.
@@ -213,8 +214,8 @@ func RunDownload() {
 	}
 }
 
-// TODO: providing --infer-id multiple times
-// TODO: providing --list multiple times
+// TODO: combine sources
+// TODO: provide --path multiple times
 
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list

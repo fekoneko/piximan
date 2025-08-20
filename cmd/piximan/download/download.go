@@ -124,13 +124,14 @@ func download(options *options) {
 
 	} else if options.List != nil {
 		paths := []string{path}
-		q, err := fsext.ReadList(*options.List, kind, size, onlyMeta, paths)
-		logger.MaybeFatal(err, "cannot read download list from %v", *options.List)
-		if len(*q) == 0 {
-			logger.Warning("no works found in the list %v", *options.List)
-			return
+		for _, listPath := range *options.List {
+			q, err := fsext.ReadList(listPath, kind, size, onlyMeta, paths)
+			logger.MaybeFatal(err, "cannot read download list from %v", listPath)
+			if len(*q) == 0 {
+				logger.Fatal("no works found in list %v", listPath)
+			}
+			d.ScheduleQueue(q)
 		}
-		d.ScheduleQueue(q)
 	}
 
 	if options.Rules != nil {

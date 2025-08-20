@@ -48,7 +48,7 @@ func interactive() {
 	})
 }
 
-func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *[]string, list *string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *[]string, list *[]string) {
 	_, mode, err := sourceSelect.Run()
 	logger.MaybeFatal(err, "failed to read mode")
 
@@ -79,10 +79,11 @@ func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *[
 		parsed := parseStrings(result)
 		inferId = &parsed
 
-	case queueOption:
+	case listOption:
 		result, err := listPrompt.Run()
-		logger.MaybeFatal(err, "failed to read list path")
-		list = &result
+		logger.MaybeFatal(err, "failed to read list paths")
+		parsed := parseStrings(result)
+		list = &parsed
 
 	default:
 		logger.Fatal("incorrect download mode: %v", mode)

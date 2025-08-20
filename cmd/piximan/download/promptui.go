@@ -12,13 +12,13 @@ var myPublicBookmarksOption = "Download my public bookmarks"
 var myPrivateBookmarksOption = "Download my private bookmarks"
 var userBookmarksOption = "Download bookmarks of other user"
 var inferIdOption = "Infer IDs from path"
-var queueOption = "Download from list"
+var listOption = "Download from list"
 
 var sourceSelect = promptui.Select{
 	Label: sourceSelectLabel,
 	Items: []string{
 		idOption, myPublicBookmarksOption, myPrivateBookmarksOption,
-		userBookmarksOption, inferIdOption, queueOption,
+		userBookmarksOption, inferIdOption, listOption,
 	},
 }
 
@@ -39,7 +39,7 @@ var userIdPrompt = promptui.Prompt{
 	Validate: utils.ValidateNumber("user ID must be a number"),
 }
 
-var inferIdPromptLabel = "Path to directory or pattern to infer IDs from"
+var inferIdPromptLabel = "Paths to directories or patterns to infer IDs from (comma-separated)"
 
 var inferIdPrompt = promptui.Prompt{
 	Label: inferIdPromptLabel,
@@ -56,7 +56,7 @@ var inferIdPrompt = promptui.Prompt{
 	},
 }
 
-var listPromptLabel = "Path to download list file"
+var listPromptLabel = "Paths to download list files (comma-separated)"
 
 var listPrompt = promptui.Prompt{
 	Label: listPromptLabel,
