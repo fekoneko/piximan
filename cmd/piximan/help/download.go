@@ -122,6 +122,7 @@ const downloadHelp = //
              Be aware that any Windows / NTFS reserved names will be automaticaly
              padded with underscores, reserved characters - replaced and any dots
              or spaces in front or end of the filenames will be trimmed.
+             May be specified multiple times.
 
 --password   The master password that is used to decrypt session ID if one has been
  -P          set. If omited, you will be prompted for the password when needed.
@@ -215,7 +216,6 @@ func RunDownload() {
 }
 
 // TODO: combine sources
-// TODO: provide --path multiple times
 
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list

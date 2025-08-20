@@ -27,7 +27,7 @@ func download(options *options) {
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	untilSkip := utils.FromPtr(options.UntilSkip, false)
-	path := utils.FromPtr(options.Path, "")
+	paths := utils.FromPtr(options.Paths, []string{""})
 
 	storage, sessionId := configAndSession(options.Password)
 	c := client.New(
@@ -41,11 +41,9 @@ func download(options *options) {
 	defer termext.RestoreInputEcho()
 
 	if options.Ids != nil {
-		paths := []string{path}
 		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
 
 	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
-		paths := []string{path}
 		d.ScheduleMyBookmarks(
 			kind, options.Tags, options.FromOffset, options.ToOffset, private,
 			size, onlyMeta, lowMeta, untilSkip, paths,
@@ -55,19 +53,18 @@ func download(options *options) {
 		userId, err := strconv.ParseUint(*options.Bookmarks, 10, 64)
 		logger.MaybeFatal(err, "cannot parse user id %v", *options.Bookmarks)
 
-		paths := []string{path}
 		d.ScheduleBookmarks(
 			userId, kind, options.Tags, options.FromOffset, options.ToOffset, private,
 			size, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
-	} else if options.InferId != nil {
+	} else if options.InferIds != nil {
 		q := make(queue.Queue, 0)
 		mutex := &sync.Mutex{}
 		waitGroup := &sync.WaitGroup{}
-		seen := make(map[string]bool, len(*options.InferId))
+		seen := make(map[string]bool, len(*options.InferIds))
 
-		for _, rawInferId := range *options.InferId {
+		for _, rawInferId := range *options.InferIds {
 			inferId := filepath.Clean(rawInferId)
 			if seen[inferId] {
 				continue
@@ -78,9 +75,6 @@ func download(options *options) {
 			go func() {
 				defer waitGroup.Done()
 
-				withProvidedPaths := options.Path != nil
-				withProvidedKind := options.Kind != nil
-				providedPaths := []string{path}
 				var items []queue.Item
 
 				if fsext.IsInferIdPattern(inferId) {
@@ -97,13 +91,13 @@ func download(options *options) {
 							Kind:     kind,
 							Size:     size,
 							OnlyMeta: onlyMeta,
-							Paths:    utils.If(withProvidedPaths, providedPaths, paths),
+							Paths:    utils.If(options.Paths != nil, paths, paths),
 						})
 					}
 
 				} else {
 					c := collection.New(inferId, logger.DefaultLogger)
-					// TODO: collection.ReadQueue() that will only care aboout id and kind in metadata.yaml and ignore assets
+					// TODO: collection.ReadQueue() that will only care about id and kind in metadata.yaml and ignore assets
 					c.Read()
 					artworksIdPathsMap := utils.ToPtr(make(map[uint64][]string))
 					novelsIdPathsMap := utils.ToPtr(make(map[uint64][]string))
@@ -118,34 +112,34 @@ func download(options *options) {
 							}
 						}
 					}
-					if withProvidedKind && kind == queue.ItemKindArtwork && len(*artworksIdPathsMap) == 0 {
+					if options.Kind != nil && kind == queue.ItemKindArtwork && len(*artworksIdPathsMap) == 0 {
 						logger.Fatal("no works with id and artwork kind found in directory %v", inferId)
-					} else if withProvidedKind && kind == queue.ItemKindNovel && len(*novelsIdPathsMap) == 0 {
+					} else if options.Kind != nil && kind == queue.ItemKindNovel && len(*novelsIdPathsMap) == 0 {
 						logger.Fatal("no works with id and novel kind found in directory %v", inferId)
 					} else if len(*artworksIdPathsMap) == 0 && len(*novelsIdPathsMap) == 0 {
 						logger.Fatal("no works with id and kind found in directory %v", inferId)
 					}
 
 					items = make([]queue.Item, 0, len(*artworksIdPathsMap))
-					if !withProvidedKind || kind == queue.ItemKindArtwork {
-						for id, paths := range *artworksIdPathsMap {
+					if options.Kind == nil || kind == queue.ItemKindArtwork {
+						for id, inferredPaths := range *artworksIdPathsMap {
 							items = append(items, queue.Item{
 								Id:       id,
 								Kind:     queue.ItemKindArtwork,
 								Size:     size,
 								OnlyMeta: onlyMeta,
-								Paths:    utils.If(withProvidedPaths, providedPaths, paths),
+								Paths:    utils.If(options.Paths != nil, paths, inferredPaths),
 							})
 						}
 					}
-					if !withProvidedKind || kind == queue.ItemKindNovel {
-						for id, paths := range *novelsIdPathsMap {
+					if options.Kind == nil || kind == queue.ItemKindNovel {
+						for id, inferredPaths := range *novelsIdPathsMap {
 							items = append(items, queue.Item{
 								Id:       id,
 								Kind:     queue.ItemKindNovel,
 								Size:     size,
 								OnlyMeta: onlyMeta,
-								Paths:    utils.If(withProvidedPaths, providedPaths, paths),
+								Paths:    utils.If(options.Paths != nil, paths, inferredPaths),
 							})
 						}
 					}
@@ -164,11 +158,10 @@ func download(options *options) {
 		waitGroup.Wait()
 		d.ScheduleQueue(&q)
 
-	} else if options.List != nil {
-		paths := []string{path}
-		seen := make(map[string]bool, len(*options.List))
+	} else if options.Lists != nil {
+		seen := make(map[string]bool, len(*options.Lists))
 
-		for _, rawListPath := range *options.List {
+		for _, rawListPath := range *options.Lists {
 			listPath := filepath.Clean(rawListPath)
 			if seen[listPath] {
 				continue
@@ -190,13 +183,13 @@ func download(options *options) {
 		d.SetRules(rules)
 	}
 
-	if options.Skip != nil && len(*options.Skip) != 0 {
+	if options.Skips != nil && len(*options.Skips) != 0 {
 		list := skiplist.New()
 		mutex := &sync.Mutex{}
 		waitGroup := &sync.WaitGroup{}
-		seen := make(map[string]bool, len(*options.Skip))
+		seen := make(map[string]bool, len(*options.Skips))
 
-		for _, rawSkipPath := range *options.Skip {
+		for _, rawSkipPath := range *options.Skips {
 			skipPath := filepath.Clean(rawSkipPath)
 			if seen[skipPath] {
 				continue
@@ -223,7 +216,7 @@ func download(options *options) {
 
 				} else {
 					c := collection.New(skipPath, logger.DefaultLogger)
-					// TODO: collection.ReadQueue() that will only care aboout id and kind in metadata.yaml and ignore assets
+					// TODO: collection.ReadQueue() that will only care about id and kind in metadata.yaml and ignore assets
 					c.Read()
 					for w := c.WaitNext(); w != nil; w = c.WaitNext() {
 						if w.Id != nil && w.Kind != nil {

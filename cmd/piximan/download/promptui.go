@@ -22,10 +22,10 @@ var sourceSelect = promptui.Select{
 	},
 }
 
-var idPromptLabel = "Work IDs"
+var idsPromptLabel = "Work IDs"
 
-var idPrompt = promptui.Prompt{
-	Label: idPromptLabel,
+var idsPrompt = promptui.Prompt{
+	Label: idsPromptLabel,
 	Validate: func(input string) error {
 		_, err := parseIds(input)
 		return err
@@ -39,10 +39,10 @@ var userIdPrompt = promptui.Prompt{
 	Validate: utils.ValidateNumber("user ID must be a number"),
 }
 
-var inferIdPromptLabel = "Paths to directories or patterns to infer IDs from (comma-separated)"
+var inferIdsPromptLabel = "Paths to directories or patterns to infer IDs from (comma-separated)"
 
-var inferIdPrompt = promptui.Prompt{
-	Label: inferIdPromptLabel,
+var inferIdsPrompt = promptui.Prompt{
+	Label: inferIdsPromptLabel,
 	Validate: func(input string) error {
 		for _, s := range parseStrings(input) {
 			if !fsext.IsInferIdPattern(input) {
@@ -56,20 +56,20 @@ var inferIdPrompt = promptui.Prompt{
 	},
 }
 
-var listPromptLabel = "Paths to download list files (comma-separated)"
+var listsPromptLabel = "Paths to download list files (comma-separated)"
 
-var listPrompt = promptui.Prompt{
-	Label: listPromptLabel,
+var listsPrompt = promptui.Prompt{
+	Label: listsPromptLabel,
 }
 
 var kindSelectLabel = "Type of work to download"
-var kindSelectWithQueueLabel = "Default type of work to download"
+var kindSelectwithListsLabel = "Default type of work to download"
 var artworkOption = "Artwork"
 var novelOption = "Novel"
 
-func kindSelect(withQueue bool) *promptui.Select {
+func kindSelect(withLists bool) *promptui.Select {
 	return &promptui.Select{
-		Label: utils.If(withQueue, kindSelectWithQueueLabel, kindSelectLabel),
+		Label: utils.If(withLists, kindSelectwithListsLabel, kindSelectLabel),
 		Items: []string{artworkOption, novelOption},
 	}
 }
@@ -91,13 +91,13 @@ var rangePrompt = promptui.Prompt{
 }
 
 var onlyMetaSelectLabel = "Only download metadata"
-var onlyMetaSelectWithQueueLabel = "Only download metadata by default"
+var onlyMetaSelectwithListsLabel = "Only download metadata by default"
 var downloadAllOption = "Download metadata and images"
 var downloadMetaOption = "Only download metadata"
 
-func onlyMetaSelect(withQueue bool) *promptui.Select {
+func onlyMetaSelect(withLists bool) *promptui.Select {
 	return &promptui.Select{
-		Label: utils.If(withQueue, onlyMetaSelectWithQueueLabel, onlyMetaSelectLabel),
+		Label: utils.If(withLists, onlyMetaSelectwithListsLabel, onlyMetaSelectLabel),
 		Items: []string{downloadAllOption, downloadMetaOption},
 	}
 }
@@ -111,10 +111,10 @@ var lowMetaSelect = promptui.Select{
 	Items: []string{lowMetaOption, fullMetaOption},
 }
 
-var skipPromptLabel = "Skip works present in the directory (path, infer id pattern or nothing)"
+var skipsPromptLabel = "Skip works present in the directory (path, infer id pattern or nothing)"
 
-var skipPrompt = promptui.Prompt{
-	Label: skipPromptLabel,
+var skipsPrompt = promptui.Prompt{
+	Label: skipsPromptLabel,
 	Validate: func(input string) error {
 		for _, s := range parseStrings(input) {
 			if !fsext.IsInferIdPattern(input) {
@@ -138,15 +138,15 @@ var untilSkipSelect = promptui.Select{
 }
 
 var sizeSelectLabel = "Size of downloaded images"
-var sizeSelectWithQueueLabel = "Default size of downloaded images"
+var sizeSelectwithListsLabel = "Default size of downloaded images"
 var thumbnailSizeOption = "Thumbnail"
 var smallSizeOption = "Small"
 var mediumSizeOption = "Medium"
 var originalSizeOption = "Original"
 
-func sizeSelect(withQueue bool) *promptui.Select {
+func sizeSelect(withLists bool) *promptui.Select {
 	return &promptui.Select{
-		Label:     utils.If(withQueue, sizeSelectWithQueueLabel, sizeSelectLabel),
+		Label:     utils.If(withLists, sizeSelectwithListsLabel, sizeSelectLabel),
 		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
 		CursorPos: 3,
 	}
@@ -161,12 +161,12 @@ var pathSelect = promptui.Select{
 	Items: []string{inferredPathOption, customPathOption},
 }
 
-var pathPromptLabel = "Save to directory"
-var pathPromptWithQueueLabel = "Default saving path"
+var pathsPromptLabel = "Save to directory (one or multiple comma-separated)"
+var pathsPromptwithListsLabel = "Default saving path (one or multiple comma-separated)"
 
-func pathPrompt(withQueue bool) *promptui.Prompt {
+func pathsPrompt(withLists bool) *promptui.Prompt {
 	return &promptui.Prompt{
-		Label:    utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
+		Label:    utils.If(withLists, pathsPromptwithListsLabel, pathsPromptLabel),
 		Validate: fsext.WorkPathPatternValid,
 	}
 }
