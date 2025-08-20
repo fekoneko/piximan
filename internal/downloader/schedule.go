@@ -8,6 +8,8 @@ import (
 	"github.com/fekoneko/piximan/internal/imageext"
 )
 
+// TODO: utilize semaphores?
+
 // Schedule download. Run() to start downloading.
 func (d *Downloader) Schedule(
 	ids []uint64, kind queue.ItemKind, size imageext.Size, onlyMeta bool, paths []string,

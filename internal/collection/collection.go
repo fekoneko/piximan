@@ -11,14 +11,13 @@ import (
 const channelSize = 10
 
 // TODO: store works in the collection struct
-// TODO: store paths with the works
 
 // Used to access locally stored collection of works.
 // Use Read() to start reading the collection.
 // Use Wait<...>() to block on the results.
 type Collection struct {
 	logger      *logger.Logger
-	channel     chan *work.Work
+	channel     chan *work.StoredWork
 	signal      syncext.Signal
 	signalMutex *sync.Mutex
 	path        string
@@ -28,7 +27,7 @@ type Collection struct {
 func New(path string, logger *logger.Logger) *Collection {
 	return &Collection{
 		logger:      logger,
-		channel:     make(chan *work.Work, channelSize),
+		channel:     make(chan *work.StoredWork, channelSize),
 		signalMutex: &sync.Mutex{},
 		path:        path,
 		pathMutex:   &sync.Mutex{},

@@ -68,11 +68,11 @@ func download(options *options) {
 		}
 
 		if options.Path == nil {
-			q := queue.FromMap(idPathMap, kind, size, onlyMeta)
+			q := queue.QueueFromMap(idPathMap, kind, size, onlyMeta)
 			d.ScheduleQueue(q)
 		} else {
 			paths := []string{path}
-			q := queue.FromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
+			q := queue.QueueFromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
 			d.ScheduleQueue(q)
 		}
 
@@ -140,6 +140,7 @@ func download(options *options) {
 		}
 
 		waitGroup.Wait()
+		logger.Info("%v of %v parsed works will be ignored", list.Len(), len(works))
 		d.SetSkipList(list)
 	}
 
