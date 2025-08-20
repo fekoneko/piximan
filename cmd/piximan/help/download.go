@@ -102,8 +102,8 @@ const downloadHelp = //
 
                               Other parameters
                               ----------------
---path       Directory to save the files into. This flag is required unless the argument
- -p          can be inferred from provided --infer-id.
+--path       Directory to save the files into.
+ -p          Defaults to current directory or may be inferred from provided --infer-id.
              You can use these substitutions in the pathname:
              - {title}       : the title of the work
              - {id}          : the ID of the work
@@ -211,7 +211,9 @@ func RunDownload() {
 }
 
 // TODO: ability to pass collection path to --infer-id like you can pattern to --skip
+// TODO: providing --infer-id multiple times
 // TODO: merge --id and --infer-id flags (automatically detect if path, pattern or id is provided)
+// TODO: combine sources
 
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list
