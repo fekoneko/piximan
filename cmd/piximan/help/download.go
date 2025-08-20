@@ -48,6 +48,7 @@ const downloadHelp = //
              - {<anything>} : will be treated as *
              If the provided argument doesn't contain any patterns, piximan will recursively
              look for metadata.yaml files in the provided directory and infer IDs from there.
+             May be provided multiple times.
 
                               Download options
                               ----------------

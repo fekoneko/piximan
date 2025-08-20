@@ -44,8 +44,13 @@ var inferIdPromptLabel = "Path to directory or pattern to infer IDs from"
 var inferIdPrompt = promptui.Prompt{
 	Label: inferIdPromptLabel,
 	Validate: func(input string) error {
-		if fsext.IsInferIdPattern(input) {
-			fsext.InferIdPatternValid(input)
+		for _, s := range parseStrings(input) {
+			if !fsext.IsInferIdPattern(input) {
+				continue
+			}
+			if err := fsext.InferIdPatternValid(s); err != nil {
+				return err
+			}
 		}
 		return nil
 	},
@@ -111,8 +116,13 @@ var skipPromptLabel = "Skip works present in the directory (path, infer id patte
 var skipPrompt = promptui.Prompt{
 	Label: skipPromptLabel,
 	Validate: func(input string) error {
-		if fsext.IsInferIdPattern(input) {
-			return fsext.InferIdPatternValid(input)
+		for _, s := range parseStrings(input) {
+			if !fsext.IsInferIdPattern(input) {
+				continue
+			}
+			if err := fsext.InferIdPatternValid(s); err != nil {
+				return err
+			}
 		}
 		return nil
 	},

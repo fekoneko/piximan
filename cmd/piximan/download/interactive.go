@@ -48,7 +48,7 @@ func interactive() {
 	})
 }
 
-func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *string, list *string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *[]string, list *string) {
 	_, mode, err := sourceSelect.Run()
 	logger.MaybeFatal(err, "failed to read mode")
 
@@ -75,8 +75,9 @@ func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *s
 
 	case inferIdOption:
 		result, err := inferIdPrompt.Run()
-		logger.MaybeFatal(err, "failed to read pattern")
-		inferId = &result
+		logger.MaybeFatal(err, "failed to read infer id option")
+		parsed := parseStrings(result)
+		inferId = &parsed
 
 	case queueOption:
 		result, err := listPrompt.Run()

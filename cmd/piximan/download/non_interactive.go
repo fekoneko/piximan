@@ -77,13 +77,14 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 	if options.Skip != nil {
-		for _, skip := range *options.Skip {
-			if fsext.IsInferIdPattern(skip) {
-				if err := fsext.InferIdPatternValid(skip); err != nil {
-					fmt.Printf("invalid argument for flag `-S, --skip': "+
-						"invalid infer id pattern %v: %v\n", skip, err)
-					os.Exit(2)
-				}
+		for _, s := range *options.Skip {
+			if !fsext.IsInferIdPattern(s) {
+				continue
+			}
+			if err := fsext.InferIdPatternValid(s); err != nil {
+				fmt.Printf("invalid argument for flag `-S, --skip': "+
+					"invalid infer id pattern %v: %v\n", s, err)
+				os.Exit(2)
 			}
 		}
 	}
@@ -94,10 +95,13 @@ func nonInteractive() {
 		}
 	}
 	if options.InferId != nil {
-		if fsext.IsInferIdPattern(*options.InferId) {
-			if err := fsext.InferIdPatternValid(*options.InferId); err != nil {
+		for _, s := range *options.InferId {
+			if !fsext.IsInferIdPattern(s) {
+				continue
+			}
+			if err := fsext.InferIdPatternValid(s); err != nil {
 				fmt.Printf("invalid argument for flag `-I, --infer-id': "+
-					"invalid infer id pattern %v: %v\n", *options.InferId, err)
+					"invalid infer id pattern %v: %v\n", s, err)
 				os.Exit(2)
 			}
 		}

@@ -6,7 +6,7 @@ type options struct {
 	Ids        *[]uint64 `short:"i" long:"id"`
 	Bookmarks  *string   `short:"b" long:"bookmarks"`
 	List       *string   `short:"l" long:"list"`
-	InferId    *string   `short:"I" long:"infer-id"`
+	InferId    *[]string `short:"I" long:"infer-id"`
 	Kind       *string   `short:"t" long:"type"`
 	Size       *uint     `short:"s" long:"size"`
 	OnlyMeta   *bool     `short:"m" long:"only-meta"`
