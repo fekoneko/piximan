@@ -76,7 +76,7 @@ func (d *Downloader) String() string {
 		builder.WriteString("empty\n")
 	} else {
 		builder.WriteString(strconv.FormatInt(int64(len(d.crawlQueue)), 10))
-		builder.WriteString(utils.If(len(d.crawlQueue) == 1, " task\n", " tasks\n"))
+		builder.WriteString(utils.IfPlural(len(d.crawlQueue), " task\n", " tasks\n"))
 	}
 	d.crawlQueueMutex.Unlock()
 
@@ -114,7 +114,7 @@ func (d *Downloader) String() string {
 		builder.WriteString("none\n")
 	} else {
 		builder.WriteString(strconv.FormatInt(int64(numRules), 10))
-		builder.WriteString(utils.If(numRules == 1, " rule\n", " rules\n"))
+		builder.WriteString(utils.IfPlural(numRules, " rule\n", " rules\n"))
 	}
 	d.rulesMutex.Unlock()
 
@@ -128,7 +128,7 @@ func (d *Downloader) String() string {
 		builder.WriteString("none\n")
 	} else {
 		builder.WriteString(strconv.FormatInt(int64(numSkipped), 10))
-		builder.WriteString(utils.If(numSkipped == 1, " work\n", " works\n"))
+		builder.WriteString(utils.IfPlural(numSkipped, " work\n", " works\n"))
 	}
 	d.skipListMutex.Unlock()
 

@@ -118,8 +118,12 @@ func download(options *options) {
 							}
 						}
 					}
-					if len(*artworksIdPathsMap) == 0 {
-						logger.Fatal("no works with id and kind found in the directory %v", inferId)
+					if withProvidedKind && kind == queue.ItemKindArtwork && len(*artworksIdPathsMap) == 0 {
+						logger.Fatal("no works with id and artwork kind found in directory %v", inferId)
+					} else if withProvidedKind && kind == queue.ItemKindNovel && len(*novelsIdPathsMap) == 0 {
+						logger.Fatal("no works with id and novel kind found in directory %v", inferId)
+					} else if len(*artworksIdPathsMap) == 0 && len(*novelsIdPathsMap) == 0 {
+						logger.Fatal("no works with id and kind found in directory %v", inferId)
 					}
 
 					items = make([]queue.Item, 0, len(*artworksIdPathsMap))
@@ -147,6 +151,10 @@ func download(options *options) {
 					}
 				}
 
+				logger.Info(
+					"inferred %v work%v from directory %v",
+					len(items), utils.Plural(len(items)), inferId,
+				)
 				mutex.Lock()
 				q = append(q, items...)
 				mutex.Unlock()
@@ -199,10 +207,12 @@ func download(options *options) {
 			go func() {
 				defer waitGroup.Done()
 
+				numWorks := 0
 				if fsext.IsInferIdPattern(skipPath) {
 					idPathMap, errs := fsext.InferIdsFromPattern(skipPath)
 					logger.MaybeErrors(errs, "error while inferring work id from pattern %v", skipPath)
-					if len(*idPathMap) == 0 {
+					numWorks = len(*idPathMap)
+					if numWorks == 0 {
 						logger.Fatal("no ids could be inferred from pattern %v", skipPath)
 					}
 					mutex.Lock()
@@ -215,7 +225,6 @@ func download(options *options) {
 					c := collection.New(skipPath, logger.DefaultLogger)
 					// TODO: collection.ReadQueue() that will only care aboout id and kind in metadata.yaml and ignore assets
 					c.Read()
-					numWorks := 0
 					for w := c.WaitNext(); w != nil; w = c.WaitNext() {
 						if w.Id != nil && w.Kind != nil {
 							mutex.Lock()
@@ -225,9 +234,14 @@ func download(options *options) {
 						}
 					}
 					if numWorks == 0 {
-						logger.Fatal("no works with id and kind found in the directory %v", skipPath)
+						logger.Fatal("no works with id and kind found in directory %v", skipPath)
 					}
 				}
+
+				logger.Info(
+					"%v work%v found in the directory %v will be skipped",
+					numWorks, utils.Plural(numWorks), skipPath,
+				)
 			}()
 		}
 

@@ -114,8 +114,8 @@ func (d *Downloader) scheduleBookmarks(
 
 		if numTasks > 0 {
 			d.logger.Info(
-				bookmarksLogMessage("created %v bookmarks crawl %v", userId, tag, nil),
-				numTasks, utils.If(numTasks == 1, "task", "tasks"),
+				bookmarksLogMessage("created task%v bookmarks crawl %v", userId, tag, nil),
+				numTasks, utils.Plural(numTasks),
 			)
 			d.logger.ExpectCrawls(numTasks)
 		}
@@ -189,7 +189,7 @@ func (d *Downloader) fetchBookmarksPageAndSchedule(
 	if numSkipped > 0 {
 		d.logger.Info(
 			"skipping %v %v%v as %v already downloaded", numSkipped, kind.String(),
-			utils.If(numSkipped == 1, "", "s"), utils.If(numSkipped == 1, "it was", "they were"),
+			utils.Plural(numSkipped), utils.IfPlural(numSkipped, "it was", "they were"),
 		)
 	}
 	return total, numSkipped >= len(results), nil
