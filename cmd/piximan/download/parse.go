@@ -28,18 +28,26 @@ func parseIds(input string) ([]uint64, error) {
 
 func parseStrings(input string) []string {
 	strs := []string{}
-	strStart := 0
+	builder := strings.Builder{}
+	runes := []rune(input)
 
-	for i, r := range input {
-		if (r == ',' || r == ';' || r == '、' || r == '；') && (i == 0 || input[i-1] != '\\') {
-			if strStart < i {
-				strs = append(strs, input[strStart:i])
+	for i := 0; i < len(runes); i++ {
+		if i > 0 && runes[i-1] == '\\' {
+			builder.WriteRune(runes[i])
+		} else if runes[i] == '\\' {
+		} else if runes[i] == ',' || runes[i] == ';' || runes[i] == '、' || runes[i] == '；' {
+			str := strings.Trim(builder.String(), " 　\t\r\n")
+			if str != "" {
+				strs = append(strs, str)
 			}
-			strStart = i + 1
+			builder.Reset()
+		} else {
+			builder.WriteRune(runes[i])
 		}
 	}
-	if strStart < len(input) {
-		strs = append(strs, input[strStart:])
+	str := strings.Trim(builder.String(), " 　\t\r\n")
+	if str != "" {
+		strs = append(strs, str)
 	}
 
 	return strs
