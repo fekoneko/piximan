@@ -215,11 +215,10 @@ func RunDownload() {
 	}
 }
 
-// TODO: combine sources
-
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list
-// TODO: --log, -L option to log the output to a file (-L should be reserved for language actually)
+// TODO: --log, -o option to log the output to a file (-L should be reserved for language actually)
+
 // TODO: choose language to download work metadata in (flag and config)
 
 // TODO: piximan sort - sort based on metadata
@@ -229,8 +228,7 @@ func RunDownload() {
 // TODO: detailed descriptions in interactive mode
 
 // TODO: multilpe sources in one command:
-//       piximan download --id 12345 --path "./{id}" \
+//       piximan download --id 12345 --path "./{id}" -- \
 //                        --bookmarks my --path "./{id}"
-//       or in list.yaml
 
 // TODO: configure substitution words
