@@ -104,13 +104,13 @@ func ExactlyOneDefined(values ...any) bool {
 	return defined
 }
 
-func NoneDefined(values ...any) bool {
+func SomeDefined(values ...any) bool {
 	for _, value := range values {
 		if reflect.ValueOf(value).Pointer() != 0 {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func MapFindValue[K comparable, V comparable](m map[K]V, value V) (key K, ok bool) {

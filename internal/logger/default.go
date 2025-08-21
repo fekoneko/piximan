@@ -10,6 +10,7 @@ func Success(message string, args ...any)                    { l.Success(message
 func Warning(message string, args ...any)                    { l.Warning(message, args...) }
 func Error(message string, args ...any)                      { l.Error(message, args...) }
 func Fatal(message string, args ...any)                      { l.Fatal(message, args...) }
+func MaybeInfo(err error, message string, args ...any)       { l.MaybeInfo(err, message, args...) }
 func MaybeSuccess(err error, message string, args ...any)    { l.MaybeSuccess(err, message, args...) }
 func MaybeWarning(err error, prefix string, args ...any)     { l.MaybeWarning(err, prefix, args...) }
 func MaybeError(err error, prefix string, args ...any)       { l.MaybeError(err, prefix, args...) }

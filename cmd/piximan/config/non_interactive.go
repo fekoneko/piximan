@@ -32,13 +32,13 @@ func nonInteractive() {
 		os.Exit(2)
 	}
 
-	if utils.NoneDefined(options.MaxPending, options.Delay, options.PximgMaxPending, options.PximgDelay) &&
+	if utils.SomeDefined(options.MaxPending, options.Delay, options.PximgMaxPending, options.PximgDelay) &&
 		options.ResetLimits != nil {
 		fmt.Println("request delays and limits parameters cannot be used with `--reset-limits' flag")
 		os.Exit(2)
 	}
 
-	if utils.NoneDefined(
+	if utils.SomeDefined(
 		options.SessionId, options.Password, options.Rules,
 		options.MaxPending, options.Delay, options.PximgMaxPending, options.PximgDelay,
 		options.ResetSession, options.ResetRules, options.ResetLimits,

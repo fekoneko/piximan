@@ -24,3 +24,10 @@ func Default() *Limits {
 		PximgDelay:      DefaultPximgDelay,
 	}
 }
+
+func (l *Limits) IsDefault() bool {
+	return l.MaxPending == DefaultMaxPending &&
+		l.Delay == DefaultDelay &&
+		l.PximgMaxPending == DefaultPximgMaxPending &&
+		l.PximgDelay == DefaultPximgDelay
+}

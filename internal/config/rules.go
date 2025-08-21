@@ -40,7 +40,7 @@ func (c *Config) Rules() (r []rules.Rules, warnings []error, err error) {
 		c.rules = &rs
 	}
 
-	var rules []rules.Rules
+	rules := make([]rules.Rules, len(*c.rules))
 	copy(rules, *c.rules)
 	return rules, warnings, nil
 }
@@ -51,7 +51,7 @@ func (c *Config) SetRules(rs []rules.Rules) error {
 	c.rulesMutex.Lock()
 	defer c.rulesMutex.Unlock()
 
-	if err := os.MkdirAll(rulesPath, 0600); err != nil {
+	if err := os.MkdirAll(rulesPath, 0775); err != nil {
 		return err
 	}
 

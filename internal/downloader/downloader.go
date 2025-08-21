@@ -108,8 +108,8 @@ func (d *Downloader) String() string {
 	d.rulesMutex.Lock()
 	builder.WriteString("- download rules: ")
 	numRules := 0
-	for _, rules := range d.rules {
-		numRules += rules.Count()
+	for _, r := range d.rules {
+		numRules += r.Count()
 	}
 	if numRules <= 0 {
 		builder.WriteString("none\n")

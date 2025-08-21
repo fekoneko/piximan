@@ -260,15 +260,18 @@ func download(options *options) {
 }
 
 func configSessionId(password *string) (c *config.Config, sessionId *string) {
-	for range 3 {
-		c, err := config.New(password)
+	withPassword := password != nil
+	var err error
+
+	for try := range 4 {
+		c, err = config.New(password)
 		if err != nil {
 			logger.Error("cannot open configuration storage: %v", err)
 			promptOrExit(ignoreAuthorizationPrompt)
 			return nil, nil
 		}
 
-		if sessionId, err = c.SessionId(); err != nil && password != nil {
+		if sessionId, err = c.SessionId(); err != nil && (withPassword || try >= 3) {
 			logger.Error("cannot read session id: %v", err)
 			promptOrExit(ignoreAuthorizationPrompt)
 			return c, nil
@@ -297,15 +300,17 @@ func configRules(c *config.Config) []rules.Rules {
 		return []rules.Rules{}
 	}
 
-	r, warnings, err := c.Rules()
+	rs, warnings, err := c.Rules()
 	logger.MaybeWarnings(warnings, "while reading global download rules configuration")
 	if err != nil {
 		logger.Error("cannot read global download rules configuration: %v", err)
 		promptOrExit(ignoreRulesPrompt)
 		return []rules.Rules{}
+	} else if len(rs) > 0 {
+		logger.Info("%v global download ruleset%v applied", len(rs), utils.Plural(len(rs)))
 	}
 
-	return r
+	return rs
 }
 
 func configLimits(c *config.Config) limits.Limits {
@@ -322,6 +327,8 @@ func configLimits(c *config.Config) limits.Limits {
 		logger.Error("cannot read request delays and limits configuration: %v", err)
 		promptOrExit(ignoreLimitsPrompt)
 		return *limits.Default()
+	} else if !l.IsDefault() {
+		logger.Info("custom request delays and limits applied")
 	}
 
 	return l
