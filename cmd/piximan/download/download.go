@@ -180,7 +180,7 @@ func download(options *options) {
 	if options.Rules != nil {
 		rules, err := fsext.ReadRules(*options.Rules)
 		logger.MaybeFatal(err, "cannot read download rules from %v", *options.Rules)
-		d.SetRules(rules)
+		d.AddRules(rules)
 	}
 
 	if options.Skips != nil && len(*options.Skips) != 0 {
