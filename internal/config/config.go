@@ -9,7 +9,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/fekoneko/piximan/internal/config/limits"
+	"github.com/fekoneko/piximan/internal/client/limits"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -20,11 +21,13 @@ var limitsPath = filepath.Join(homePath, ".piximan", "limits.yaml")
 // Stores and reads configuration. Thread-safe.
 type Config struct {
 	sessionIdMutex *sync.Mutex
+	rulesMutex     *sync.Mutex
 	limitsMutex    *sync.Mutex
 	cipher         cipher.Block
 	gcm            cipher.AEAD
-	sessionId      *string
-	limits         *limits.Limits
+	sessionId      **string       // Initially nil. After SessionId(): ptr -> nil | string.
+	rules          *[]rules.Rules // Initially nil. After Rules():     ptr -> []rules.Rules.
+	limits         *limits.Limits // Initially nil. After Limits():    ptr -> limits.Limits.
 }
 
 func New(password *string) (*Config, error) {
@@ -46,10 +49,24 @@ func New(password *string) (*Config, error) {
 
 	c := &Config{
 		sessionIdMutex: &sync.Mutex{},
+		rulesMutex:     &sync.Mutex{},
 		limitsMutex:    &sync.Mutex{},
 		cipher:         aesCipher,
 		gcm:            gcm,
 	}
 
 	return c, nil
+}
+
+func (c *Config) Reset() error {
+	if err := c.ResetSessionId(); err != nil {
+		return err
+	}
+	if err := c.ResetRules(); err != nil {
+		return err
+	}
+	if err := c.ResetLimits(); err != nil {
+		return err
+	}
+	return nil
 }

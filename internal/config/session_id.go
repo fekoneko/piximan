@@ -14,12 +14,15 @@ func (c *Config) SessionId() (*string, error) {
 	c.sessionIdMutex.Lock()
 	defer c.sessionIdMutex.Unlock()
 
-	if c.sessionId != nil {
-		return utils.Copy(c.sessionId), nil
+	if c.sessionId != nil && *c.sessionId != nil {
+		return utils.Copy(*c.sessionId), nil
+	} else if c.sessionId != nil && *c.sessionId == nil {
+		return nil, nil
 	}
 
 	encrypted, err := os.ReadFile(sessionIdPath)
 	if err != nil && errors.Is(err, fs.ErrNotExist) {
+		c.sessionId = utils.ToPtr[*string](nil)
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -34,9 +37,9 @@ func (c *Config) SessionId() (*string, error) {
 	}
 
 	sessionId := string(decrypted)
-	c.sessionId = &sessionId
+	c.sessionId = utils.ToPtr(&sessionId)
 
-	return utils.Copy(c.sessionId), nil
+	return utils.Copy(&sessionId), nil
 }
 
 func (c *Config) SetSessionId(sessionId string) error {
@@ -61,7 +64,7 @@ func (c *Config) SetSessionId(sessionId string) error {
 		return err
 	}
 
-	c.sessionId = &sessionId
+	c.sessionId = utils.ToPtr(&sessionId)
 	return nil
 }
 
@@ -70,8 +73,9 @@ func (c *Config) ResetSessionId() error {
 	defer c.sessionIdMutex.Unlock()
 
 	err := os.Remove(sessionIdPath)
-	if err == nil {
-		c.sessionId = nil
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
 	}
-	return err
+	c.sessionId = utils.ToPtr[*string](nil)
+	return nil
 }

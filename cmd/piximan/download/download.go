@@ -7,12 +7,13 @@ import (
 	"sync"
 
 	"github.com/fekoneko/piximan/internal/client"
+	"github.com/fekoneko/piximan/internal/client/limits"
 	"github.com/fekoneko/piximan/internal/collection"
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
-	"github.com/fekoneko/piximan/internal/config/limits"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
 	"github.com/fekoneko/piximan/internal/downloader/skiplist"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/imageext"
@@ -32,9 +33,11 @@ func download(options *options) {
 	paths := utils.FromPtr(options.Paths, []string{""})
 
 	conf, sessionId := configSessionId(options.Password)
+	r := configRules(conf)
 	l := configLimits(conf)
 	c := client.New(sessionId, l, logger.DefaultLogger)
 	d := downloader.New(c, logger.DefaultLogger)
+	d.AddRules(r...)
 
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
@@ -285,7 +288,25 @@ func configSessionId(password *string) (c *config.Config, sessionId *string) {
 	return c, sessionId
 }
 
-func configLimits(c *config.Config) (l limits.Limits) {
+func configRules(c *config.Config) []rules.Rules {
+	if c == nil {
+		logger.Error("cannot read global download rules configuration: " +
+			"configuration storage is unavailable")
+		promptOrExit(ignoreRulesPrompt)
+		return []rules.Rules{}
+	}
+
+	r, err := c.Rules()
+	if err != nil {
+		logger.Error("cannot read global download rules configuration: %v", err)
+		promptOrExit(ignoreRulesPrompt)
+		return []rules.Rules{}
+	}
+
+	return r
+}
+
+func configLimits(c *config.Config) limits.Limits {
 	if c == nil {
 		logger.Error("cannot read request delays and limits configuration: " +
 			"configuration storage is unavailable")

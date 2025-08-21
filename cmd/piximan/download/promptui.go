@@ -8,7 +8,6 @@ import (
 
 // TODO: look through interractive mode, add descriptions and explanations
 
-var sourceSelectLabel = "Download mode"
 var idOption = "Download by ID"
 var myPublicBookmarksOption = "Download my public bookmarks"
 var myPrivateBookmarksOption = "Download my private bookmarks"
@@ -17,34 +16,28 @@ var inferIdOption = "Infer IDs from path"
 var listOption = "Download from list"
 
 var sourceSelect = promptui.Select{
-	Label: sourceSelectLabel,
+	Label: "Download mode",
 	Items: []string{
 		idOption, myPublicBookmarksOption, myPrivateBookmarksOption,
 		userBookmarksOption, inferIdOption, listOption,
 	},
 }
 
-var idsPromptLabel = "Work IDs"
-
 var idsPrompt = promptui.Prompt{
-	Label: idsPromptLabel,
+	Label: "Work IDs",
 	Validate: func(input string) error {
 		_, err := parseIds(input)
 		return err
 	},
 }
 
-var userIdPromptLabel = "User ID"
-
 var userIdPrompt = promptui.Prompt{
-	Label:    userIdPromptLabel,
+	Label:    "User ID",
 	Validate: utils.ValidateNumber("user ID must be a number"),
 }
 
-var inferIdsPromptLabel = "Paths to directories or patterns to infer IDs from (comma-separated)"
-
 var inferIdsPrompt = promptui.Prompt{
-	Label: inferIdsPromptLabel,
+	Label: "Paths to directories or patterns to infer IDs from (comma-separated)",
 	Validate: func(input string) error {
 		for _, s := range parseStrings(input) {
 			if !fsext.IsInferIdPattern(input) {
@@ -58,65 +51,58 @@ var inferIdsPrompt = promptui.Prompt{
 	},
 }
 
-var listsPromptLabel = "Paths to download list files (comma-separated)"
-
 var listsPrompt = promptui.Prompt{
-	Label: listsPromptLabel,
+	Label: "Paths to download list files (comma-separated)",
 }
 
-var kindSelectLabel = "Type of work to download"
-var kindSelectwithListsLabel = "Default type of work to download"
 var artworkOption = "Artwork"
 var novelOption = "Novel"
 
 func kindSelect(withLists bool) *promptui.Select {
+	const label = "Type of work to download"
+	const withListsLabel = "Default type of work to download"
+
 	return &promptui.Select{
-		Label: utils.If(withLists, kindSelectwithListsLabel, kindSelectLabel),
+		Label: utils.If(withLists, withListsLabel, label),
 		Items: []string{artworkOption, novelOption},
 	}
 }
 
-var tagsPromptLabel = "User-assigned tags (comma-separated or empty)"
-
 var tagsPrompt = promptui.Prompt{
-	Label: tagsPromptLabel,
+	Label: "User-assigned tags (comma-separated or empty)",
 }
 
-var rangePromptLabel = "Download range (from:to, from:, :to or empty)"
-
 var rangePrompt = promptui.Prompt{
-	Label: rangePromptLabel,
+	Label: "Download range (from:to, from:, :to or empty)",
 	Validate: func(input string) error {
 		_, _, err := parseRange(input)
 		return err
 	},
 }
 
-var onlyMetaSelectLabel = "Only download metadata"
-var onlyMetaSelectwithListsLabel = "Only download metadata by default"
 var downloadAllOption = "Download metadata and images"
 var downloadMetaOption = "Only download metadata"
 
 func onlyMetaSelect(withLists bool) *promptui.Select {
+	const label = "Only download metadata"
+	const withListsLabel = "Only download metadata by default"
+
 	return &promptui.Select{
-		Label: utils.If(withLists, onlyMetaSelectwithListsLabel, onlyMetaSelectLabel),
+		Label: utils.If(withLists, withListsLabel, label),
 		Items: []string{downloadAllOption, downloadMetaOption},
 	}
 }
 
-var lowMetaSelectLabel = "Don't get full metadata (less requests)"
 var lowMetaOption = "Save partial metadata"
 var fullMetaOption = "Get full metadata"
 
 var lowMetaSelect = promptui.Select{
-	Label: lowMetaSelectLabel,
+	Label: "Don't get full metadata (less requests)",
 	Items: []string{lowMetaOption, fullMetaOption},
 }
 
-var skipsPromptLabel = "Skip works present in the directory (path, infer id pattern or nothing)"
-
 var skipsPrompt = promptui.Prompt{
-	Label: skipsPromptLabel,
+	Label: "Skip works present in the directory (path, infer id pattern or nothing)",
 	Validate: func(input string) error {
 		for _, s := range parseStrings(input) {
 			if !fsext.IsInferIdPattern(input) {
@@ -130,53 +116,50 @@ var skipsPrompt = promptui.Prompt{
 	},
 }
 
-var untilSkipSelectLabel = "Pick bookmark pages fetching strategy"
 var untilSkipOption = "Fetch new bookmarks until fully downloaded bookmark page is reached"
 var allPagesOption = "Fetch and check all bookmarks"
 
 var untilSkipSelect = promptui.Select{
-	Label: untilSkipSelectLabel,
+	Label: "Pick bookmark pages fetching strategy",
 	Items: []string{untilSkipOption, allPagesOption},
 }
 
-var sizeSelectLabel = "Size of downloaded images"
-var sizeSelectwithListsLabel = "Default size of downloaded images"
 var thumbnailSizeOption = "Thumbnail"
 var smallSizeOption = "Small"
 var mediumSizeOption = "Medium"
 var originalSizeOption = "Original"
 
 func sizeSelect(withLists bool) *promptui.Select {
+	const label = "Size of downloaded images"
+	const withListsLabel = "Default size of downloaded images"
+
 	return &promptui.Select{
-		Label:     utils.If(withLists, sizeSelectwithListsLabel, sizeSelectLabel),
+		Label:     utils.If(withLists, withListsLabel, label),
 		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
 		CursorPos: 3,
 	}
 }
 
-var pathSelectLabel = "Where to save downloaded works?"
 var inferredPathOption = "Save to inferred path"
 var customPathOption = "Specify different path"
 
 var pathSelect = promptui.Select{
-	Label: pathSelectLabel,
+	Label: "Where to save downloaded works?",
 	Items: []string{inferredPathOption, customPathOption},
 }
 
-var pathsPromptLabel = "Save to directory (one or multiple comma-separated)"
-var pathsPromptwithListsLabel = "Default saving path (one or multiple comma-separated)"
-
 func pathsPrompt(withLists bool) *promptui.Prompt {
+	const label = "Save to directory (one or multiple comma-separated)"
+	const withListsLabel = "Default saving path (one or multiple comma-separated)"
+
 	return &promptui.Prompt{
-		Label:    utils.If(withLists, pathsPromptwithListsLabel, pathsPromptLabel),
+		Label:    utils.If(withLists, withListsLabel, label),
 		Validate: fsext.WorkPathPatternValid,
 	}
 }
 
-var rulesPromptLabel = "Path to download rules file (leave empty to download all)"
-
 var rulesPrompt = promptui.Prompt{
-	Label: rulesPromptLabel,
+	Label: "Path to download rules file (leave empty to download all)",
 }
 
 var passwordPrompt = promptui.Prompt{
@@ -190,6 +173,11 @@ var NoOption = "No"
 
 var ignoreAuthorizationPrompt = promptui.Select{
 	Label: "Use only anonymous requests?",
+	Items: []string{YesOption, NoOption},
+}
+
+var ignoreRulesPrompt = promptui.Select{
+	Label: "Ignore global download rules?",
 	Items: []string{YesOption, NoOption},
 }
 

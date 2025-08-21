@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// TODO: move to internal/promptuiext and add more validation functions?
+// TODO: move to internal/promptuiext and add more validation functions
 
 func parseIds(input string) ([]uint64, error) {
 	strs := parseStrings(input)

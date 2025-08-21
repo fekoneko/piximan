@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fekoneko/piximan/internal/config/limits"
+	"github.com/fekoneko/piximan/internal/client/limits"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 

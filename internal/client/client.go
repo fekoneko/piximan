@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/fekoneko/piximan/internal/config/limits"
+	"github.com/fekoneko/piximan/internal/client/limits"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/syncext"
 	"github.com/fekoneko/piximan/internal/utils"

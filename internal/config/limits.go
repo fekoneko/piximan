@@ -5,8 +5,8 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/fekoneko/piximan/internal/config/limits"
-	"github.com/fekoneko/piximan/internal/config/limits/dto"
+	"github.com/fekoneko/piximan/internal/client/limits"
+	"github.com/fekoneko/piximan/internal/config/dto"
 	"github.com/fekoneko/piximan/internal/logger"
 	"gopkg.in/yaml.v2"
 )
@@ -60,8 +60,9 @@ func (c *Config) ResetLimits() error {
 	defer c.limitsMutex.Unlock()
 
 	err := os.Remove(limitsPath)
-	if err == nil {
-		c.limits = limits.Default()
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
 	}
-	return err
+	c.limits = limits.Default()
+	return nil
 }

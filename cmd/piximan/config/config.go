@@ -1,9 +1,12 @@
 package config
 
 import (
+	"path/filepath"
 	"time"
 
 	appconfig "github.com/fekoneko/piximan/internal/config"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
@@ -16,6 +19,13 @@ func config(options *options) {
 	c, err := appconfig.New(options.Password)
 	logger.MaybeFatal(err, "failed to open config storage")
 
+	if options.Reset != nil && *options.Reset {
+		err := c.Reset()
+		logger.MaybeSuccess(err, "configuration was reset")
+		logger.MaybeFatal(err, "failed to reset configuration")
+		return
+	}
+
 	if options.ResetSession != nil && *options.ResetSession {
 		err := c.ResetSessionId()
 		logger.MaybeSuccess(err, "session id was reset")
@@ -27,6 +37,29 @@ func config(options *options) {
 			utils.If(options.Password != nil, " and encrypted with password", ""),
 		)
 		logger.MaybeFatal(err, "failed to set session id")
+	}
+
+	if options.ResetRules != nil && *options.ResetRules {
+		err := c.ResetRules()
+		logger.MaybeSuccess(err, "global download rules were reset")
+		logger.MaybeFatal(err, "failed to reset global download rules")
+
+	} else if options.Rules != nil {
+		rules := make([]rules.Rules, 0, len(*options.Rules))
+		seen := make(map[string]bool, len(*options.Rules))
+		for _, rawRulesPath := range *options.Rules {
+			rulesPath := filepath.Clean(rawRulesPath)
+			if seen[rulesPath] {
+				continue
+			}
+			seen[rulesPath] = true
+			r, err := fsext.ReadRules(rulesPath)
+			logger.MaybeFatal(err, "cannot read download rules from %v", rulesPath)
+			rules = append(rules, *r)
+		}
+		err := c.SetRules(rules)
+		logger.MaybeSuccess(err, "global download rules were set")
+		logger.MaybeFatal(err, "failed to set global download rules")
 	}
 
 	if options.ResetLimits != nil && *options.ResetLimits {
