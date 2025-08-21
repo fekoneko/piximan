@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/jessevdk/go-flags"
 )
 
@@ -22,14 +23,27 @@ func nonInteractive() {
 	}
 
 	if options.SessionId != nil && options.ResetSession != nil {
-		fmt.Println("`-s, --session-id' cannot be used with `--no-session' flag")
+		fmt.Println("`-s, --session-id' cannot be used with `--reset-session' flag")
 		os.Exit(2)
 	}
 
-	if (options.PximgMaxPending != nil || options.PximgDelay != nil ||
-		options.DefaultMaxPending != nil || options.DefaultDelay != nil) &&
-		options.ResetConfig != nil {
-		fmt.Println("no configuration parameters can be used with `--default' flag")
+	if options.Rules != nil && options.ResetRules != nil {
+		fmt.Println("`-r, --rules' cannot be used with `--reset-rules' flag")
+		os.Exit(2)
+	}
+
+	if utils.SomeDefined(options.MaxPending, options.Delay, options.PximgMaxPending, options.PximgDelay) &&
+		options.ResetLimits != nil {
+		fmt.Println("request delays and limits parameters cannot be used with `--reset-limits' flag")
+		os.Exit(2)
+	}
+
+	if utils.SomeDefined(
+		options.SessionId, options.Password, options.Rules,
+		options.MaxPending, options.Delay, options.PximgMaxPending, options.PximgDelay,
+		options.ResetSession, options.ResetRules, options.ResetLimits,
+	) && options.Reset != nil {
+		fmt.Println(("no other flags can be used when `--reset' is provided"))
 		os.Exit(2)
 	}
 

@@ -8,36 +8,47 @@ import (
 )
 
 func interactive() {
-	withSessionId, withRequestParams, resetSession, resetConfig := selectMode()
+	withSessionId, withRules, withLimits, resetSession, resetRules, resetLimits, reset := selectMode()
 	sessionId := promptSessionId(withSessionId)
 	password := promptPassword(withSessionId)
-	defaultMaxPending := promptRequestParamWith(withRequestParams, &defaultMaxPendingPrompt)
-	defaultDelay := promptRequestParamWith(withRequestParams, &defaultDelayPrompt)
-	pximgMaxPending := promptRequestParamWith(withRequestParams, &pximgMaxPendingPrompt)
-	pximgDelay := promptRequestParamWith(withRequestParams, &pximgDelayPrompt)
+	rules := promptRules(withRules)
+	defaultMaxPending := promptLimitWith(withLimits, &defaultMaxPendingPrompt)
+	defaultDelay := promptLimitWith(withLimits, &defaultDelayPrompt)
+	pximgMaxPending := promptLimitWith(withLimits, &pximgMaxPendingPrompt)
+	pximgDelay := promptLimitWith(withLimits, &pximgDelayPrompt)
 
 	config(&options{
-		SessionId:         sessionId,
-		Password:          password,
-		PximgMaxPending:   pximgMaxPending,
-		PximgDelay:        pximgDelay,
-		DefaultMaxPending: defaultMaxPending,
-		DefaultDelay:      defaultDelay,
-		ResetSession:      &resetSession,
-		ResetConfig:       &resetConfig,
+		SessionId:       sessionId,
+		Password:        password,
+		Rules:           rules,
+		PximgMaxPending: pximgMaxPending,
+		PximgDelay:      pximgDelay,
+		MaxPending:      defaultMaxPending,
+		Delay:           defaultDelay,
+		ResetSession:    &resetSession,
+		ResetRules:      &resetRules,
+		ResetLimits:     &resetLimits,
+		Reset:           &reset,
 	})
 }
 
-func selectMode() (withSessionId bool, withRequestParams bool, resetSession bool, resetConfig bool) {
+func selectMode() (
+	withSessionId bool, withRules bool, withLimits bool,
+	resetSession bool, resetRules bool, resetLimits bool, reset bool,
+) {
 	_, mode, err := modeSelect.Run()
 	logger.MaybeFatal(err, "failed to read configuration mode")
 
 	withSessionId = mode == sessionIdOption
-	withRequestParams = mode == requestParamsOption
+	withRules = mode == rulesOption
+	withLimits = mode == limitsOption
 	resetSession = mode == resetSessionOption
-	resetConfig = mode == resetConfigOption
+	resetRules = mode == resetRulesOption
+	resetLimits = mode == resetLimitsOption
+	reset = mode == resetOption
 
-	if !withSessionId && !withRequestParams && !resetSession && !resetConfig {
+	if !withSessionId && !withRules && !withLimits &&
+		!resetSession && !resetRules && !resetLimits && !reset {
 		logger.Fatal("incorrect configuration mode: %v", mode)
 	}
 	return
@@ -60,11 +71,28 @@ func promptPassword(withSessionId bool) *string {
 
 	password, err := passwordPrompt.Run()
 	logger.MaybeFatal(err, "failed to read password")
+	if password == "" {
+		return nil
+	}
 	return &password
 }
 
-func promptRequestParamWith(withRequestParams bool, prompt *promptui.Prompt) *uint64 {
-	if !withRequestParams {
+func promptRules(withRules bool) *[]string {
+	if !withRules {
+		return nil
+	}
+
+	rules, err := rulesPrompt.Run()
+	logger.MaybeFatal(err, "failed to read download rules")
+	parsed := parseStrings(rules)
+	if len(parsed) == 0 {
+		return nil
+	}
+	return &parsed
+}
+
+func promptLimitWith(withLimits bool, prompt *promptui.Prompt) *uint64 {
+	if !withLimits {
 		return nil
 	}
 

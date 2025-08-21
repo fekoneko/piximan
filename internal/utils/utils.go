@@ -104,6 +104,15 @@ func ExactlyOneDefined(values ...any) bool {
 	return defined
 }
 
+func SomeDefined(values ...any) bool {
+	for _, value := range values {
+		if reflect.ValueOf(value).Pointer() != 0 {
+			return true
+		}
+	}
+	return false
+}
+
 func MapFindValue[K comparable, V comparable](m map[K]V, value V) (key K, ok bool) {
 	for k, v := range m {
 		if v == value {
@@ -111,6 +120,15 @@ func MapFindValue[K comparable, V comparable](m map[K]V, value V) (key K, ok boo
 		}
 	}
 	return key, false
+}
+
+// Copies pointer value and returns a pointer to it.
+func Copy[T any](ptr *T) *T {
+	if ptr == nil {
+		return nil
+	}
+	value := *ptr
+	return &value
 }
 
 // Returns singular if n is 1. Use to pluralize words.

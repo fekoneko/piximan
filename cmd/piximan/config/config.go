@@ -1,9 +1,12 @@
 package config
 
 import (
+	"path/filepath"
 	"time"
 
 	appconfig "github.com/fekoneko/piximan/internal/config"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
+	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
@@ -13,49 +16,79 @@ func config(options *options) {
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
 
-	storage, err := appconfig.New(options.Password)
+	c, err := appconfig.New(options.Password)
 	logger.MaybeFatal(err, "failed to open config storage")
 
-	if utils.FromPtr(options.ResetSession, false) {
-		err := storage.RemoveSessionId()
-		logger.MaybeSuccess(err, "session id was removed")
-		logger.MaybeFatal(err, "failed to remove session id")
+	if options.Reset != nil && *options.Reset {
+		err := c.Reset()
+		logger.MaybeSuccess(err, "configuration was reset")
+		logger.MaybeFatal(err, "failed to reset configuration")
+		return
+	}
+
+	if options.ResetSession != nil && *options.ResetSession {
+		err := c.ResetSessionId()
+		logger.MaybeSuccess(err, "session id was reset")
+		logger.MaybeFatal(err, "failed to reset session id")
+
 	} else if options.SessionId != nil {
-		err = storage.WriteSessionId(*options.SessionId)
+		err = c.SetSessionId(*options.SessionId)
 		logger.MaybeSuccess(err, "session id was set%v",
 			utils.If(options.Password != nil, " and encrypted with password", ""),
 		)
 		logger.MaybeFatal(err, "failed to set session id")
 	}
 
-	if utils.FromPtr(options.ResetConfig, false) {
-		err := storage.Reset()
-		logger.MaybeSuccess(err, "configuration parameters were reset")
-		logger.MaybeFatal(err, "failed to reset configuration parameters")
-		return
+	if options.ResetRules != nil && *options.ResetRules {
+		err := c.ResetRules()
+		logger.MaybeSuccess(err, "global download rules were reset")
+		logger.MaybeFatal(err, "failed to reset global download rules")
+
+	} else if options.Rules != nil {
+		rs := make([]rules.Rules, 0, len(*options.Rules))
+		seen := make(map[string]bool, len(*options.Rules))
+		for _, rawRulesPath := range *options.Rules {
+			rulesPath := filepath.Clean(rawRulesPath)
+			if seen[rulesPath] {
+				continue
+			}
+			seen[rulesPath] = true
+			r, warning, err := fsext.ReadRules(rulesPath)
+			logger.MaybeWarning(warning, "while reading download rules from %v", rulesPath)
+			logger.MaybeFatal(err, "cannot read download rules from %v", rulesPath)
+			rs = append(rs, *r)
+		}
+		err := c.SetRules(rs)
+		logger.MaybeSuccess(err, "global download rules were set")
+		logger.MaybeFatal(err, "failed to set global download rules")
 	}
 
-	changed := false
+	if options.ResetLimits != nil && *options.ResetLimits {
+		err := c.ResetLimits()
+		logger.MaybeSuccess(err, "request delays and limits were reset")
+		logger.MaybeFatal(err, "failed to reset request delays and limits")
 
-	if options.PximgMaxPending != nil {
-		storage.PximgMaxPending = *options.PximgMaxPending
-		changed = true
-	}
-	if options.PximgDelay != nil {
-		storage.PximgDelay = time.Duration(*options.PximgDelay) * time.Second
-		changed = true
-	}
-	if options.DefaultMaxPending != nil {
-		storage.DefaultMaxPending = *options.DefaultMaxPending
-		changed = true
-	}
-	if options.DefaultDelay != nil {
-		storage.DefaultDelay = time.Duration(*options.DefaultDelay) * time.Second
-		changed = true
-	}
-	if changed {
-		err = storage.Write()
-		logger.MaybeSuccess(err, "configuration parameters were saved")
-		logger.MaybeFatal(err, "failed to save configuration parameters")
+	} else if options.MaxPending != nil || options.Delay != nil ||
+		options.PximgMaxPending != nil || options.PximgDelay != nil {
+		l, warning, err := c.Limits()
+		logger.MaybeWarning(warning, "while reading request delays and limits")
+		logger.MaybeFatal(err, "failed to read request delays and limits")
+
+		if options.MaxPending != nil {
+			l.MaxPending = *options.MaxPending
+		}
+		if options.Delay != nil {
+			l.Delay = time.Duration(*options.Delay) * time.Second
+		}
+		if options.PximgMaxPending != nil {
+			l.PximgMaxPending = *options.PximgMaxPending
+		}
+		if options.PximgDelay != nil {
+			l.PximgDelay = time.Duration(*options.PximgDelay) * time.Second
+		}
+
+		err = c.SetLimits(l)
+		logger.MaybeSuccess(err, "request delays and limits were configured")
+		logger.MaybeFatal(err, "failed to configure request delays and limits")
 	}
 }

@@ -3,8 +3,8 @@ package client
 import (
 	"net/http"
 	"sync"
-	"time"
 
+	"github.com/fekoneko/piximan/internal/client/limits"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/syncext"
 	"github.com/fekoneko/piximan/internal/utils"
@@ -21,11 +21,7 @@ type Client struct {
 	defaultRequestGroup *syncext.RequestGroup
 }
 
-func New(
-	sessionId *string, logger *logger.Logger,
-	piximgMaxPending uint64, piximgDelay time.Duration,
-	defaultMaxPending uint64, defaultDelay time.Duration,
-) *Client {
+func New(sessionId *string, l limits.Limits, logger *logger.Logger) *Client {
 
 	return &Client{
 		_sessionId:          sessionId,
@@ -33,8 +29,8 @@ func New(
 		_client:             &http.Client{},
 		clientMutex:         &sync.Mutex{},
 		logger:              logger,
-		pximgRequestGroup:   syncext.NewRequestGroup(piximgMaxPending, piximgDelay),
-		defaultRequestGroup: syncext.NewRequestGroup(defaultMaxPending, defaultDelay),
+		pximgRequestGroup:   syncext.NewRequestGroup(l.PximgMaxPending, l.PximgDelay),
+		defaultRequestGroup: syncext.NewRequestGroup(l.MaxPending, l.Delay),
 	}
 }
 

@@ -40,6 +40,12 @@ func (l *Logger) Fatal(message string, args ...any) {
 	os.Exit(1)
 }
 
+func (l *Logger) MaybeInfo(err error, message string, args ...any) {
+	if err == nil {
+		l.Info(message, args...)
+	}
+}
+
 func (l *Logger) MaybeSuccess(err error, message string, args ...any) {
 	if err == nil {
 		l.Success(message, args...)
