@@ -52,7 +52,86 @@ type Rules struct {
 }
 
 func RulesToDto(r *rules.Rules) *Rules {
-	return &Rules{} // TODO: implement
+	var titleRegexp *string
+	if r.TitleRegexp != nil {
+		titleRegexp = utils.ToPtr(r.TitleRegexp.String())
+	}
+
+	var kinds *[]string
+	if r.Kinds != nil {
+		kinds = utils.ToPtr(make([]string, len(*r.Kinds)))
+		for i, kind := range *r.Kinds {
+			(*kinds)[i] = kind.String()
+		}
+	}
+
+	var descriptionRegexp *string
+	if r.DescriptionRegexp != nil {
+		descriptionRegexp = utils.ToPtr(r.DescriptionRegexp.String())
+	}
+
+	var restrictions *[]string
+	if r.Restrictions != nil {
+		restrictions = utils.ToPtr(make([]string, len(*r.Restrictions)))
+		for i, restriction := range *r.Restrictions {
+			(*restrictions)[i] = restriction.String()
+		}
+	}
+
+	var uploadedBefore *string
+	if r.UploadedBefore != nil {
+		uploadedBefore = utils.FormatUTCTimePtr(r.UploadedBefore)
+	}
+
+	var uploadedAfter *string
+	if r.UploadedAfter != nil {
+		uploadedAfter = utils.FormatUTCTimePtr(r.UploadedAfter)
+	}
+
+	var seriesTitleRegexp *string
+	if r.SeriesTitleRegexp != nil {
+		seriesTitleRegexp = utils.ToPtr(r.SeriesTitleRegexp.String())
+	}
+
+	return &Rules{
+		Version:                utils.ToPtr(RulesVersion),
+		Ids:                    r.Ids,
+		NotIds:                 r.NotIds,
+		TitleContains:          r.TitleContains,
+		TitleNotContains:       r.TitleNotContains,
+		TitleRegexp:            titleRegexp,
+		Kinds:                  kinds,
+		DescriptionContains:    r.DescriptionContains,
+		DescriptionNotContains: r.DescriptionNotContains,
+		DescriptionRegexp:      descriptionRegexp,
+		UserIds:                r.UserIds,
+		NotUserIds:             r.NotUserIds,
+		UserNames:              r.UserNames,
+		NotUserNames:           r.NotUserNames,
+		Restrictions:           restrictions,
+		Ai:                     r.Ai,
+		Original:               r.Original,
+		PagesLessThan:          r.PagesLessThan,
+		PagesMoreThan:          r.PagesMoreThan,
+		ViewsLessThan:          r.ViewsLessThan,
+		ViewsMoreThan:          r.ViewsMoreThan,
+		BookmarksLessThan:      r.BookmarksLessThan,
+		BookmarksMoreThan:      r.BookmarksMoreThan,
+		LikesLessThan:          r.LikesLessThan,
+		LikesMoreThan:          r.LikesMoreThan,
+		CommentsLessThan:       r.CommentsLessThan,
+		CommentsMoreThan:       r.CommentsMoreThan,
+		UploadedBefore:         uploadedBefore,
+		UploadedAfter:          uploadedAfter,
+		Series:                 r.Series,
+		SeriesIds:              r.SeriesIds,
+		NotSeriesIds:           r.NotSeriesIds,
+		SeriesTitleContains:    r.SeriesTitleContains,
+		SeriesTitleNotContains: r.SeriesTitleNotContains,
+		SeriesTitleRegexp:      seriesTitleRegexp,
+		Tags:                   r.Tags,
+		NotTags:                r.NotTags,
+	}
 }
 
 // Missing version field is not considered warning as we're not forcing user to specify it.
