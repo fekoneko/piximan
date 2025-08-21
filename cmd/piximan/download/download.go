@@ -178,9 +178,11 @@ func download(options *options) {
 	}
 
 	if options.Rules != nil {
-		rules, err := fsext.ReadRules(*options.Rules)
-		logger.MaybeFatal(err, "cannot read download rules from %v", *options.Rules)
-		d.AddRules(rules)
+		for _, rulesPath := range *options.Rules {
+			rules, err := fsext.ReadRules(rulesPath)
+			logger.MaybeFatal(err, "cannot read download rules from %v", rulesPath)
+			d.AddRules(*rules)
+		}
 	}
 
 	if options.Skips != nil && len(*options.Skips) != 0 {

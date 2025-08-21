@@ -68,6 +68,7 @@ const downloadHelp = //
 
 --rules      Path to YAML file with download rules. The download rules are used to
  -r          filter wich works should be downloaded. Run 'piximan help rules' for more info.
+             May be provided multiple times.
 
 --skip       All works already present in the provided directory will be skipped when downloading.
  -S          The search is recursive. If you don't use metadata.yaml files in your collection,

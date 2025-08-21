@@ -6,6 +6,8 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
+// TODO: look through interractive mode, add descriptions and explanations
+
 var sourceSelectLabel = "Download mode"
 var idOption = "Download by ID"
 var myPublicBookmarksOption = "Download my public bookmarks"

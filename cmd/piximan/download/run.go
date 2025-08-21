@@ -10,7 +10,7 @@ type options struct {
 	Kind       *string   `short:"t" long:"type"`
 	Size       *uint     `short:"s" long:"size"`
 	OnlyMeta   *bool     `short:"m" long:"only-meta"`
-	Rules      *string   `short:"r" long:"rules"`
+	Rules      *[]string `short:"r" long:"rules"`
 	Skips      *[]string `short:"S" long:"skip"`
 	Tags       *[]string `short:"G" long:"tag"`
 	FromOffset *uint64   `short:"F" long:"from"`

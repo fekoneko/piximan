@@ -6,9 +6,9 @@ import (
 )
 
 // Set rules that will be used to filter downloaded works. Thread-safe.
-func (d *Downloader) AddRules(rules *rules.Rules) {
+func (d *Downloader) AddRules(rules ...rules.Rules) {
 	d.rulesMutex.Lock()
-	d.rules = append(d.rules, *rules)
+	d.rules = append(d.rules, rules...)
 	d.rulesMutex.Unlock()
 }
 

@@ -239,11 +239,12 @@ func promptPaths(withInferIds bool, withLists bool) *[]string {
 	return &paths
 }
 
-func promptRules() *string {
+func promptRules() *[]string {
 	rules, err := rulesPrompt.Run()
-	logger.MaybeFatal(err, "failed to read rules path")
-	if rules == "" {
+	logger.MaybeFatal(err, "failed to read rules paths")
+	parsed := parseStrings(rules)
+	if len(parsed) == 0 {
 		return nil
 	}
-	return &rules
+	return &parsed
 }
