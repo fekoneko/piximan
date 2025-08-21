@@ -12,7 +12,7 @@ import (
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindNovel, false) || !d.matchNovelId(id) {
+	if d.skipped(id, queue.ItemKindNovel, false) || !d.matchNovelId(id) {
 		return nil, ErrSkipped
 	}
 	d.logger.Info("downloading metadata for novel %v", id)
@@ -32,7 +32,7 @@ func (d *Downloader) NovelMeta(id uint64, paths []string) (*work.Work, error) {
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []string) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindNovel, false) || !d.matchNovel(id, w, true) {
+	if d.skipped(id, queue.ItemKindNovel, false) || !d.matchNovel(id, w, true) {
 		return nil, ErrSkipped
 	}
 	assets := []fsext.Asset{}
@@ -43,7 +43,7 @@ func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []stri
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
 func (d *Downloader) Novel(id uint64, size imageext.Size, paths []string) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindNovel, false) || !d.matchNovelId(id) {
+	if d.skipped(id, queue.ItemKindNovel, false) || !d.matchNovelId(id) {
 		return nil, ErrSkipped
 	}
 	d.logger.Info("downloading novel %v", id)
@@ -86,7 +86,7 @@ func (d *Downloader) Novel(id uint64, size imageext.Size, paths []string) (*work
 func (d *Downloader) NovelWithKnown(
 	id uint64, size imageext.Size, coverUrl string, paths []string,
 ) (*work.Work, error) {
-	if d.ignored(id, queue.ItemKindNovel, false) {
+	if d.skipped(id, queue.ItemKindNovel, false) {
 		return nil, ErrSkipped
 	} else if matches, needFull := d.matchNovelNeedFull(id, nil); !matches {
 		return nil, ErrSkipped

@@ -5,7 +5,7 @@ import (
 	"regexp"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
-	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
@@ -48,7 +48,7 @@ type Rules struct {
 	NotTags                *[]string `yaml:"not_tags"`
 }
 
-func (dto *Rules) FromDto() (*queue.Rules, error) {
+func (dto *Rules) FromDto() (*rules.Rules, error) {
 	var titleRegexp *regexp.Regexp
 	if dto.TitleRegexp != nil {
 		var err error
@@ -105,7 +105,7 @@ func (dto *Rules) FromDto() (*queue.Rules, error) {
 		}
 	}
 
-	rules := &queue.Rules{
+	rules := &rules.Rules{
 		Ids:                    dto.Ids,
 		NotIds:                 dto.NotIds,
 		TitleContains:          dto.TitleContains,

@@ -6,16 +6,14 @@ import (
 	"strings"
 )
 
+// TODO: move to internal/promptuiext and add more validation functions?
+
 func parseIds(input string) ([]uint64, error) {
-	parts := strings.Split(input, ",")
+	strs := parseStrings(input)
 	ids := []uint64{}
 
-	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed == "" {
-			continue
-		}
-		id, err := strconv.ParseUint(trimmed, 10, 64)
+	for _, str := range strs {
+		id, err := strconv.ParseUint(str, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("IDs must be a comma-separated list of numbers")
 		}
@@ -29,15 +27,29 @@ func parseIds(input string) ([]uint64, error) {
 }
 
 func parseStrings(input string) []string {
-	parts := strings.Split(input, ",")
 	strs := []string{}
+	builder := strings.Builder{}
+	runes := []rune(input)
 
-	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed != "" {
-			strs = append(strs, trimmed)
+	for i := 0; i < len(runes); i++ {
+		if i > 0 && runes[i-1] == '\\' {
+			builder.WriteRune(runes[i])
+		} else if runes[i] == '\\' {
+		} else if runes[i] == ',' || runes[i] == ';' || runes[i] == '、' || runes[i] == '；' {
+			str := strings.Trim(builder.String(), " 　\t\r\n")
+			if str != "" {
+				strs = append(strs, str)
+			}
+			builder.Reset()
+		} else {
+			builder.WriteRune(runes[i])
 		}
 	}
+	str := strings.Trim(builder.String(), " 　\t\r\n")
+	if str != "" {
+		strs = append(strs, str)
+	}
+
 	return strs
 }
 

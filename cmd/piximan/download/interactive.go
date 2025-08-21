@@ -10,51 +10,51 @@ import (
 )
 
 func interactive() {
-	ids, bookmarks, private, inferId, list := selectSource()
-	withQueue := list != nil
-	withInferId := inferId != nil
+	ids, bookmarks, private, inferIds, lists := selectSource()
+	withLists := lists != nil
+	withInferIds := inferIds != nil
 	withBookmarks := bookmarks != nil
 
-	kind := selectKind(withQueue)
+	kind := selectKind(withLists)
 	tags := promptTags(withBookmarks)
 	fromOffset, toOffset := promptRange(withBookmarks)
-	onlyMeta := selectOnlyMeta(withQueue)
+	onlyMeta := selectOnlyMeta(withLists)
 	lowMeta := selectLowMeta(withBookmarks, kind, onlyMeta)
-	collection := promptCollection(withBookmarks)
-	withCollection := collection != nil
-	fresh := selectFresh(withCollection)
-	size := selectSize(withQueue, onlyMeta)
-	path := promptPath(withInferId, withQueue)
+	skips := promptSkips(withBookmarks)
+	withSkips := skips != nil
+	untilSkip := selectUntilSkip(withSkips)
+	size := selectSize(withLists, onlyMeta)
+	paths := promptPaths(withInferIds, withLists)
 	rules := promptRules()
 
 	fmt.Println()
 	download(&options{
 		Ids:        ids,
 		Bookmarks:  bookmarks,
-		List:       list,
-		InferId:    inferId,
+		Lists:      lists,
+		InferIds:   inferIds,
 		Kind:       &kind,
 		Size:       size,
 		OnlyMeta:   &onlyMeta,
 		Rules:      rules,
-		Collection: collection,
+		Skips:      skips,
 		Tags:       tags,
 		FromOffset: fromOffset,
 		ToOffset:   toOffset,
 		Private:    private,
 		LowMeta:    lowMeta,
-		Fresh:      fresh,
-		Path:       path,
+		UntilSkip:  untilSkip,
+		Paths:      paths,
 	})
 }
 
-func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *string, list *string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIds *[]string, lists *[]string) {
 	_, mode, err := sourceSelect.Run()
 	logger.MaybeFatal(err, "failed to read mode")
 
 	switch mode {
 	case idOption:
-		idsString, err := idPrompt.Run()
+		idsString, err := idsPrompt.Run()
 		logger.MaybeFatal(err, "failed to read IDs")
 		parsed, err := parseIds(idsString)
 		logger.MaybeFatal(err, "failed to parse IDs")
@@ -74,14 +74,16 @@ func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *s
 		bookmarks = utils.ToPtr(userId)
 
 	case inferIdOption:
-		result, err := inferIdPrompt.Run()
-		logger.MaybeFatal(err, "failed to read pattern")
-		inferId = &result
+		result, err := inferIdsPrompt.Run()
+		logger.MaybeFatal(err, "failed to read infer id option")
+		parsed := parseStrings(result)
+		inferIds = &parsed
 
-	case queueOption:
-		result, err := listPrompt.Run()
-		logger.MaybeFatal(err, "failed to read list path")
-		list = &result
+	case listOption:
+		result, err := listsPrompt.Run()
+		logger.MaybeFatal(err, "failed to read list paths")
+		parsed := parseStrings(result)
+		lists = &parsed
 
 	default:
 		logger.Fatal("incorrect download mode: %v", mode)
@@ -89,8 +91,8 @@ func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferId *s
 	return
 }
 
-func selectKind(withQueue bool) string {
-	_, kind, err := kindSelect(withQueue).Run()
+func selectKind(withLists bool) string {
+	_, kind, err := kindSelect(withLists).Run()
 	logger.MaybeFatal(err, "failed to read work type")
 
 	switch kind {
@@ -109,7 +111,7 @@ func promptTags(withBookmarks bool) *[]string {
 		return nil
 	}
 
-	tagsString, err := tagsPrompts.Run()
+	tagsString, err := tagsPrompt.Run()
 	logger.MaybeFatal(err, "failed to read tags")
 	tags := parseStrings(tagsString)
 	if len(tags) == 0 {
@@ -130,8 +132,8 @@ func promptRange(withBookmarks bool) (fromOffset *uint64, toOffset *uint64) {
 	return
 }
 
-func selectOnlyMeta(withQueue bool) bool {
-	_, option, err := onlyMetaSelect(withQueue).Run()
+func selectOnlyMeta(withLists bool) bool {
+	_, option, err := onlyMetaSelect(withLists).Run()
 	logger.MaybeFatal(err, "failed to read downloaded files choice")
 
 	switch option {
@@ -164,42 +166,43 @@ func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
 	}
 }
 
-func promptCollection(withBookmarks bool) *string {
+func promptSkips(withBookmarks bool) *[]string {
 	if !withBookmarks {
 		return nil
 	}
-	collection, err := collectionPrompt.Run()
-	logger.MaybeFatal(err, "failed to read collection")
-	if collection == "" {
+	skipsString, err := skipsPrompt.Run()
+	logger.MaybeFatal(err, "failed to read skip option")
+	skips := parseStrings(skipsString)
+	if len(skips) == 0 {
 		return nil
 	}
-	return &collection
+	return &skips
 }
 
-func selectFresh(withCollection bool) *bool {
-	if !withCollection {
+func selectUntilSkip(withSkip bool) *bool {
+	if !withSkip {
 		return nil
 	}
-	_, option, err := freshSelect.Run()
-	logger.MaybeFatal(err, "failed to read fresh flag")
+	_, option, err := untilSkipSelect.Run()
+	logger.MaybeFatal(err, "failed to read until skip flag")
 
 	switch option {
-	case freshPagesOption:
+	case untilSkipOption:
 		return utils.ToPtr(true)
 	case allPagesOption:
 		return utils.ToPtr(false)
 	default:
-		logger.Fatal("incorrect fresh flag choice: %v", option)
+		logger.Fatal("incorrect until skip flag choice: %v", option)
 		panic("unreachable")
 	}
 }
 
-func selectSize(withQueue bool, onlyMeta bool) *uint {
+func selectSize(withLists bool, onlyMeta bool) *uint {
 	if onlyMeta {
 		return nil
 	}
 
-	_, size, err := sizeSelect(withQueue).Run()
+	_, size, err := sizeSelect(withLists).Run()
 	logger.MaybeFatal(err, "failed to read size")
 
 	switch size {
@@ -221,8 +224,8 @@ func selectSize(withQueue bool, onlyMeta bool) *uint {
 	}
 }
 
-func promptPath(withInferId bool, withQueue bool) *string {
-	if withInferId {
+func promptPaths(withInferIds bool, withLists bool) *[]string {
+	if withInferIds {
 		_, pathChoice, err := pathSelect.Run()
 		logger.MaybeFatal(err, "failed to read path choice")
 		if pathChoice == inferredPathOption {
@@ -230,9 +233,10 @@ func promptPath(withInferId bool, withQueue bool) *string {
 		}
 	}
 
-	path, err := pathPrompt(withQueue).Run()
-	logger.MaybeFatal(err, "failed to read path")
-	return &path
+	pathsString, err := pathsPrompt(withLists).Run()
+	logger.MaybeFatal(err, "failed to read paths")
+	paths := parseStrings(pathsString)
+	return &paths
 }
 
 func promptRules() *string {

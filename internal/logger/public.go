@@ -78,13 +78,13 @@ func (l *Logger) MaybeErrors(errs []error, prefix string, args ...any) {
 
 func (l *Logger) Request(url string) (RemoveBarFunc, UpdateBarFunc) {
 	removeBar, updateBar := l.registerRequest(url, false)
-	l.log(requestPrefix + url)
+	l.log("%v%v", requestPrefix, url)
 	return removeBar, updateBar
 }
 
 func (l *Logger) AuthorizedRequest(url string) (RemoveBarFunc, UpdateBarFunc) {
 	removeBar, updateBar := l.registerRequest(url, true)
-	l.log(authRequestPrefix + url)
+	l.log("%v%v", authRequestPrefix, url)
 	return removeBar, updateBar
 }
 
@@ -106,7 +106,7 @@ func (l *Logger) AddSkippedWork() {
 	l.mutex.Unlock()
 }
 
-func (l *Logger) AddFailedWork(id uint64) {
+func (l *Logger) AddFailedWork(id uint64) { // TODO: pass work's queue.ItemKind as well
 	l.mutex.Lock()
 	l.failedWorkIds = append(l.failedWorkIds, id)
 	l.mutex.Unlock()

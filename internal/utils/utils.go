@@ -112,3 +112,16 @@ func MapFindValue[K comparable, V comparable](m map[K]V, value V) (key K, ok boo
 	}
 	return key, false
 }
+
+// Returns singular if n is 1. Use to pluralize words.
+func IfPlural(n int, singular string, plural string) string {
+	if n == 1 {
+		return singular
+	}
+	return plural
+}
+
+// Returns "s" if n is not 1. Use to pluralize words.
+func Plural(n int) string {
+	return IfPlural(n, "", "s")
+}

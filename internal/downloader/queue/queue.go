@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-
-	"github.com/fekoneko/piximan/internal/imageext"
 )
 
 type Queue []Item

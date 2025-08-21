@@ -2,7 +2,9 @@ package download
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
+	"sync"
 
 	"github.com/fekoneko/piximan/internal/client"
 	"github.com/fekoneko/piximan/internal/collection"
@@ -10,6 +12,7 @@ import (
 	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/downloader/skiplist"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
@@ -23,8 +26,8 @@ func download(options *options) {
 	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
-	fresh := utils.FromPtr(options.Fresh, false)
-	path := utils.FromPtr(options.Path, "")
+	untilSkip := utils.FromPtr(options.UntilSkip, false)
+	paths := utils.FromPtr(options.Paths, []string{""})
 
 	storage, sessionId := configAndSession(options.Password)
 	c := client.New(
@@ -38,53 +41,140 @@ func download(options *options) {
 	defer termext.RestoreInputEcho()
 
 	if options.Ids != nil {
-		paths := []string{path}
 		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
 
 	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
-		paths := []string{path}
 		d.ScheduleMyBookmarks(
 			kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, fresh, paths,
+			size, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.Bookmarks != nil {
 		userId, err := strconv.ParseUint(*options.Bookmarks, 10, 64)
 		logger.MaybeFatal(err, "cannot parse user id %v", *options.Bookmarks)
 
-		paths := []string{path}
 		d.ScheduleBookmarks(
 			userId, kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, fresh, paths,
+			size, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
-	} else if options.InferId != nil {
-		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.InferId)
-		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.InferId)
-		if len(*idPathMap) == 0 {
-			logger.Warning("no ids could be inferred from pattern %v", *options.InferId)
-			return
+	} else if options.InferIds != nil {
+		q := make(queue.Queue, 0)
+		mutex := &sync.Mutex{}
+		waitGroup := &sync.WaitGroup{}
+		seen := make(map[string]bool, len(*options.InferIds))
+
+		for _, rawInferId := range *options.InferIds {
+			inferId := filepath.Clean(rawInferId)
+			if seen[inferId] {
+				continue
+			}
+			seen[inferId] = true
+			waitGroup.Add(1)
+
+			go func() {
+				defer waitGroup.Done()
+
+				var items []queue.Item
+
+				if fsext.IsInferIdPattern(inferId) {
+					idPathsMap, errs := fsext.InferIdsFromPattern(inferId)
+					logger.MaybeErrors(errs, "error while inferring work id from pattern %v", inferId)
+					if len(*idPathsMap) == 0 {
+						logger.Fatal("no ids could be inferred from pattern %v", inferId)
+					}
+
+					items = make([]queue.Item, 0, len(*idPathsMap))
+					for id, paths := range *idPathsMap {
+						items = append(items, queue.Item{
+							Id:       id,
+							Kind:     kind,
+							Size:     size,
+							OnlyMeta: onlyMeta,
+							Paths:    utils.If(options.Paths != nil, paths, paths),
+						})
+					}
+
+				} else {
+					c := collection.New(inferId, logger.DefaultLogger)
+					// TODO: collection.ReadQueue() that will only care about id and kind in metadata.yaml and ignore assets
+					c.Read()
+					artworksIdPathsMap := utils.ToPtr(make(map[uint64][]string))
+					novelsIdPathsMap := utils.ToPtr(make(map[uint64][]string))
+					for w := c.WaitNext(); w != nil; w = c.WaitNext() {
+						if w.Id != nil && w.Kind != nil {
+							// TODO: work.Kind.IsArtwork() / work.Kind.IsNovel()
+							switch *w.Kind {
+							case work.KindIllust, work.KindManga, work.KindUgoira:
+								(*artworksIdPathsMap)[*w.Id] = append((*artworksIdPathsMap)[*w.Id], w.Path)
+							case work.KindNovel:
+								(*novelsIdPathsMap)[*w.Id] = append((*novelsIdPathsMap)[*w.Id], w.Path)
+							}
+						}
+					}
+					if options.Kind != nil && kind == queue.ItemKindArtwork && len(*artworksIdPathsMap) == 0 {
+						logger.Fatal("no works with id and artwork kind found in directory %v", inferId)
+					} else if options.Kind != nil && kind == queue.ItemKindNovel && len(*novelsIdPathsMap) == 0 {
+						logger.Fatal("no works with id and novel kind found in directory %v", inferId)
+					} else if len(*artworksIdPathsMap) == 0 && len(*novelsIdPathsMap) == 0 {
+						logger.Fatal("no works with id and kind found in directory %v", inferId)
+					}
+
+					items = make([]queue.Item, 0, len(*artworksIdPathsMap))
+					if options.Kind == nil || kind == queue.ItemKindArtwork {
+						for id, inferredPaths := range *artworksIdPathsMap {
+							items = append(items, queue.Item{
+								Id:       id,
+								Kind:     queue.ItemKindArtwork,
+								Size:     size,
+								OnlyMeta: onlyMeta,
+								Paths:    utils.If(options.Paths != nil, paths, inferredPaths),
+							})
+						}
+					}
+					if options.Kind == nil || kind == queue.ItemKindNovel {
+						for id, inferredPaths := range *novelsIdPathsMap {
+							items = append(items, queue.Item{
+								Id:       id,
+								Kind:     queue.ItemKindNovel,
+								Size:     size,
+								OnlyMeta: onlyMeta,
+								Paths:    utils.If(options.Paths != nil, paths, inferredPaths),
+							})
+						}
+					}
+				}
+
+				logger.Info(
+					"inferred %v work%v from directory %v",
+					len(items), utils.Plural(len(items)), inferId,
+				)
+				mutex.Lock()
+				q = append(q, items...)
+				mutex.Unlock()
+			}()
 		}
 
-		if options.Path == nil {
-			q := queue.QueueFromMap(idPathMap, kind, size, onlyMeta)
+		waitGroup.Wait()
+		d.ScheduleQueue(&q)
+
+	} else if options.Lists != nil {
+		seen := make(map[string]bool, len(*options.Lists))
+
+		for _, rawListPath := range *options.Lists {
+			listPath := filepath.Clean(rawListPath)
+			if seen[listPath] {
+				continue
+			}
+			seen[listPath] = true
+
+			q, err := fsext.ReadList(listPath, kind, size, onlyMeta, paths)
+			logger.MaybeFatal(err, "cannot read download list from %v", listPath)
+			if len(*q) == 0 {
+				logger.Fatal("no works found in list %v", listPath)
+			}
 			d.ScheduleQueue(q)
-		} else {
-			paths := []string{path}
-			q := queue.QueueFromMapWithPaths(idPathMap, kind, size, onlyMeta, paths)
-			d.ScheduleQueue(q)
 		}
-
-	} else if options.List != nil {
-		paths := []string{path}
-		q, err := fsext.ReadList(*options.List, kind, size, onlyMeta, paths)
-		logger.MaybeFatal(err, "cannot read download list from %v", *options.List)
-		if len(*q) == 0 {
-			logger.Warning("no works found in the list %v", *options.List)
-			return
-		}
-
-		d.ScheduleQueue(q)
 	}
 
 	if options.Rules != nil {
@@ -93,30 +183,63 @@ func download(options *options) {
 		d.SetRules(rules)
 	}
 
-	if options.Collection != nil && fsext.CanBeInferIdPath(*options.Collection) {
-		idPathMap, errs := fsext.InferIdsFromWorkPath(*options.Collection)
-		logger.MaybeErrors(errs, "error while inferring work id from pattern %v", *options.Collection)
-		if len(*idPathMap) == 0 {
-			logger.Warning("no ids could be inferred from pattern %v", *options.Collection)
-			return
+	if options.Skips != nil && len(*options.Skips) != 0 {
+		list := skiplist.New()
+		mutex := &sync.Mutex{}
+		waitGroup := &sync.WaitGroup{}
+		seen := make(map[string]bool, len(*options.Skips))
+
+		for _, rawSkipPath := range *options.Skips {
+			skipPath := filepath.Clean(rawSkipPath)
+			if seen[skipPath] {
+				continue
+			}
+			seen[skipPath] = true
+			waitGroup.Add(1)
+
+			go func() {
+				defer waitGroup.Done()
+
+				numWorks := 0
+				if fsext.IsInferIdPattern(skipPath) {
+					idPathMap, errs := fsext.InferIdsFromPattern(skipPath)
+					logger.MaybeErrors(errs, "error while inferring work id from pattern %v", skipPath)
+					numWorks = len(*idPathMap)
+					if numWorks == 0 {
+						logger.Fatal("no ids could be inferred from pattern %v", skipPath)
+					}
+					mutex.Lock()
+					for id := range *idPathMap {
+						list.Add(id, kind)
+					}
+					mutex.Unlock()
+
+				} else {
+					c := collection.New(skipPath, logger.DefaultLogger)
+					// TODO: collection.ReadQueue() that will only care about id and kind in metadata.yaml and ignore assets
+					c.Read()
+					for w := c.WaitNext(); w != nil; w = c.WaitNext() {
+						if w.Id != nil && w.Kind != nil {
+							mutex.Lock()
+							list.AddWork(w.Work)
+							mutex.Unlock()
+							numWorks++
+						}
+					}
+					if numWorks == 0 {
+						logger.Fatal("no works with id and kind found in directory %v", skipPath)
+					}
+				}
+
+				logger.Info(
+					"%v work%v found in the directory %v will be skipped",
+					numWorks, utils.Plural(numWorks), skipPath,
+				)
+			}()
 		}
-		list := queue.IgnoreListFromMap(idPathMap, kind)
-		d.SetIgnoreList(list)
-	} else if options.Collection != nil {
-		c := collection.New(*options.Collection, logger.DefaultLogger)
-		works := make([]*work.Work, 0)
-		c.Read()
-		for w := c.WaitNext(); w != nil; w = c.WaitNext() {
-			works = append(works, w.Work)
-		}
-		if len(works) == 0 {
-			logger.Fatal("no works found in the collection")
-		} else {
-			logger.Info("%v found in the collection", len(works))
-		}
-		list := queue.IgnoreListFromWorks(works)
-		logger.Info("%v of %v parsed works will be ignored", list.Len(), len(works))
-		d.SetIgnoreList(list)
+
+		waitGroup.Wait()
+		d.SetSkipList(list)
 	}
 
 	logger.Info("created downloader:\n%v", d.String())

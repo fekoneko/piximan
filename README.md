@@ -43,6 +43,7 @@ That's it, enjoy!
 
 ### Authorization
 
+> [!NOTE]
 > If you only download works without age restriction and don't need to fetch user bookmarks,
 > the downloader is usable without authorization.
 
@@ -97,6 +98,7 @@ piximan download \
 
 ### Downloading bookmarks
 
+> [!NOTE]
 > For downloading any bookmarks you need to be authorized (configure the session ID).
 
 You can download your public artwork bookmarks like this:
@@ -177,9 +179,7 @@ You can infer the IDs of works from the given path. For example, this is useful 
 the metadata in the existing collection when coupled with the `--only-meta` flag:
 
 ```shell
-piximan download \
-  --infer-id './artworks/*/* ({id})' \
-  --only-meta
+piximan download --infer-id './artworks/*/* ({id})' --only-meta
 ```
 
 ### Downloading rules
@@ -237,30 +237,30 @@ piximan download --id 12345 --rules './rules.yaml'
 
 ### Syncing bookmarks with existing collection
 
-You can skip works already present in the collection with `--collection` flag:
+You can skip works already present in the directory with `--skip` flag:
 
 ```shell
-piximan download --bookmarks my --collection '.' --path './{user-id}/{id}'
+piximan download --bookmarks my --skip '.' --path './{user-id}/{id}'
 ```
 
-Infer ID pattern can be provided here as well (see `--infer-id` flag). Note tat in this case
+Infer ID pattern can be provided here as well (see `--infer-id` flag). Note that in this case
 all matched work IDs will be assumed to be of type provided with `--type` flag:
 
 ```shell
-piximan download --bookmarks my --collection './*/{id}' --path './{user-id}/{id}'
+piximan download --bookmarks my --skip './*/{id}' --path './{user-id}/{id}'
 ```
 
-While the above commands will skip already downloaded works, it will need to fetch
+While the above commands will skip already downloaded works, piximan will need to fetch
 the list of all your bookmarks to ensure there isn't some older one that isn't present
 in the collection.
 
-Flag `--fresh` will tell the downloader to stop crawling new bookmark pages once it encounters
-a fully ignored one. This may greatly reduce the number of authorized requests to pixiv.net.
+Flag `--until-skip` will tell the downloader to stop crawling new bookmark pages once it encounters
+a fully skipped one. This may greatly reduce the number of authorized requests to pixiv.net.
 
 So for syncing your new bookmarks once in a while you can use the downloader like this:
 
 ```shell
-piximan download --bookmarks my --collection '.' --fresh --path './{user-id}/{id}'
+piximan download --bookmarks my --skip '.' --until-skip --path './{user-id}/{id}'
 ```
 
 ### Help

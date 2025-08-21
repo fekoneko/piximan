@@ -20,7 +20,7 @@ func (l *Logger) log(message string, args ...any) {
 type RemoveBarFunc func()
 type UpdateBarFunc func(int, int)
 
-// track request internally and return handlers to update its state
+// Track request internally and return handlers to update its state.
 func (l *Logger) registerRequest(url string, authorized bool) (RemoveBarFunc, UpdateBarFunc) {
 	l.mutex.Lock()
 	l.numRequests++
@@ -119,20 +119,27 @@ func addSlot(builder *strings.Builder, progress *progress) {
 }
 
 func (l *Logger) addStats(builder *strings.Builder) {
-	const captionsLength = 26
-	const length = barLength + urlLength - captionsLength
+	const captionsLength = 28
 
 	numSettledCrawls := l.numSuccessfulCrawls + l.numFailedCrawls
-	s := fmt.Sprintf("crawling (%v / %v): ", numSettledCrawls, l.numExpectedCrawls-l.numSkippedCrawls)
-	builder.WriteString(fmt.Sprintf(gray("%-*v "), captionsLength, s))
-	bar := barString(numSettledCrawls, l.numExpectedCrawls, length)
+	numTotalCrawls := l.numExpectedCrawls - l.numSkippedCrawls
+	s := fmt.Sprintf("crawling (%v / %v): ", numSettledCrawls, numTotalCrawls)
+	caption := fmt.Sprintf("%-*v", captionsLength, s)
+	length := barLength + urlLength - len(caption) + 1
+	bar := barString(numSettledCrawls, numTotalCrawls, length)
+
+	builder.WriteString(gray(caption))
 	builder.WriteString(bar)
 	builder.WriteByte('\n')
 
 	numSettledWorks := l.numSuccessfulWorks + len(l.failedWorkIds)
-	s = fmt.Sprintf("downloading (%v / %v): ", numSettledWorks, l.numExpectedWorks-l.numSkippedWorks)
-	builder.WriteString(fmt.Sprintf(gray("%-*v "), captionsLength, s))
-	bar = barString(numSettledWorks, l.numExpectedWorks, length)
+	numTotalWorks := l.numExpectedWorks - l.numSkippedWorks
+	s = fmt.Sprintf("downloading (%v / %v): ", numSettledWorks, numTotalWorks)
+	caption = fmt.Sprintf("%-*v", captionsLength, s)
+	length = barLength + urlLength - len(caption) + 1
+	bar = barString(numSettledWorks, numTotalWorks, length)
+
+	builder.WriteString(fmt.Sprintf(gray("%-*v"), captionsLength, s))
 	builder.WriteString(bar)
 	builder.WriteByte('\n')
 
