@@ -181,7 +181,8 @@ func download(options *options) {
 
 	if options.Rules != nil {
 		for _, rulesPath := range *options.Rules {
-			rules, err := fsext.ReadRules(rulesPath)
+			rules, warning, err := fsext.ReadRules(rulesPath)
+			logger.MaybeWarning(warning, "while reading download rules from %v", rulesPath)
 			logger.MaybeFatal(err, "cannot read download rules from %v", rulesPath)
 			d.AddRules(*rules)
 		}
@@ -296,7 +297,8 @@ func configRules(c *config.Config) []rules.Rules {
 		return []rules.Rules{}
 	}
 
-	r, err := c.Rules()
+	r, warnings, err := c.Rules()
+	logger.MaybeWarnings(warnings, "while reading global download rules configuration")
 	if err != nil {
 		logger.Error("cannot read global download rules configuration: %v", err)
 		promptOrExit(ignoreRulesPrompt)
@@ -314,7 +316,8 @@ func configLimits(c *config.Config) limits.Limits {
 		return *limits.Default()
 	}
 
-	l, err := c.Limits()
+	l, warning, err := c.Limits()
+	logger.MaybeWarning(warning, "while reading request delays and limits configuration")
 	if err != nil {
 		logger.Error("cannot read request delays and limits configuration: %v", err)
 		promptOrExit(ignoreLimitsPrompt)

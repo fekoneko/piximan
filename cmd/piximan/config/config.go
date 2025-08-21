@@ -45,7 +45,7 @@ func config(options *options) {
 		logger.MaybeFatal(err, "failed to reset global download rules")
 
 	} else if options.Rules != nil {
-		rules := make([]rules.Rules, 0, len(*options.Rules))
+		rs := make([]rules.Rules, 0, len(*options.Rules))
 		seen := make(map[string]bool, len(*options.Rules))
 		for _, rawRulesPath := range *options.Rules {
 			rulesPath := filepath.Clean(rawRulesPath)
@@ -53,11 +53,12 @@ func config(options *options) {
 				continue
 			}
 			seen[rulesPath] = true
-			r, err := fsext.ReadRules(rulesPath)
+			r, warning, err := fsext.ReadRules(rulesPath)
+			logger.MaybeWarning(warning, "while reading download rules from %v", rulesPath)
 			logger.MaybeFatal(err, "cannot read download rules from %v", rulesPath)
-			rules = append(rules, *r)
+			rs = append(rs, *r)
 		}
-		err := c.SetRules(rules)
+		err := c.SetRules(rs)
 		logger.MaybeSuccess(err, "global download rules were set")
 		logger.MaybeFatal(err, "failed to set global download rules")
 	}
@@ -69,7 +70,8 @@ func config(options *options) {
 
 	} else if options.MaxPending != nil || options.Delay != nil ||
 		options.PximgMaxPending != nil || options.PximgDelay != nil {
-		l, err := c.Limits()
+		l, warning, err := c.Limits()
+		logger.MaybeWarning(warning, "while reading request delays and limits")
 		logger.MaybeFatal(err, "failed to read request delays and limits")
 
 		if options.MaxPending != nil {

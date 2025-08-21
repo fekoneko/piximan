@@ -6,47 +6,35 @@ import (
 	"os"
 
 	"github.com/fekoneko/piximan/internal/client/limits"
-	"github.com/fekoneko/piximan/internal/config/dto"
-	"github.com/fekoneko/piximan/internal/logger"
-	"gopkg.in/yaml.v2"
+	"github.com/fekoneko/piximan/internal/fsext"
 )
 
-func (c *Config) Limits() (limits.Limits, error) {
+func (c *Config) Limits() (_ limits.Limits, warning error, err error) {
 	c.limitsMutex.Lock()
 	defer c.limitsMutex.Unlock()
 
 	if c.limits != nil {
-		return *c.limits, nil
+		return *c.limits, nil, nil
 	}
 
-	bytes, err := os.ReadFile(limitsPath)
+	var l *limits.Limits
+	l, warning, err = fsext.ReadLimits(limitsPath)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return *limits.Default(), err
+		return *limits.Default(), warning, err
 	} else if err != nil {
 		c.limits = limits.Default()
 	} else {
-		unmarshalled := dto.Limits{}
-		if err := yaml.Unmarshal(bytes, &unmarshalled); err != nil {
-			return *limits.Default(), err
-		}
-		l, warning := unmarshalled.FromDto()
-		logger.MaybeWarning(warning, "while reading limits configuration")
 		c.limits = l
 	}
 
-	return *c.limits, nil
+	return *c.limits, warning, nil
 }
 
 func (c *Config) SetLimits(l limits.Limits) error {
 	c.limitsMutex.Lock()
 	defer c.limitsMutex.Unlock()
 
-	bytes, err := yaml.Marshal(dto.LimitsToDto(&l))
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(limitsPath, bytes, 0664)
+	err := fsext.WriteLimits(&l, limitsPath)
 	if err != nil {
 		return err
 	}

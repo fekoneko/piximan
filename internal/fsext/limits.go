@@ -3,13 +3,13 @@ package fsext
 import (
 	"os"
 
-	"github.com/fekoneko/piximan/internal/downloader/rules"
+	"github.com/fekoneko/piximan/internal/client/limits"
 	"github.com/fekoneko/piximan/internal/fsext/dto"
 	"gopkg.in/yaml.v2"
 )
 
-func WriteRules(r *rules.Rules, path string) error {
-	bytes, err := yaml.Marshal(dto.RulesToDto(r))
+func WriteLimits(l *limits.Limits, path string) error {
+	bytes, err := yaml.Marshal(dto.LimitsToDto(l))
 	if err != nil {
 		return err
 	}
@@ -22,16 +22,17 @@ func WriteRules(r *rules.Rules, path string) error {
 	return nil
 }
 
-func ReadRules(path string) (r *rules.Rules, warning error, err error) {
+func ReadLimits(path string) (l *limits.Limits, warning error, err error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	unmarshalled := dto.Rules{}
+	unmarshalled := dto.Limits{}
 	if err := yaml.UnmarshalStrict(b, &unmarshalled); err != nil {
 		return nil, nil, err
 	}
 
-	return unmarshalled.FromDto()
+	l, warning = unmarshalled.FromDto()
+	return l, warning, nil
 }

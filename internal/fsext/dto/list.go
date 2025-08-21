@@ -9,11 +9,11 @@ import (
 )
 
 type List []struct {
-	Id       *uint64   `yaml:"id"`
-	Kind     *string   `yaml:"type"`
-	Size     *uint     `yaml:"size"`
-	OnlyMeta *bool     `yaml:"only-meta"`
-	Paths    *[]string `yaml:"paths"`
+	Id       *uint64   `yaml:"id,omitempty"`
+	Kind     *string   `yaml:"type,omitempty"`
+	Size     *uint     `yaml:"size,omitempty"`
+	OnlyMeta *bool     `yaml:"only-meta,omitempty"`
+	Paths    *[]string `yaml:"paths,omitempty"`
 }
 
 func (dto *List) FromDto(

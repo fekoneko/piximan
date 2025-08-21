@@ -16,6 +16,7 @@ import (
 
 var homePath, _ = os.UserHomeDir()
 var sessionIdPath = filepath.Join(homePath, ".piximan", "session-id")
+var rulesPath = filepath.Join(homePath, ".piximan", "rules")
 var limitsPath = filepath.Join(homePath, ".piximan", "limits.yaml")
 
 // Stores and reads configuration. Thread-safe.
