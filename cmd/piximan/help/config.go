@@ -22,6 +22,11 @@ const configHelp = //
  -P          session ID. If omited the password will be set to an empty string.
              Similarly to the session ID, avoid pasting the value directly.
 
+                              Download options
+                              ----------------
+--rules      Path to YAML file with download rules that will be applied to every download.
+ -r          May be provided multiple times. Run 'piximan help rules' for more info.
+
                           Request delays and limits
                           --------------------------
 --max-pending       Maximum number of concurrent requests to pixiv.net.
@@ -37,10 +42,12 @@ const configHelp = //
  -D                 Default value is 1.
 
                              Reset configuration
-                             --------------------
---no-session Remove the configured session ID.
+                             -------------------
+--no-session Remove configured session ID.
 
---default    Reset all configuration except the session ID to default values.
+--no-rules   Remove all configured download rules.
+
+--default    Reset request delays and limits to default values.
 
                                   Examples
                                   --------
