@@ -15,7 +15,7 @@ const defaultMaxPending = 1
 const defaultDelay = time.Second * 2
 
 // Saves the current configuration state to the disk
-func (s *Storage) Write() error {
+func (s *Config) WriteLimits() error {
 	d := &dto.Config{
 		Version:           utils.ToPtr(dto.ConfigVersion),
 		PximgMaxPending:   utils.ToPtr(s.PximgMaxPending),
@@ -29,12 +29,12 @@ func (s *Storage) Write() error {
 		return err
 	}
 
-	return os.WriteFile(configPath, bytes, 0664)
+	return os.WriteFile(limitsPath, bytes, 0664)
 }
 
 // Resets the limits to default values. Does not remove the session ID.
-func (s *Storage) ResetLimits() error {
-	err := os.Remove(configPath)
+func (s *Config) ResetLimits() error {
+	err := os.Remove(limitsPath)
 	if err == nil {
 		s.PximgMaxPending = defaultPximgMaxPending
 		s.PximgDelay = defaultPximgDelay

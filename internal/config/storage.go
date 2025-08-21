@@ -17,14 +17,14 @@ import (
 )
 
 var homePath, _ = os.UserHomeDir()
-var sessionIdPath = filepath.Join(homePath, ".piximan", "sessionid")
-var configPath = filepath.Join(homePath, ".piximan", "config.yaml")
+var sessionIdPath = filepath.Join(homePath, ".piximan", "session-id")
+var limitsPath = filepath.Join(homePath, ".piximan", "limits.yaml")
 
 // Stores and reads configuration. You can directly access and modify public fields and then
 // call Write() to save the changes on the disk.
-// SessionId() is decrypted lazily and cached in the Storage.WriteSessionId() writes the
+// SessionId() is decrypted lazily and cached in the Config.WriteSessionId() writes the
 // encrypted session id to the disk separately from other fields.
-type Storage struct {
+type Config struct {
 	cipher            cipher.Block
 	gcm               cipher.AEAD
 	sessionId         *string
@@ -34,7 +34,7 @@ type Storage struct {
 	DefaultDelay      time.Duration
 }
 
-func New(password *string) (*Storage, error) {
+func New(password *string) (*Config, error) {
 	// TODO: maybe make the salt not empty and store it as well
 	key, err := pbkdf2.Key(sha256.New, utils.FromPtr(password, ""), []byte{}, 4096, 32)
 	if err != nil {
@@ -51,7 +51,7 @@ func New(password *string) (*Storage, error) {
 		return nil, err
 	}
 
-	bytes, err := os.ReadFile(configPath)
+	bytes, err := os.ReadFile(limitsPath)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func New(password *string) (*Storage, error) {
 		}
 	}
 
-	storage := &Storage{
+	c := &Config{
 		cipher:            aesCipher,
 		gcm:               gcm,
 		sessionId:         nil,
@@ -73,5 +73,5 @@ func New(password *string) (*Storage, error) {
 		DefaultDelay:      utils.FromPtr(unmarshalled.DefaultDelay, defaultDelay),
 	}
 
-	return storage, nil
+	return c, nil
 }

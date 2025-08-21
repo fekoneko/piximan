@@ -13,15 +13,15 @@ func config(options *options) {
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
 
-	storage, err := appconfig.New(options.Password)
+	c, err := appconfig.New(options.Password)
 	logger.MaybeFatal(err, "failed to open config storage")
 
 	if utils.FromPtr(options.ResetSession, false) {
-		err := storage.ResetSessionId()
+		err := c.ResetSessionId()
 		logger.MaybeSuccess(err, "session id was removed")
 		logger.MaybeFatal(err, "failed to remove session id")
 	} else if options.SessionId != nil {
-		err = storage.WriteSessionId(*options.SessionId)
+		err = c.WriteSessionId(*options.SessionId)
 		logger.MaybeSuccess(err, "session id was set%v",
 			utils.If(options.Password != nil, " and encrypted with password", ""),
 		)
@@ -29,7 +29,7 @@ func config(options *options) {
 	}
 
 	if utils.FromPtr(options.ResetLimits, false) {
-		err := storage.ResetLimits()
+		err := c.ResetLimits()
 		logger.MaybeSuccess(err, "configuration parameters were reset")
 		logger.MaybeFatal(err, "failed to reset configuration parameters")
 		return
@@ -38,23 +38,23 @@ func config(options *options) {
 	changed := false
 
 	if options.PximgMaxPending != nil {
-		storage.PximgMaxPending = *options.PximgMaxPending
+		c.PximgMaxPending = *options.PximgMaxPending
 		changed = true
 	}
 	if options.PximgDelay != nil {
-		storage.PximgDelay = time.Duration(*options.PximgDelay) * time.Second
+		c.PximgDelay = time.Duration(*options.PximgDelay) * time.Second
 		changed = true
 	}
 	if options.DefaultMaxPending != nil {
-		storage.DefaultMaxPending = *options.DefaultMaxPending
+		c.DefaultMaxPending = *options.DefaultMaxPending
 		changed = true
 	}
 	if options.DefaultDelay != nil {
-		storage.DefaultDelay = time.Duration(*options.DefaultDelay) * time.Second
+		c.DefaultDelay = time.Duration(*options.DefaultDelay) * time.Second
 		changed = true
 	}
 	if changed {
-		err = storage.Write()
+		err = c.WriteLimits()
 		logger.MaybeSuccess(err, "configuration parameters were saved")
 		logger.MaybeFatal(err, "failed to save configuration parameters")
 	}

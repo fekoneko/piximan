@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func (s *Storage) SessionId() (*string, error) {
+func (s *Config) SessionId() (*string, error) {
 	if s.sessionId != nil {
 		return s.sessionId, nil
 	}
@@ -34,7 +34,7 @@ func (s *Storage) SessionId() (*string, error) {
 	return s.sessionId, nil
 }
 
-func (s *Storage) WriteSessionId(sessionId string) error {
+func (s *Config) WriteSessionId(sessionId string) error {
 	err := os.MkdirAll(filepath.Dir(sessionIdPath), 0775)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (s *Storage) WriteSessionId(sessionId string) error {
 	return nil
 }
 
-func (s *Storage) ResetSessionId() error {
+func (s *Config) ResetSessionId() error {
 	err := os.Remove(sessionIdPath)
 	if err == nil {
 		s.sessionId = nil

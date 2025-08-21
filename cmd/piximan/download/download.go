@@ -256,38 +256,38 @@ func download(options *options) {
 	logger.Stats()
 }
 
-func configAndSession(password *string) (storage *config.Storage, sessionId *string) {
-	storage, err := config.New(password)
+func configAndSession(password *string) (c *config.Config, sessionId *string) {
+	c, err := config.New(password)
 	if err != nil && password != nil {
 		logger.Fatal("cannot open config storage: %v", err)
 		panic("unreachable")
 	} else if err != nil {
 		logger.Warning("cannot open config storage: %v", err)
 		promptDefaultConfig()
-		return storage, nil
+		return c, nil
 	}
 
-	if sessionId, err := storage.SessionId(); err != nil && password != nil {
+	if sessionId, err := c.SessionId(); err != nil && password != nil {
 		logger.Fatal("cannot read session id: %v", err)
 		panic("unreachable")
 	} else if err != nil {
 		if newStorage, sessionId := promptPassword(); newStorage != nil {
 			return newStorage, sessionId
 		} else {
-			return storage, sessionId
+			return c, sessionId
 		}
 	} else if sessionId == nil && password != nil {
 		logger.Fatal("no session id were configured, but password was provided")
 		panic("unreachable")
 	} else if sessionId == nil {
 		logger.Info("no session id were configured, using only anonymous requests")
-		return storage, nil
+		return c, nil
 	} else {
-		return storage, sessionId
+		return c, sessionId
 	}
 }
 
-func promptPassword() (storage *config.Storage, sessionId *string) {
+func promptPassword() (storage *config.Config, sessionId *string) {
 	for tries := 0; ; tries++ {
 		password, err := passwordPrompt.Run()
 		if err != nil {
@@ -296,22 +296,22 @@ func promptPassword() (storage *config.Storage, sessionId *string) {
 			return nil, nil
 		}
 
-		storage, err := config.New(&password)
+		c, err := config.New(&password)
 		if err != nil {
 			logger.Warning("cannot open config storage: %v", err)
 			promptNoAuthorization()
 			return nil, nil
 		}
 
-		if sessionId, err := storage.SessionId(); err == nil && sessionId != nil {
-			return storage, sessionId
+		if sessionId, err := c.SessionId(); err == nil && sessionId != nil {
+			return c, sessionId
 		} else if err == nil {
 			logger.Info("no session id were configured, using only anonymous requests")
-			return storage, nil
+			return c, nil
 		} else if tries == 2 {
 			logger.Warning("cannot read session id: %v", err)
 			promptNoAuthorization()
-			return storage, nil
+			return c, nil
 		}
 	}
 }
