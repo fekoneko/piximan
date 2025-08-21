@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Usage: ./compile-resources.sh
 
 dirname="$(dirname "$0")" || exit 1

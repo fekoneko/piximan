@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Usage: ./run.sh [<args>]
 
 dirname="$(dirname "$0")" || exit 1

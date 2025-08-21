@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Usage: ./build.sh [<os>] [<arch>]
 
 dirname="$(dirname "$0")" || exit 1
