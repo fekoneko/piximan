@@ -43,11 +43,13 @@ const configHelp = //
 
                              Reset configuration
                              -------------------
---no-session Remove configured session ID.
+--reset-session     Remove configured session ID.
 
---no-rules   Remove all configured download rules.
+--reset-rules       Remove all configured download rules.
 
---default    Reset request delays and limits to default values.
+--reset-limits      Reset request delays and limits to default values.
+
+--reset             Reset all configuration to default values.
 
                                   Examples
                                   --------

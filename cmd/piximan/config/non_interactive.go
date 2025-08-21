@@ -22,14 +22,14 @@ func nonInteractive() {
 	}
 
 	if options.SessionId != nil && options.ResetSession != nil {
-		fmt.Println("`-s, --session-id' cannot be used with `--no-session' flag")
+		fmt.Println("`-s, --session-id' cannot be used with `--reset-session' flag")
 		os.Exit(2)
 	}
 
 	if (options.PximgMaxPending != nil || options.PximgDelay != nil ||
 		options.DefaultMaxPending != nil || options.DefaultDelay != nil) &&
-		options.ResetConfig != nil {
-		fmt.Println("no configuration parameters can be used with `--default' flag")
+		options.ResetLimits != nil {
+		fmt.Println("request delays and limits parameters cannot be used with `--reset-limits' flag")
 		os.Exit(2)
 	}
 

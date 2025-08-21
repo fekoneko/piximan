@@ -9,8 +9,8 @@ type options struct {
 	PximgDelay        *uint64 `short:"D" long:"image-delay"`
 	DefaultMaxPending *uint64 `short:"m" long:"max-pending"`
 	DefaultDelay      *uint64 `short:"d" long:"delay"`
-	ResetSession      *bool   `long:"no-session"`
-	ResetConfig       *bool   `long:"default"`
+	ResetSession      *bool   `long:"reset-session"`
+	ResetLimits       *bool   `long:"reset-limits"`
 }
 
 func Run() {

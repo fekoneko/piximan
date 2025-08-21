@@ -17,7 +17,7 @@ func config(options *options) {
 	logger.MaybeFatal(err, "failed to open config storage")
 
 	if utils.FromPtr(options.ResetSession, false) {
-		err := storage.RemoveSessionId()
+		err := storage.ResetSessionId()
 		logger.MaybeSuccess(err, "session id was removed")
 		logger.MaybeFatal(err, "failed to remove session id")
 	} else if options.SessionId != nil {
@@ -28,8 +28,8 @@ func config(options *options) {
 		logger.MaybeFatal(err, "failed to set session id")
 	}
 
-	if utils.FromPtr(options.ResetConfig, false) {
-		err := storage.Reset()
+	if utils.FromPtr(options.ResetLimits, false) {
+		err := storage.ResetLimits()
 		logger.MaybeSuccess(err, "configuration parameters were reset")
 		logger.MaybeFatal(err, "failed to reset configuration parameters")
 		return

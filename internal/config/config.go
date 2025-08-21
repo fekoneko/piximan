@@ -32,11 +32,14 @@ func (s *Storage) Write() error {
 	return os.WriteFile(configPath, bytes, 0664)
 }
 
-// Resets the configuration to default values. Does not remove the session ID.
-func (s *Storage) Reset() error {
-	s.PximgMaxPending = defaultPximgMaxPending
-	s.PximgDelay = defaultPximgDelay
-	s.DefaultMaxPending = defaultMaxPending
-	s.DefaultDelay = defaultDelay
-	return os.Remove(configPath)
+// Resets the limits to default values. Does not remove the session ID.
+func (s *Storage) ResetLimits() error {
+	err := os.Remove(configPath)
+	if err == nil {
+		s.PximgMaxPending = defaultPximgMaxPending
+		s.PximgDelay = defaultPximgDelay
+		s.DefaultMaxPending = defaultMaxPending
+		s.DefaultDelay = defaultDelay
+	}
+	return err
 }

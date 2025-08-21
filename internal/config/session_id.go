@@ -57,7 +57,10 @@ func (s *Storage) WriteSessionId(sessionId string) error {
 	return nil
 }
 
-func (s *Storage) RemoveSessionId() error {
-	s.sessionId = nil
-	return os.Remove(sessionIdPath)
+func (s *Storage) ResetSessionId() error {
+	err := os.Remove(sessionIdPath)
+	if err == nil {
+		s.sessionId = nil
+	}
+	return err
 }
