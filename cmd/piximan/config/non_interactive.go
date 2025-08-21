@@ -27,7 +27,7 @@ func nonInteractive() {
 	}
 
 	if (options.PximgMaxPending != nil || options.PximgDelay != nil ||
-		options.DefaultMaxPending != nil || options.DefaultDelay != nil) &&
+		options.MaxPending != nil || options.Delay != nil) &&
 		options.ResetLimits != nil {
 		fmt.Println("request delays and limits parameters cannot be used with `--reset-limits' flag")
 		os.Exit(2)

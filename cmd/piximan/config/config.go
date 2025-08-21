@@ -16,46 +16,44 @@ func config(options *options) {
 	c, err := appconfig.New(options.Password)
 	logger.MaybeFatal(err, "failed to open config storage")
 
-	if utils.FromPtr(options.ResetSession, false) {
+	if options.ResetSession != nil && *options.ResetSession {
 		err := c.ResetSessionId()
-		logger.MaybeSuccess(err, "session id was removed")
-		logger.MaybeFatal(err, "failed to remove session id")
+		logger.MaybeSuccess(err, "session id was reset")
+		logger.MaybeFatal(err, "failed to reset session id")
+
 	} else if options.SessionId != nil {
-		err = c.WriteSessionId(*options.SessionId)
+		err = c.SetSessionId(*options.SessionId)
 		logger.MaybeSuccess(err, "session id was set%v",
 			utils.If(options.Password != nil, " and encrypted with password", ""),
 		)
 		logger.MaybeFatal(err, "failed to set session id")
 	}
 
-	if utils.FromPtr(options.ResetLimits, false) {
+	if options.ResetLimits != nil && *options.ResetLimits {
 		err := c.ResetLimits()
-		logger.MaybeSuccess(err, "configuration parameters were reset")
-		logger.MaybeFatal(err, "failed to reset configuration parameters")
-		return
-	}
+		logger.MaybeSuccess(err, "request delays and limits were reset")
+		logger.MaybeFatal(err, "failed to reset request delays and limits")
 
-	changed := false
+	} else if options.MaxPending != nil || options.Delay != nil ||
+		options.PximgMaxPending != nil || options.PximgDelay != nil {
+		l, err := c.Limits()
+		logger.MaybeFatal(err, "failed to read request delays and limits")
 
-	if options.PximgMaxPending != nil {
-		c.PximgMaxPending = *options.PximgMaxPending
-		changed = true
-	}
-	if options.PximgDelay != nil {
-		c.PximgDelay = time.Duration(*options.PximgDelay) * time.Second
-		changed = true
-	}
-	if options.DefaultMaxPending != nil {
-		c.DefaultMaxPending = *options.DefaultMaxPending
-		changed = true
-	}
-	if options.DefaultDelay != nil {
-		c.DefaultDelay = time.Duration(*options.DefaultDelay) * time.Second
-		changed = true
-	}
-	if changed {
-		err = c.WriteLimits()
-		logger.MaybeSuccess(err, "configuration parameters were saved")
-		logger.MaybeFatal(err, "failed to save configuration parameters")
+		if options.MaxPending != nil {
+			l.MaxPending = *options.MaxPending
+		}
+		if options.Delay != nil {
+			l.Delay = time.Duration(*options.Delay) * time.Second
+		}
+		if options.PximgMaxPending != nil {
+			l.PximgMaxPending = *options.PximgMaxPending
+		}
+		if options.PximgDelay != nil {
+			l.PximgDelay = time.Duration(*options.PximgDelay) * time.Second
+		}
+
+		err = c.SetLimits(l)
+		logger.MaybeSuccess(err, "request delays and limits were configured")
+		logger.MaybeFatal(err, "failed to configure request delays and limits")
 	}
 }

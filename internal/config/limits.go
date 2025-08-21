@@ -1,45 +1,67 @@
 package config
 
 import (
+	"errors"
+	"io/fs"
 	"os"
-	"time"
 
-	"github.com/fekoneko/piximan/internal/config/dto"
-	"github.com/fekoneko/piximan/internal/utils"
+	"github.com/fekoneko/piximan/internal/config/limits"
+	"github.com/fekoneko/piximan/internal/config/limits/dto"
+	"github.com/fekoneko/piximan/internal/logger"
 	"gopkg.in/yaml.v2"
 )
 
-const defaultPximgMaxPending = 5
-const defaultPximgDelay = time.Second * 1
-const defaultMaxPending = 1
-const defaultDelay = time.Second * 2
+func (c *Config) Limits() (limits.Limits, error) {
+	c.limitsMutex.Lock()
+	defer c.limitsMutex.Unlock()
 
-// Saves the current configuration state to the disk
-func (s *Config) WriteLimits() error {
-	d := &dto.Config{
-		Version:           utils.ToPtr(dto.ConfigVersion),
-		PximgMaxPending:   utils.ToPtr(s.PximgMaxPending),
-		PximgDelay:        utils.ToPtr(s.PximgDelay),
-		DefaultMaxPending: utils.ToPtr(s.DefaultMaxPending),
-		DefaultDelay:      utils.ToPtr(s.DefaultDelay),
+	if c.limits != nil {
+		return *c.limits, nil
 	}
 
-	bytes, err := yaml.Marshal(d)
+	bytes, err := os.ReadFile(limitsPath)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return *limits.Default(), err
+	} else if err != nil {
+		c.limits = limits.Default()
+	} else {
+		unmarshalled := dto.Limits{}
+		if err := yaml.Unmarshal(bytes, &unmarshalled); err != nil {
+			return *limits.Default(), err
+		}
+		l, warning := unmarshalled.FromDto()
+		logger.MaybeWarning(warning, "while reading limits configuration")
+		c.limits = l
+	}
+
+	return *c.limits, nil
+}
+
+func (c *Config) SetLimits(l limits.Limits) error {
+	c.limitsMutex.Lock()
+	defer c.limitsMutex.Unlock()
+
+	bytes, err := yaml.Marshal(dto.LimitsToDto(&l))
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(limitsPath, bytes, 0664)
+	err = os.WriteFile(limitsPath, bytes, 0664)
+	if err != nil {
+		return err
+	}
+
+	c.limits = &l
+	return nil
 }
 
-// Resets the limits to default values. Does not remove the session ID.
-func (s *Config) ResetLimits() error {
+func (c *Config) ResetLimits() error {
+	c.limitsMutex.Lock()
+	defer c.limitsMutex.Unlock()
+
 	err := os.Remove(limitsPath)
 	if err == nil {
-		s.PximgMaxPending = defaultPximgMaxPending
-		s.PximgDelay = defaultPximgDelay
-		s.DefaultMaxPending = defaultMaxPending
-		s.DefaultDelay = defaultDelay
+		c.limits = limits.Default()
 	}
 	return err
 }

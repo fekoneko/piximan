@@ -17,14 +17,14 @@ func interactive() {
 	pximgDelay := promptRequestParamWith(withRequestParams, &pximgDelayPrompt)
 
 	config(&options{
-		SessionId:         sessionId,
-		Password:          password,
-		PximgMaxPending:   pximgMaxPending,
-		PximgDelay:        pximgDelay,
-		DefaultMaxPending: defaultMaxPending,
-		DefaultDelay:      defaultDelay,
-		ResetSession:      &resetSession,
-		ResetLimits:       &resetLimits,
+		SessionId:       sessionId,
+		Password:        password,
+		PximgMaxPending: pximgMaxPending,
+		PximgDelay:      pximgDelay,
+		MaxPending:      defaultMaxPending,
+		Delay:           defaultDelay,
+		ResetSession:    &resetSession,
+		ResetLimits:     &resetLimits,
 	})
 }
 
@@ -60,6 +60,9 @@ func promptPassword(withSessionId bool) *string {
 
 	password, err := passwordPrompt.Run()
 	logger.MaybeFatal(err, "failed to read password")
+	if password == "" {
+		return nil
+	}
 	return &password
 }
 

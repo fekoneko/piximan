@@ -10,6 +10,7 @@ import (
 	"github.com/fekoneko/piximan/internal/collection"
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
+	"github.com/fekoneko/piximan/internal/config/limits"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/downloader/skiplist"
@@ -18,6 +19,7 @@ import (
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
+	"github.com/manifoldco/promptui"
 )
 
 func download(options *options) {
@@ -29,12 +31,9 @@ func download(options *options) {
 	untilSkip := utils.FromPtr(options.UntilSkip, false)
 	paths := utils.FromPtr(options.Paths, []string{""})
 
-	storage, sessionId := configAndSession(options.Password)
-	c := client.New(
-		sessionId, logger.DefaultLogger,
-		storage.PximgMaxPending, storage.PximgDelay,
-		storage.DefaultMaxPending, storage.DefaultDelay,
-	)
+	conf, sessionId := configSessionId(options.Password)
+	l := configLimits(conf)
+	c := client.New(sessionId, l, logger.DefaultLogger)
 	d := downloader.New(c, logger.DefaultLogger)
 
 	termext.DisableInputEcho()
@@ -256,76 +255,56 @@ func download(options *options) {
 	logger.Stats()
 }
 
-func configAndSession(password *string) (c *config.Config, sessionId *string) {
-	c, err := config.New(password)
-	if err != nil && password != nil {
-		logger.Fatal("cannot open config storage: %v", err)
-		panic("unreachable")
-	} else if err != nil {
-		logger.Warning("cannot open config storage: %v", err)
-		promptDefaultConfig()
-		return c, nil
-	}
-
-	if sessionId, err := c.SessionId(); err != nil && password != nil {
-		logger.Fatal("cannot read session id: %v", err)
-		panic("unreachable")
-	} else if err != nil {
-		if newStorage, sessionId := promptPassword(); newStorage != nil {
-			return newStorage, sessionId
-		} else {
-			return c, sessionId
-		}
-	} else if sessionId == nil && password != nil {
-		logger.Fatal("no session id were configured, but password was provided")
-		panic("unreachable")
-	} else if sessionId == nil {
-		logger.Info("no session id were configured, using only anonymous requests")
-		return c, nil
-	} else {
-		return c, sessionId
-	}
-}
-
-func promptPassword() (storage *config.Config, sessionId *string) {
-	for tries := 0; ; tries++ {
-		password, err := passwordPrompt.Run()
+func configSessionId(password *string) (c *config.Config, sessionId *string) {
+	for range 3 {
+		c, err := config.New(password)
 		if err != nil {
-			logger.Warning("failed to read password: %v", err)
-			promptNoAuthorization()
+			logger.Error("cannot open configuration storage: %v", err)
+			promptOrExit(ignoreAuthorizationPrompt)
 			return nil, nil
 		}
 
-		c, err := config.New(&password)
-		if err != nil {
-			logger.Warning("cannot open config storage: %v", err)
-			promptNoAuthorization()
-			return nil, nil
-		}
+		if sessionId, err = c.SessionId(); err != nil && password != nil {
+			logger.Error("cannot read session id: %v", err)
+			promptOrExit(ignoreAuthorizationPrompt)
+			return c, nil
 
-		if sessionId, err := c.SessionId(); err == nil && sessionId != nil {
-			return c, sessionId
-		} else if err == nil {
-			logger.Info("no session id were configured, using only anonymous requests")
-			return c, nil
-		} else if tries == 2 {
-			logger.Warning("cannot read session id: %v", err)
-			promptNoAuthorization()
-			return c, nil
+		} else if err != nil {
+			p, err := passwordPrompt.Run()
+			password = &p
+			if err != nil {
+				logger.Error("failed to read password: %v", err)
+				promptOrExit(ignoreAuthorizationPrompt)
+				return c, nil
+			}
+			continue
 		}
+		break
 	}
+
+	return c, sessionId
 }
 
-func promptDefaultConfig() {
-	_, option, err := deafultConfigPrompt.Run()
-	logger.MaybeFatal(err, "failed to read the choice")
-	if err != nil || option != YesOption {
-		os.Exit(1)
+func configLimits(c *config.Config) (l limits.Limits) {
+	if c == nil {
+		logger.Error("cannot read request delays and limits configuration: " +
+			"configuration storage is unavailable")
+		promptOrExit(ignoreLimitsPrompt)
+		return *limits.Default()
 	}
+
+	l, err := c.Limits()
+	if err != nil {
+		logger.Error("cannot read request delays and limits configuration: %v", err)
+		promptOrExit(ignoreLimitsPrompt)
+		return *limits.Default()
+	}
+
+	return l
 }
 
-func promptNoAuthorization() {
-	_, option, err := noAuthorizationPrompt.Run()
+func promptOrExit(prompt promptui.Select) {
+	_, option, err := prompt.Run()
 	logger.MaybeFatal(err, "failed to read the choice")
 	if err != nil || option != YesOption {
 		os.Exit(1)

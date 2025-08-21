@@ -66,8 +66,6 @@ func (dto *Work) FromDto() (w *work.Work, warning error) {
 		warning = fmt.Errorf("metadata version mismatch: expected %v, got %v", WorkVersion, *dto.Version)
 	}
 
-	// TODO: warn if some fields are incorrect or there are extra fields
-
 	w = &work.Work{
 		Id:           dto.Id,
 		Title:        dto.Title,

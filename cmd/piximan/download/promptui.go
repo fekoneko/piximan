@@ -188,12 +188,12 @@ var passwordPrompt = promptui.Prompt{
 var YesOption = "Yes"
 var NoOption = "No"
 
-var deafultConfigPrompt = promptui.Select{
-	Label: "Use default config and anonymous requests?",
-	Items: []string{"Yes", "No"},
+var ignoreAuthorizationPrompt = promptui.Select{
+	Label: "Use only anonymous requests?",
+	Items: []string{YesOption, NoOption},
 }
 
-var noAuthorizationPrompt = promptui.Select{
-	Label: "Use only anonymous requests?",
-	Items: []string{"Yes", "No"},
+var ignoreLimitsPrompt = promptui.Select{
+	Label: "Use default limits?",
+	Items: []string{YesOption, NoOption},
 }
