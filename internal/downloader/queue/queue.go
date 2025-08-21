@@ -8,34 +8,6 @@ import (
 
 type Queue []Item
 
-func QueueFromMap(
-	m *map[uint64][]string, kind ItemKind, size imageext.Size, onlyMeta bool,
-) *Queue {
-	queue := make(Queue, len(*m))
-
-	i := 0
-	for id, paths := range *m {
-		queue[i] = Item{id, kind, size, onlyMeta, paths, nil, nil, false}
-		i++
-	}
-
-	return &queue
-}
-
-func QueueFromMapWithPaths(
-	m *map[uint64][]string, kind ItemKind, size imageext.Size, onlyMeta bool, paths []string,
-) *Queue {
-	queue := make(Queue, len(*m))
-
-	i := 0
-	for id := range *m {
-		queue[i] = Item{id, kind, size, onlyMeta, paths, nil, nil, false}
-		i++
-	}
-
-	return &queue
-}
-
 func (q *Queue) Push(items ...Item) {
 	for _, item := range items {
 		if len(item.Paths) == 0 {
