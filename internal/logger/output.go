@@ -119,22 +119,27 @@ func addSlot(builder *strings.Builder, progress *progress) {
 }
 
 func (l *Logger) addStats(builder *strings.Builder) {
-	const captionsLength = 26
-	const length = barLength + urlLength - captionsLength
+	const captionsLength = 28
 
 	numSettledCrawls := l.numSuccessfulCrawls + l.numFailedCrawls
 	numTotalCrawls := l.numExpectedCrawls - l.numSkippedCrawls
 	s := fmt.Sprintf("crawling (%v / %v): ", numSettledCrawls, numTotalCrawls)
-	builder.WriteString(fmt.Sprintf(gray("%-*v "), captionsLength, s))
+	caption := fmt.Sprintf("%-*v", captionsLength, s)
+	length := barLength + urlLength - len(caption) + 1
 	bar := barString(numSettledCrawls, numTotalCrawls, length)
+
+	builder.WriteString(gray(caption))
 	builder.WriteString(bar)
 	builder.WriteByte('\n')
 
 	numSettledWorks := l.numSuccessfulWorks + len(l.failedWorkIds)
 	numTotalWorks := l.numExpectedWorks - l.numSkippedWorks
 	s = fmt.Sprintf("downloading (%v / %v): ", numSettledWorks, numTotalWorks)
-	builder.WriteString(fmt.Sprintf(gray("%-*v "), captionsLength, s))
+	caption = fmt.Sprintf("%-*v", captionsLength, s)
+	length = barLength + urlLength - len(caption) + 1
 	bar = barString(numSettledWorks, numTotalWorks, length)
+
+	builder.WriteString(fmt.Sprintf(gray("%-*v"), captionsLength, s))
 	builder.WriteString(bar)
 	builder.WriteByte('\n')
 

@@ -12,12 +12,15 @@ import (
 
 func nonInteractive() {
 	options := &options{}
-	if _, err := flags.Parse(options); err != nil {
+	if args, err := flags.Parse(options); err != nil {
+		os.Exit(1)
+	} else if len(args) > 0 {
+		fmt.Println("extra arguments provided")
 		os.Exit(2)
 	}
 
 	if !utils.ExactlyOneDefined(
-		options.Ids, options.Bookmarks, options.InferId, options.List,
+		options.Ids, options.Bookmarks, options.InferIds, options.Lists,
 	) {
 		fmt.Println("provide exactly one download source: `-i, --id', `-b, --bookmarks' `-I, --infer-id' or `-l, --list'")
 		os.Exit(2)
@@ -65,31 +68,44 @@ func nonInteractive() {
 		fmt.Println("`-R, --private' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
-	if options.Fresh != nil && options.Bookmarks == nil {
-		fmt.Println("`-f, --fresh' flag can only be used with `-b, --bookmarks' source")
+	if options.UntilSkip != nil && options.Bookmarks == nil {
+		fmt.Println("`-U, --until-skip' flag can only be used with `-b, --bookmarks' source")
 		os.Exit(2)
 	}
-	if options.Fresh != nil && options.Collection == nil {
-		fmt.Println("`-f, --fresh' flag can only be used when `-c, --collection' was provided")
+	if options.UntilSkip != nil && options.Skips == nil {
+		fmt.Println("`-U, --until-skip' flag can only be used when `-S, --skip' was provided")
 		os.Exit(2)
 	}
-	if options.Collection != nil && fsext.CanBeInferIdPath(*options.Collection) {
-		if err := fsext.InferIdPathValid(*options.Collection); err != nil {
-			fmt.Printf("invalid argument for flag `-c, --collection': "+
-				"infer id pattern found but it's invalid: %v\n", err)
-			os.Exit(2)
+	if options.Skips != nil {
+		for _, s := range *options.Skips {
+			if !fsext.IsInferIdPattern(s) {
+				continue
+			}
+			if err := fsext.InferIdPatternValid(s); err != nil {
+				fmt.Printf("invalid argument for flag `-S, --skip': "+
+					"invalid infer id pattern %v: %v\n", s, err)
+				os.Exit(2)
+			}
 		}
 	}
-	if options.Path != nil {
-		if err := fsext.WorkPathValid(*options.Path); err != nil {
-			fmt.Printf("invalid argument for flag `-p, --path': %v\n", err)
-			os.Exit(2)
+	if options.Paths != nil {
+		for _, s := range *options.Paths {
+			if err := fsext.WorkPathPatternValid(s); err != nil {
+				fmt.Printf("invalid argument for flag `-p, --path': %v\n", err)
+				os.Exit(2)
+			}
 		}
 	}
-	if options.InferId != nil {
-		if err := fsext.InferIdPathValid(*options.InferId); err != nil {
-			fmt.Printf("invalid argument for flag `-I, --infer-id': %v\n", err)
-			os.Exit(2)
+	if options.InferIds != nil {
+		for _, s := range *options.InferIds {
+			if !fsext.IsInferIdPattern(s) {
+				continue
+			}
+			if err := fsext.InferIdPatternValid(s); err != nil {
+				fmt.Printf("invalid argument for flag `-I, --infer-id': "+
+					"invalid infer id pattern %v: %v\n", s, err)
+				os.Exit(2)
+			}
 		}
 	}
 

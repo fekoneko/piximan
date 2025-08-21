@@ -8,9 +8,10 @@ import (
 )
 
 func (d *Downloader) writeWork(
-	id uint64, kind queue.ItemKind, w *work.Work, assets []fsext.Asset, onlyMeta bool, paths []string,
+	id uint64, kind queue.ItemKind, w *work.Work, assets []fsext.Asset,
+	onlyMeta bool, pathPatterns []string,
 ) error {
-	paths, err := fsext.FormatWorkPaths(paths, w)
+	paths, err := fsext.WorkPathsFromPatterns(pathPatterns, w)
 	if err == nil {
 		err = fsext.WriteWork(w, assets, paths)
 	}

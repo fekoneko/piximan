@@ -12,20 +12,20 @@ var myPublicBookmarksOption = "Download my public bookmarks"
 var myPrivateBookmarksOption = "Download my private bookmarks"
 var userBookmarksOption = "Download bookmarks of other user"
 var inferIdOption = "Infer IDs from path"
-var queueOption = "Download from list"
+var listOption = "Download from list"
 
 var sourceSelect = promptui.Select{
 	Label: sourceSelectLabel,
 	Items: []string{
 		idOption, myPublicBookmarksOption, myPrivateBookmarksOption,
-		userBookmarksOption, inferIdOption, queueOption,
+		userBookmarksOption, inferIdOption, listOption,
 	},
 }
 
-var idPromptLabel = "Work IDs"
+var idsPromptLabel = "Work IDs"
 
-var idPrompt = promptui.Prompt{
-	Label: idPromptLabel,
+var idsPrompt = promptui.Prompt{
+	Label: idsPromptLabel,
 	Validate: func(input string) error {
 		_, err := parseIds(input)
 		return err
@@ -39,34 +39,44 @@ var userIdPrompt = promptui.Prompt{
 	Validate: utils.ValidateNumber("user ID must be a number"),
 }
 
-var inferIdPromptLabel = "Path pattern"
+var inferIdsPromptLabel = "Paths to directories or patterns to infer IDs from (comma-separated)"
 
-var inferIdPrompt = promptui.Prompt{
-	Label:    inferIdPromptLabel,
-	Validate: fsext.InferIdPathValid,
+var inferIdsPrompt = promptui.Prompt{
+	Label: inferIdsPromptLabel,
+	Validate: func(input string) error {
+		for _, s := range parseStrings(input) {
+			if !fsext.IsInferIdPattern(input) {
+				continue
+			}
+			if err := fsext.InferIdPatternValid(s); err != nil {
+				return err
+			}
+		}
+		return nil
+	},
 }
 
-var listPromptLabel = "Path to download list file"
+var listsPromptLabel = "Paths to download list files (comma-separated)"
 
-var listPrompt = promptui.Prompt{
-	Label: listPromptLabel,
+var listsPrompt = promptui.Prompt{
+	Label: listsPromptLabel,
 }
 
 var kindSelectLabel = "Type of work to download"
-var kindSelectWithQueueLabel = "Default type of work to download"
+var kindSelectwithListsLabel = "Default type of work to download"
 var artworkOption = "Artwork"
 var novelOption = "Novel"
 
-func kindSelect(withQueue bool) *promptui.Select {
+func kindSelect(withLists bool) *promptui.Select {
 	return &promptui.Select{
-		Label: utils.If(withQueue, kindSelectWithQueueLabel, kindSelectLabel),
+		Label: utils.If(withLists, kindSelectwithListsLabel, kindSelectLabel),
 		Items: []string{artworkOption, novelOption},
 	}
 }
 
 var tagsPromptLabel = "User-assigned tags (comma-separated or empty)"
 
-var tagsPrompts = promptui.Prompt{
+var tagsPrompt = promptui.Prompt{
 	Label: tagsPromptLabel,
 }
 
@@ -81,13 +91,13 @@ var rangePrompt = promptui.Prompt{
 }
 
 var onlyMetaSelectLabel = "Only download metadata"
-var onlyMetaSelectWithQueueLabel = "Only download metadata by default"
+var onlyMetaSelectwithListsLabel = "Only download metadata by default"
 var downloadAllOption = "Download metadata and images"
 var downloadMetaOption = "Only download metadata"
 
-func onlyMetaSelect(withQueue bool) *promptui.Select {
+func onlyMetaSelect(withLists bool) *promptui.Select {
 	return &promptui.Select{
-		Label: utils.If(withQueue, onlyMetaSelectWithQueueLabel, onlyMetaSelectLabel),
+		Label: utils.If(withLists, onlyMetaSelectwithListsLabel, onlyMetaSelectLabel),
 		Items: []string{downloadAllOption, downloadMetaOption},
 	}
 }
@@ -101,37 +111,42 @@ var lowMetaSelect = promptui.Select{
 	Items: []string{lowMetaOption, fullMetaOption},
 }
 
-var collectionPromptLabel = "Ignore works present in the collection (path, infer id pattern or nothing)"
+var skipsPromptLabel = "Skip works present in the directory (path, infer id pattern or nothing)"
 
-var collectionPrompt = promptui.Prompt{
-	Label: collectionPromptLabel,
+var skipsPrompt = promptui.Prompt{
+	Label: skipsPromptLabel,
 	Validate: func(input string) error {
-		if fsext.CanBeInferIdPath(input) {
-			return fsext.InferIdPathValid(input)
+		for _, s := range parseStrings(input) {
+			if !fsext.IsInferIdPattern(input) {
+				continue
+			}
+			if err := fsext.InferIdPatternValid(s); err != nil {
+				return err
+			}
 		}
 		return nil
 	},
 }
 
-var freshSelectLabel = "Pick bookmark pages fetching strategy"
-var freshPagesOption = "Fetch new bookmarks until fully downloaded bookmark page is reached"
+var untilSkipSelectLabel = "Pick bookmark pages fetching strategy"
+var untilSkipOption = "Fetch new bookmarks until fully downloaded bookmark page is reached"
 var allPagesOption = "Fetch and check all bookmarks"
 
-var freshSelect = promptui.Select{
-	Label: freshSelectLabel,
-	Items: []string{freshPagesOption, allPagesOption},
+var untilSkipSelect = promptui.Select{
+	Label: untilSkipSelectLabel,
+	Items: []string{untilSkipOption, allPagesOption},
 }
 
 var sizeSelectLabel = "Size of downloaded images"
-var sizeSelectWithQueueLabel = "Default size of downloaded images"
+var sizeSelectwithListsLabel = "Default size of downloaded images"
 var thumbnailSizeOption = "Thumbnail"
 var smallSizeOption = "Small"
 var mediumSizeOption = "Medium"
 var originalSizeOption = "Original"
 
-func sizeSelect(withQueue bool) *promptui.Select {
+func sizeSelect(withLists bool) *promptui.Select {
 	return &promptui.Select{
-		Label:     utils.If(withQueue, sizeSelectWithQueueLabel, sizeSelectLabel),
+		Label:     utils.If(withLists, sizeSelectwithListsLabel, sizeSelectLabel),
 		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
 		CursorPos: 3,
 	}
@@ -146,13 +161,13 @@ var pathSelect = promptui.Select{
 	Items: []string{inferredPathOption, customPathOption},
 }
 
-var pathPromptLabel = "Save to directory"
-var pathPromptWithQueueLabel = "Default saving path"
+var pathsPromptLabel = "Save to directory (one or multiple comma-separated)"
+var pathsPromptwithListsLabel = "Default saving path (one or multiple comma-separated)"
 
-func pathPrompt(withQueue bool) *promptui.Prompt {
+func pathsPrompt(withLists bool) *promptui.Prompt {
 	return &promptui.Prompt{
-		Label:    utils.If(withQueue, pathPromptWithQueueLabel, pathPromptLabel),
-		Validate: fsext.WorkPathValid,
+		Label:    utils.If(withLists, pathsPromptwithListsLabel, pathsPromptLabel),
+		Validate: fsext.WorkPathPatternValid,
 	}
 }
 

@@ -106,7 +106,7 @@ func (l *Logger) AddSkippedWork() {
 	l.mutex.Unlock()
 }
 
-func (l *Logger) AddFailedWork(id uint64) {
+func (l *Logger) AddFailedWork(id uint64) { // TODO: pass work's queue.ItemKind as well
 	l.mutex.Lock()
 	l.failedWorkIds = append(l.failedWorkIds, id)
 	l.mutex.Unlock()
