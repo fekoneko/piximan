@@ -14,7 +14,7 @@ import (
 // If you don't need this or you don't know the size, pass nil instead.
 func (c *Client) ArtworkMeta(
 	id uint64, size *imageext.Size,
-) (w *work.Work, firstPageUrl *string, thumbnailUrl *string, err error) {
+) (w *work.Work, firstPageUrl, thumbnailUrl *string, err error) {
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
 	body, _, err := c.Do(url, nil)
 	if err != nil {

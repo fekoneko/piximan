@@ -22,7 +22,7 @@ type Artwork struct {
 // If you don't need this or you don't know the size, pass nil instead.
 func (dto *Artwork) FromDto(
 	downloadTime time.Time, size *imageext.Size,
-) (w *work.Work, firstPageUrl *string, thumbnailUrl *string) {
+) (w *work.Work, firstPageUrl, thumbnailUrl *string) {
 	kind := utils.MapPtr(dto.IllustType, work.KindFromUint)
 	w = dto.Work.FromDto(kind, downloadTime)
 	if size != nil {

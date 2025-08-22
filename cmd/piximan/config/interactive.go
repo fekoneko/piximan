@@ -33,8 +33,8 @@ func interactive() {
 }
 
 func selectMode() (
-	withSessionId bool, withRules bool, withLimits bool,
-	resetSession bool, resetRules bool, resetLimits bool, reset bool,
+	withSessionId, withRules, withLimits,
+	resetSession, resetRules, resetLimits, reset bool,
 ) {
 	_, mode, err := modeSelect.Run()
 	logger.MaybeFatal(err, "failed to read configuration mode")
