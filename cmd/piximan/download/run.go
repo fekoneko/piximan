@@ -9,6 +9,7 @@ type options struct {
 	InferIds   *[]string `short:"I" long:"infer-id"`
 	Kind       *string   `short:"t" long:"type"`
 	Size       *uint     `short:"s" long:"size"`
+	Language   *string   `short:"L" long:"language"`
 	OnlyMeta   *bool     `short:"m" long:"only-meta"`
 	Rules      *[]string `short:"r" long:"rules"`
 	Skips      *[]string `short:"S" long:"skip"`

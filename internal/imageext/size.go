@@ -10,8 +10,12 @@ const (
 	SizeDefault        = SizeOriginal
 )
 
+func ValidSizeUint(size uint) bool {
+	return size <= 3
+}
+
 func SizeFromUint(size uint) Size {
-	if size <= 3 {
+	if ValidSizeUint(size) {
 		return Size(size)
 	}
 	return SizeDefault

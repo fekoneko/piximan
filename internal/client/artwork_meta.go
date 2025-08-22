@@ -13,9 +13,9 @@ import (
 // Provided size is only used to determine the url of the first page.
 // If you don't need this or you don't know the size, pass nil instead.
 func (c *Client) ArtworkMeta(
-	id uint64, size *imageext.Size,
+	id uint64, size *imageext.Size, language work.Language,
 ) (w *work.Work, firstPageUrl, thumbnailUrl *string, err error) {
-	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v", id)
+	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%v?lang=%v", id, language.String())
 	body, _, err := c.Do(url, nil)
 	if err != nil {
 		return nil, nil, nil, err

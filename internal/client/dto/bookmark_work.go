@@ -11,15 +11,15 @@ import (
 
 type BookmarkWork struct {
 	Id          any       `json:"id"`
-	Title       *string   `json:"title"`
-	Description *string   `json:"description"`
+	Title       *string   `json:"title"`       // TODO: translation
+	Description *string   `json:"description"` // TODO: translation
 	UserId      any       `json:"userId"`
 	UserName    *string   `json:"userName"`
 	XRestrict   *uint8    `json:"xRestrict"`
 	AiType      *uint8    `json:"aiType"`
 	PageCount   *uint64   `json:"pageCount"`
 	CreateDate  *string   `json:"createDate"`
-	Tags        *[]string `json:"tags"`
+	Tags        *[]string `json:"tags"` // TODO: translation
 }
 
 func (dto *BookmarkWork) FromDto(

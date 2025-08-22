@@ -24,8 +24,9 @@ import (
 )
 
 func download(options *options) {
-	size := utils.FromPtrTransform(options.Size, imageext.SizeFromUint, imageext.SizeDefault)
 	kind := utils.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
+	size := utils.FromPtrTransform(options.Size, imageext.SizeFromUint, imageext.SizeDefault)
+	language := utils.FromPtrTransform(options.Language, work.LanguageFromString, work.LanguageDefault)
 	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
@@ -43,12 +44,12 @@ func download(options *options) {
 	defer termext.RestoreInputEcho()
 
 	if options.Ids != nil {
-		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
+		d.Schedule(*options.Ids, kind, size, language, onlyMeta, paths)
 
 	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
 		d.ScheduleMyBookmarks(
 			kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, untilSkip, paths,
+			size, language, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.Bookmarks != nil {
@@ -57,7 +58,7 @@ func download(options *options) {
 
 		d.ScheduleBookmarks(
 			userId, kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, untilSkip, paths,
+			size, language, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.InferIds != nil {

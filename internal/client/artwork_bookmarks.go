@@ -7,18 +7,19 @@ import (
 	"time"
 
 	"github.com/fekoneko/piximan/internal/client/dto"
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
 // Fetched works miss some fields. Need to fetch work by ID to get the rest if needed.
 func (c *Client) ArtworkBookmarksAuthorized(
-	userId uint64, tag *string, offset uint64, limit uint64, private bool,
+	userId uint64, tag *string, offset uint64, limit uint64, private bool, language work.Language,
 ) (results []BookmarkResult, total uint64, err error) {
 	escapedTag := utils.FromPtrTransform(tag, url.QueryEscape, "")
 	visivility := utils.If(private, "hide", "show")
 	url := fmt.Sprintf(
-		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v",
-		userId, escapedTag, offset, limit, visivility,
+		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v&lang=%v",
+		userId, escapedTag, offset, limit, visivility, language.String(),
 	)
 	body, _, err := c.DoAuthorized(url, nil)
 	if err != nil {

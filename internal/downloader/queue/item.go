@@ -9,6 +9,7 @@ type Item struct {
 	Id       uint64
 	Kind     ItemKind
 	Size     imageext.Size
+	Language work.Language
 	OnlyMeta bool
 	Paths    []string
 

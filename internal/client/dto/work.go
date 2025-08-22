@@ -13,8 +13,8 @@ import (
 
 type Work struct {
 	Id            *string `json:"id"`
-	Title         *string `json:"title"`
-	Description   *string `json:"description"`
+	Title         *string `json:"title"`       // TODO: translation
+	Description   *string `json:"description"` // TODO: translation
 	UserId        *string `json:"userId"`
 	UserName      *string `json:"userName"`
 	XRestrict     *uint8  `json:"xRestrict"`
@@ -33,7 +33,7 @@ type Work struct {
 	} `json:"seriesNavData"`
 	Tags struct {
 		Tags *[](struct {
-			Tag *string `json:"tag"`
+			Tag *string `json:"tag"` // TODO: translation
 		}) `json:"tags"`
 	} `json:"tags"`
 }

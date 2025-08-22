@@ -62,6 +62,14 @@ const downloadHelp = //
              - 0 thumbnail  - 2 medium
              - 1 small      - 3 original
 
+--language   Japanese is the default language for tags and work titles / descriptions on pixiv,
+ -L          translations may also be provided. Available values are:
+             - ja - Japanese (original language), applies to tags and descriptions / titles
+             - en - English, applies to tags and work descriptions / titles
+             - zh - Chinese, applies to tags, descriptions / titles will use the original language
+             - ko - Korean, applies to tags, descriptions / titles will use the original language
+             The default option is ja, but this can be configured, see 'piximan help config'
+
 --only-meta  Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.
 

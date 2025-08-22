@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/jessevdk/go-flags"
 )
@@ -34,8 +36,12 @@ func nonInteractive() {
 		fmt.Println("invalid argument for flag `-t, --type'")
 		os.Exit(2)
 	}
-	if options.Size != nil && *options.Size > 3 {
+	if options.Size != nil && !imageext.ValidSizeUint(*options.Size) {
 		fmt.Println("invalid argument for flag `-s, --size'")
+		os.Exit(2)
+	}
+	if options.Language != nil && !work.ValidLanguageString(*options.Language) {
+		fmt.Println("invalid argument for flag `-L, --language'")
 		os.Exit(2)
 	}
 	if options.Tags != nil && options.Bookmarks == nil {

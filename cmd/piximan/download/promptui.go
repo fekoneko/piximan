@@ -1,6 +1,7 @@
 package download
 
 import (
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/manifoldco/promptui"
@@ -137,6 +138,31 @@ func sizeSelect(withLists bool) *promptui.Select {
 		Label:     utils.If(withLists, withListsLabel, label),
 		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
 		CursorPos: 3,
+	}
+}
+
+var japaneseOption = "Japanese"
+var englishOption = "English"
+var chineseOption = "Chinese"
+var koreanOption = "Korean"
+
+func languageSelect(defaultLanguage work.Language) *promptui.Select {
+	cursorPos := 0
+	switch defaultLanguage {
+	case work.LanguageJapanese:
+		cursorPos = 0
+	case work.LanguageEnglish:
+		cursorPos = 1
+	case work.LanguageChinese:
+		cursorPos = 2
+	case work.LanguageKorean:
+		cursorPos = 3
+	}
+
+	return &promptui.Select{
+		Label:     "Language",
+		Items:     []string{japaneseOption, englishOption, chineseOption, koreanOption},
+		CursorPos: cursorPos,
 	}
 }
 

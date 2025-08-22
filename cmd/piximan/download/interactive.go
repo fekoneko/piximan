@@ -3,6 +3,7 @@ package download
 import (
 	"fmt"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
@@ -14,7 +15,6 @@ func interactive() {
 	withLists := lists != nil
 	withInferIds := inferIds != nil
 	withBookmarks := bookmarks != nil
-
 	kind := selectKind(withLists)
 	tags := promptTags(withBookmarks)
 	fromOffset, toOffset := promptRange(withBookmarks)
@@ -24,6 +24,7 @@ func interactive() {
 	withSkips := skips != nil
 	untilSkip := selectUntilSkip(withSkips)
 	size := selectSize(withLists, onlyMeta)
+	language := selectLanguage()
 	paths := promptPaths(withInferIds, withLists)
 	rules := promptRules()
 
@@ -35,6 +36,7 @@ func interactive() {
 		InferIds:   inferIds,
 		Kind:       &kind,
 		Size:       size,
+		Language:   language,
 		OnlyMeta:   &onlyMeta,
 		Rules:      rules,
 		Skips:      skips,
@@ -220,6 +222,25 @@ func selectSize(withLists, onlyMeta bool) *uint {
 		return &result
 	default:
 		logger.Fatal("incorrect size: %v", size)
+		panic("unreachable")
+	}
+}
+
+func selectLanguage() *string {
+	_, language, err := languageSelect(work.LanguageDefault).Run() // TODO: default language from config
+	logger.MaybeFatal(err, "failed to read language choice")
+
+	switch language {
+	case japaneseOption:
+		return utils.ToPtr(work.LanguageJapaneseString)
+	case englishOption:
+		return utils.ToPtr(work.LanguageEnglishString)
+	case chineseOption:
+		return utils.ToPtr(work.LanguageChineseString)
+	case koreanOption:
+		return utils.ToPtr(work.LanguageKoreanString)
+	default:
+		logger.Fatal("incorrect language: %v", language)
 		panic("unreachable")
 	}
 }

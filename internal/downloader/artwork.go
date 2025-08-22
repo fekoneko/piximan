@@ -12,13 +12,15 @@ import (
 // Download only artwork metadata and store it in paths. Blocks until done.
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
-func (d *Downloader) ArtworkMeta(id uint64, paths []string) (*work.Work, error) {
+func (d *Downloader) ArtworkMeta(
+	id uint64, language work.Language, paths []string,
+) (*work.Work, error) {
 	if d.skipped(id, queue.ItemKindArtwork, false) || !d.matchArtworkId(id) {
 		return nil, ErrSkipped
 	}
 	d.logger.Info("downloading metadata for artwork %v", id)
 
-	w, _, _, err := d.artworkMeta(id, nil)
+	w, _, _, err := d.artworkMeta(id, nil, language)
 	if err != nil {
 		return nil, err
 	} else if !d.matchArtwork(id, w, false) {
@@ -43,13 +45,15 @@ func (d *Downloader) LowArtworkMetaWithKnown(id uint64, w *work.Work, paths []st
 // Download artwork with all assets and metadata and store it in paths. Blocks until done.
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
-func (d *Downloader) Artwork(id uint64, size imageext.Size, paths []string) (*work.Work, error) {
+func (d *Downloader) Artwork(
+	id uint64, size imageext.Size, language work.Language, paths []string,
+) (*work.Work, error) {
 	if d.skipped(id, queue.ItemKindArtwork, false) || !d.matchArtworkId(id) {
 		return nil, ErrSkipped
 	}
 	d.logger.Info("downloading artwork %v", id)
 
-	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(id, &size)
+	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(id, &size, language)
 	if err != nil {
 		return nil, err
 	} else if !d.matchArtwork(id, w, false) {
@@ -82,14 +86,14 @@ func (d *Downloader) Artwork(id uint64, size imageext.Size, paths []string) (*wo
 // metadata are defined, it will wait until full metadata is received.
 // For downloading multiple works consider using ScheduleWithKnown().
 func (d *Downloader) ArtworkWithKnown(
-	id uint64, size imageext.Size, w *work.Work, thumbnailUrl string, paths []string,
+	id uint64, size imageext.Size, language work.Language, w *work.Work, thumbnailUrl string, paths []string,
 ) (*work.Work, error) {
 	if d.skipped(id, queue.ItemKindArtwork, false) {
 		return nil, ErrSkipped
 	} else if matches, needFull := d.matchArtworkNeedFull(id, w); !matches {
 		return nil, ErrSkipped
 	} else if needFull {
-		return d.Artwork(id, size, paths)
+		return d.Artwork(id, size, language, paths)
 	}
 	d.logger.Info("downloading artwork %v", id)
 
@@ -97,7 +101,7 @@ func (d *Downloader) ArtworkWithKnown(
 	assetsChannel := make(chan []fsext.Asset, 1)
 	errorChannel := make(chan error, 1)
 
-	go d.artworkMetaChannel(id, workChannel, errorChannel)
+	go d.artworkMetaChannel(id, language, workChannel, errorChannel)
 
 	if w.Kind == nil {
 		err := fmt.Errorf("work kind is missing in %v", w)
