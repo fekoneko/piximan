@@ -48,7 +48,7 @@ func interactive() {
 	})
 }
 
-func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIds *[]string, lists *[]string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIds, lists *[]string) {
 	_, mode, err := sourceSelect.Run()
 	logger.MaybeFatal(err, "failed to read mode")
 
@@ -197,7 +197,7 @@ func selectUntilSkip(withSkip bool) *bool {
 	}
 }
 
-func selectSize(withLists bool, onlyMeta bool) *uint {
+func selectSize(withLists, onlyMeta bool) *uint {
 	if onlyMeta {
 		return nil
 	}
@@ -224,7 +224,7 @@ func selectSize(withLists bool, onlyMeta bool) *uint {
 	}
 }
 
-func promptPaths(withInferIds bool, withLists bool) *[]string {
+func promptPaths(withInferIds, withLists bool) *[]string {
 	if withInferIds {
 		_, pathChoice, err := pathSelect.Run()
 		logger.MaybeFatal(err, "failed to read path choice")

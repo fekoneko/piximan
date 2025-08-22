@@ -112,22 +112,22 @@ func (r *Rules) MatchWork(w *work.Work, partial bool) (matches bool, warnings []
 	return matches, warnings
 }
 
-func matchOneToOne[T comparable](r *T, f *T, rule string, field string, warnings *[]error) bool {
+func matchOneToOne[T comparable](r *T, f *T, rule, field string, warnings *[]error) bool {
 	skipped := skipped(r, f, rule, field, warnings, true)
 	return skipped || *r == *f
 }
 
-func matchManyToOne[T comparable](r *[]T, f *T, rule string, field string, warnings *[]error) bool {
+func matchManyToOne[T comparable](r *[]T, f *T, rule, field string, warnings *[]error) bool {
 	skipped := skipped(r, f, rule, field, warnings, true)
 	return skipped || slices.Contains(*r, *f)
 }
 
-func matchManyToOneNot[T comparable](r *[]T, f *T, rule string, field string, warnings *[]error) bool {
+func matchManyToOneNot[T comparable](r *[]T, f *T, rule, field string, warnings *[]error) bool {
 	skipped := skipped(r, f, rule, field, warnings, true)
 	return skipped || !slices.Contains(*r, *f)
 }
 
-func matchManyToMany[T comparable](r *[]T, f *[]T, rule string, field string, warnings *[]error) bool {
+func matchManyToMany[T comparable](r *[]T, f *[]T, rule, field string, warnings *[]error) bool {
 	if skipped(r, f, rule, field, warnings, true) {
 		return true
 	}
@@ -139,7 +139,7 @@ func matchManyToMany[T comparable](r *[]T, f *[]T, rule string, field string, wa
 	return false
 }
 
-func matchManyToManyNot[T comparable](r *[]T, f *[]T, rule string, field string, warnings *[]error) bool {
+func matchManyToManyNot[T comparable](r *[]T, f *[]T, rule, field string, warnings *[]error) bool {
 	if skipped(r, f, rule, field, warnings, true) {
 		return true
 	}
@@ -151,7 +151,7 @@ func matchManyToManyNot[T comparable](r *[]T, f *[]T, rule string, field string,
 	return true
 }
 
-func matchSubstrings(r *[]string, f *string, rule string, field string, warnings *[]error) bool {
+func matchSubstrings(r *[]string, f *string, rule, field string, warnings *[]error) bool {
 	if skipped(r, f, rule, field, warnings, true) {
 		return true
 	}
@@ -163,7 +163,7 @@ func matchSubstrings(r *[]string, f *string, rule string, field string, warnings
 	return false
 }
 
-func matchSubstringsNot(r *[]string, f *string, rule string, field string, warnings *[]error) bool {
+func matchSubstringsNot(r *[]string, f *string, rule, field string, warnings *[]error) bool {
 	if skipped(r, f, rule, field, warnings, true) {
 		return true
 	}
@@ -175,39 +175,39 @@ func matchSubstringsNot(r *[]string, f *string, rule string, field string, warni
 	return true
 }
 
-func matchRegexp(r *regexp.Regexp, f *string, rule string, field string, warnings *[]error) bool {
+func matchRegexp(r *regexp.Regexp, f *string, rule, field string, warnings *[]error) bool {
 	skipped := skipped(r, f, rule, field, warnings, true)
 	return skipped || r.MatchString(*f)
 }
 
-func matchLessThan(r *uint64, f *uint64, rule string, field string, warnings *[]error) bool {
+func matchLessThan(r *uint64, f *uint64, rule, field string, warnings *[]error) bool {
 	skipped := skipped(r, f, rule, field, warnings, true)
 	return skipped || *f < *r
 }
 
-func matchMoreThan(r *uint64, f *uint64, rule string, field string, warnings *[]error) bool {
+func matchMoreThan(r *uint64, f *uint64, rule, field string, warnings *[]error) bool {
 	skipped := skipped(r, f, rule, field, warnings, true)
 	return skipped || *f > *r
 }
 
-func matchBefore(r *time.Time, f *time.Time, rule string, field string, warnings *[]error) bool {
+func matchBefore(r *time.Time, f *time.Time, rule, field string, warnings *[]error) bool {
 	skipped := skipped(r, f, rule, field, warnings, true)
 	return skipped || f.Before(*r)
 }
 
-func matchAfter(r *time.Time, f *time.Time, rule string, field string, warnings *[]error) bool {
+func matchAfter(r *time.Time, f *time.Time, rule, field string, warnings *[]error) bool {
 	skipped := skipped(r, f, rule, field, warnings, true)
 	return skipped || f.After(*r)
 }
 
 func matchDefined[T comparable](
-	r *bool, f *T, rule string, field string, warnings *[]error, skipUndefinedField bool,
+	r *bool, f *T, rule, field string, warnings *[]error, skipUndefinedField bool,
 ) bool {
 	skipped := skipped(r, f, rule, field, warnings, skipUndefinedField)
 	return skipped || (*r && f != nil) || (!*r && f == nil)
 }
 
-func skipped[R any, F any](r *R, f *F, rule string, field string, warnings *[]error, skipUndefinedField bool) bool {
+func skipped[R any, F any](r *R, f *F, rule, field string, warnings *[]error, skipUndefinedField bool) bool {
 	if r == nil {
 		return true
 	} else if f == nil && skipUndefinedField {

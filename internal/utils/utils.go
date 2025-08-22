@@ -113,7 +113,7 @@ func SomeDefined(values ...any) bool {
 	return false
 }
 
-func MapFindValue[K comparable, V comparable](m map[K]V, value V) (key K, ok bool) {
+func MapFindValue[K, V comparable](m map[K]V, value V) (key K, ok bool) {
 	for k, v := range m {
 		if v == value {
 			return k, true
@@ -132,7 +132,7 @@ func Copy[T any](ptr *T) *T {
 }
 
 // Returns singular if n is 1. Use to pluralize words.
-func IfPlural(n int, singular string, plural string) string {
+func IfPlural(n int, singular, plural string) string {
 	if n == 1 {
 		return singular
 	}

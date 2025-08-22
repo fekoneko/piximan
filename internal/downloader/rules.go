@@ -64,7 +64,7 @@ func (d *Downloader) matchArtwork(id uint64, w *work.Work, partial bool) bool {
 // The same as partial matchArtwork(), but doesn't log warnings and instead returns weather the full
 // metadata is needed to make the final decision. Used to check early if the work is worth downloading
 // and decide weather to wait for full metadata before starting downloading assets.
-func (d *Downloader) matchArtworkNeedFull(id uint64, w *work.Work) (matches bool, needFull bool) {
+func (d *Downloader) matchArtworkNeedFull(id uint64, w *work.Work) (matches, needFull bool) {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
@@ -101,7 +101,7 @@ func (d *Downloader) matchNovel(id uint64, w *work.Work, partial bool) bool {
 // The same as partial matchNovel(), but doesn't log warnings and instead returns weather the full
 // metadata is needed to make the final decision. Used to check early if the work is worth downloading
 // and decide weather to wait for full metadata before starting downloading assets.
-func (d *Downloader) matchNovelNeedFull(id uint64, w *work.Work) (matches bool, needFull bool) {
+func (d *Downloader) matchNovelNeedFull(id uint64, w *work.Work) (matches, needFull bool) {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 

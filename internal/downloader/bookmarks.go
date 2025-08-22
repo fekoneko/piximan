@@ -17,7 +17,7 @@ import (
 // a fully skipped one. Use this to conserve requests when synching only new bookmarks.
 func (d *Downloader) ScheduleMyBookmarks(
 	kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
+	size imageext.Size, onlyMeta, lowMeta, untilSkipped bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -42,7 +42,7 @@ func (d *Downloader) ScheduleMyBookmarks(
 // a fully skipped one. Use this to conserve requests when synching only new bookmarks.
 func (d *Downloader) ScheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
+	size imageext.Size, onlyMeta, lowMeta, untilSkipped bool, paths []string,
 ) {
 	if tags == nil {
 		d.scheduleBookmarks(
@@ -68,7 +68,7 @@ func (d *Downloader) ScheduleBookmarks(
 // for the rest of the pages.
 func (d *Downloader) scheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
+	size imageext.Size, onlyMeta, lowMeta, untilSkipped bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -130,7 +130,7 @@ func (d *Downloader) scheduleBookmarks(
 // Can be cancelled with provided signal until work download tasks were scheduled.
 func (d *Downloader) fetchBookmarksPageAndSchedule(
 	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, paths []string, signal *syncext.Signal,
+	size imageext.Size, onlyMeta, lowMeta bool, paths []string, signal *syncext.Signal,
 ) (total uint64, allIngored bool, err error) {
 	if signal != nil && signal.Cancelled() {
 		return 0, false, ErrSkipped

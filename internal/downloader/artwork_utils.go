@@ -9,7 +9,7 @@ import (
 // If you don't need this or you don't know the size, pass nil instead.
 func (d *Downloader) artworkMeta(
 	id uint64, size *imageext.Size,
-) (w *work.Work, firstPageUrl *string, thumbnailUrl *string, err error) {
+) (w *work.Work, firstPageUrl, thumbnailUrl *string, err error) {
 	w, firstPageUrl, thumbnailUrl, err = d.client.ArtworkMeta(id, size)
 	d.logger.MaybeSuccess(err, "fetched metadata for artwork %v", id)
 	d.logger.MaybeError(err, "failed to fetch metadata for artwork %v", id)
