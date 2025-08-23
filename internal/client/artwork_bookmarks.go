@@ -19,7 +19,7 @@ func (c *Client) ArtworkBookmarksAuthorized(
 	visivility := utils.If(private, "hide", "show")
 	url := fmt.Sprintf(
 		"https://www.pixiv.net/ajax/user/%v/illusts/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v&lang=%v",
-		userId, escapedTag, offset, limit, visivility, language.String(),
+		userId, escapedTag, offset, limit, visivility, language,
 	)
 	body, _, err := c.DoAuthorized(url, nil)
 	if err != nil {

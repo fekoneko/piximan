@@ -20,7 +20,7 @@ func (d *Downloader) ArtworkMeta(
 	}
 	d.logger.Info("downloading metadata for artwork %v", id)
 
-	w, _, _, err := d.artworkMeta(id, nil, language)
+	w, _, _, err := d.artworkMeta(id, nil, &language)
 	if err != nil {
 		return nil, err
 	} else if !d.matchArtwork(id, w, false) {
@@ -53,7 +53,7 @@ func (d *Downloader) Artwork(
 	}
 	d.logger.Info("downloading artwork %v", id)
 
-	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(id, &size, language)
+	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(id, &size, &language)
 	if err != nil {
 		return nil, err
 	} else if !d.matchArtwork(id, w, false) {
@@ -101,7 +101,7 @@ func (d *Downloader) ArtworkWithKnown(
 	assetsChannel := make(chan []fsext.Asset, 1)
 	errorChannel := make(chan error, 1)
 
-	go d.artworkMetaChannel(id, language, workChannel, errorChannel)
+	go d.artworkMetaChannel(id, &language, workChannel, errorChannel)
 
 	if w.Kind == nil {
 		err := fmt.Errorf("work kind is missing in %v", w)

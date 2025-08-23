@@ -17,7 +17,7 @@ func (d *Downloader) NovelMeta(id uint64, language work.Language, paths []string
 	}
 	d.logger.Info("downloading metadata for novel %v", id)
 
-	w, err := d.novelOnlyMeta(id, language)
+	w, err := d.novelOnlyMeta(id, &language)
 	if err != nil {
 		return nil, err
 	} else if !d.matchNovel(id, w, false) {
@@ -50,7 +50,7 @@ func (d *Downloader) Novel(
 	}
 	d.logger.Info("downloading novel %v", id)
 
-	w, coverUrl, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size, language)
+	w, coverUrl, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size, &language)
 	if err != nil {
 		return nil, err
 	} else if !d.matchNovel(id, w, false) {
@@ -62,7 +62,7 @@ func (d *Downloader) Novel(
 	errorChannel := make(chan error, 1)
 
 	go d.novelCoverAssetChannel(id, *coverUrl, coverChannel, errorChannel)
-	go d.novelImageAssetsChannel(id, size, language, uploadedImages, pixivImages, imagesChannel, errorChannel)
+	go d.novelImageAssetsChannel(id, size, uploadedImages, pixivImages, imagesChannel, errorChannel)
 
 	var coverAsset *fsext.Asset
 	var imageAssets map[int]fsext.Asset
@@ -103,7 +103,7 @@ func (d *Downloader) NovelWithKnown(
 	coverChannel := make(chan *fsext.Asset, 1)
 	errorChannel := make(chan error, 1)
 
-	go d.novelMetaImageAssetsChannel(id, size, language, workChannel, pagesChannel, imagesChannel, errorChannel)
+	go d.novelMetaImageAssetsChannel(id, size, &language, workChannel, pagesChannel, imagesChannel, errorChannel)
 	go d.novelCoverAssetChannel(id, coverUrl, coverChannel, errorChannel)
 
 	var w *work.Work

@@ -68,6 +68,7 @@ const downloadHelp = //
              - ja : Japanese (original language)
              - en : English
              The default option is ja, but this can be configured, see 'piximan help config'
+             Providing 'en' will require to authorize metadata requests for age restricted works.
              Tags saved in metadata.yaml files will not be translated.
 
 --only-meta  Only download the metadata.yaml file for the work. Useful for
