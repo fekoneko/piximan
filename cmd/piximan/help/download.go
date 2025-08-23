@@ -10,11 +10,12 @@ import (
 const downloadHelp = //
 `Run without arguments to enter interactive mode.
 
-> piximan download [--id        ...] [--type  ...] [--tag    ...] [--path     ...]
-                   [--bookmarks ...] [--size  ...] [--from   ...] [--password ...]
-                   [--list      ...] [--only-meta] [--to     ...]
-                   [--infer-id  ...] [--rules ...] [--low-meta  ]
-                                     [--skip  ...] [--until-skip]
+> piximan download | --id        | --type      | --tag        | --path     |
+>                  | --bookmarks | --size      | --from       | --password |
+>                  | --list      | --language  | --to         |            |
+>                  | --infer-id  | --only-meta | --low-meta   |            |
+>                  |             | --rules     | --until-skip |            |
+>                  |             | --skip      |              |            |
 
                               Download sources
                               ----------------
@@ -25,8 +26,8 @@ const downloadHelp = //
 --bookmarks  Download your bookmarks or the bookmarks of the given user.
  -b          Authorization is required for this source. See 'piximan help config'
              Available options are:
-             - my         - download bookmarks of the authorized user
-             - <user ID>  - numeric ID of the user to download bookmarks from
+             - my           : download bookmarks of the authorized user
+             - <user ID>    : numeric ID of the user to download bookmarks from
 
 --list       Path to a file with information about which works to download.
  -l          The file must contain a list in YAML format, for example:
@@ -43,9 +44,9 @@ const downloadHelp = //
  -I          the metadata in existing collection when coupled with -only-meta flag.
              If this flag is provided, --path can be omitted and downloaded works will replace
              ones in the original location. The path may contain the following patterns:
-             - {id}         : the ID of the work
-             - *            : matches any sequence of non-separator characters
-             - {<anything>} : will be treated as *
+             - {id}           : the ID of the work
+             - *              : matches any sequence of non-separator characters
+             - {<anything>}   : will be treated as *
              If the provided argument doesn't contain any patterns, piximan will recursively
              look for metadata.yaml files in the provided directory and infer IDs and work types
              from there. May be provided multiple times.
@@ -54,21 +55,20 @@ const downloadHelp = //
                               ----------------
 --type       The type of work to download. Defaults to artwork.
  -t          Available options are:
-             - artwork      - novel
+             - artwork        - novel
 
 --size       Size (resolution) of downloaded images. This Option doesn't apply to ugoira.
  -s          Defaults to original size.
              Available options are:
-             - 0 thumbnail  - 2 medium
-             - 1 small      - 3 original
+             - 0 : thumbnail  - 2 : medium
+             - 1 : small      - 3 : original
 
---language   Japanese is the default language for tags and work titles / descriptions on pixiv,
- -L          translations may also be provided. Available values are:
-             - ja - Japanese (original language), applies to tags and descriptions / titles
-             - en - English, applies to tags and work descriptions / titles
-             - zh - Chinese, applies to tags, descriptions / titles will use the original language
-             - ko - Korean, applies to tags, descriptions / titles will use the original language
+--language   Japanese is the default language for work titles and descriptions on pixiv, but
+ -L          translations may also be provided by authors. Available values are:
+             - ja : Japanese (original language)
+             - en : English
              The default option is ja, but this can be configured, see 'piximan help config'
+             Tags saved in metadata.yaml files will not be translated.
 
 --only-meta  Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.
@@ -104,7 +104,6 @@ const downloadHelp = //
              - original, views, bookmarks, likes, comments, uploaded
              - series_id, series_title, series_order
              - description (will only be present with '--language en' and when work has translation)
-             Tags will not be translated when --language is provided.
              When downloading novels without --low-meta flag, the full metadata will be
              downloaded without any request overhead, so --low-meta should be omitted.
 
@@ -119,16 +118,16 @@ const downloadHelp = //
 --path       Directory to save the files into.
  -p          Defaults to current directory or may be inferred from provided --infer-id.
              You can use these substitutions in the pathname:
-             - {title}       : the title of the work
-             - {id}          : the ID of the work
-             - {user}        : the username of the work author
-             - {user-id}     : the ID of the work author
-             - {type}        : the type of the work (Illustrations, Manga, Ugoira, Novels)
-             - {restriction} : age restriction of the work (All Ages, R-18, R-18G)
-             - {ai}          : the humanity is doomed (Human, AI)
-             - {original}    : whether the work is original (Original, Not Original)
-             - {series}      : the title of the series the work belongs to
-             - {series-id}   : the ID of the series the work belongs to
+             - {title}         : the title of the work
+             - {id}            : the ID of the work
+             - {user}          : the username of the work author
+             - {user-id}       : the ID of the work author
+             - {type}          : the type of the work (Illustrations, Manga, Ugoira, Novels)
+             - {restriction}   : age restriction of the work (All Ages, R-18, R-18G)
+             - {ai}            : the humanity is doomed (Human, AI)
+             - {original}      : whether the work is original (Original, Not Original)
+             - {series}        : the title of the series the work belongs to
+             - {series-id}     : the ID of the series the work belongs to
              Be aware that any Windows / NTFS reserved names will be automaticaly
              padded with underscores, reserved characters - replaced and any dots
              or spaces in front or end of the filenames will be trimmed.

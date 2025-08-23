@@ -141,10 +141,8 @@ func sizeSelect(withLists bool) *promptui.Select {
 	}
 }
 
-var japaneseOption = "Japanese"
+var japaneseOption = "Japanese (or other original language)"
 var englishOption = "English"
-var chineseOption = "Chinese"
-var koreanOption = "Korean"
 
 func languageSelect(defaultLanguage work.Language) *promptui.Select {
 	cursorPos := 0
@@ -153,15 +151,11 @@ func languageSelect(defaultLanguage work.Language) *promptui.Select {
 		cursorPos = 0
 	case work.LanguageEnglish:
 		cursorPos = 1
-	case work.LanguageChinese:
-		cursorPos = 2
-	case work.LanguageKorean:
-		cursorPos = 3
 	}
 
 	return &promptui.Select{
 		Label:     "Language",
-		Items:     []string{japaneseOption, englishOption, chineseOption, koreanOption},
+		Items:     []string{japaneseOption, englishOption},
 		CursorPos: cursorPos,
 	}
 }

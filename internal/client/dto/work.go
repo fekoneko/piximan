@@ -33,11 +33,7 @@ type Work struct {
 	} `json:"seriesNavData"`
 	Tags struct {
 		Tags *[](struct {
-			Tag         *string `json:"tag"`
-			Translation struct {
-				// Yes, it's 'en' regardless of the language.
-				En *string `json:"en"`
-			} `json:"translation"`
+			Tag *string `json:"tag"`
 		}) `json:"tags"`
 	} `json:"tags"`
 	TitleCaptionTranslation struct {
@@ -65,9 +61,7 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 	if dto.Tags.Tags != nil {
 		tags = utils.ToPtr(make([]string, len(*dto.Tags.Tags)))
 		for i, tag := range *dto.Tags.Tags {
-			if tag.Translation.En != nil {
-				(*tags)[i] = *tag.Translation.En
-			} else if tag.Tag != nil {
+			if tag.Tag != nil {
 				(*tags)[i] = *tag.Tag
 			} else {
 				tags = nil

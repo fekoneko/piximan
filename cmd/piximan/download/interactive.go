@@ -235,10 +235,6 @@ func selectLanguage() *string {
 		return utils.ToPtr(work.LanguageJapaneseString)
 	case englishOption:
 		return utils.ToPtr(work.LanguageEnglishString)
-	case chineseOption:
-		return utils.ToPtr(work.LanguageChineseString)
-	case koreanOption:
-		return utils.ToPtr(work.LanguageKoreanString)
 	default:
 		logger.Fatal("incorrect language: %v", language)
 		panic("unreachable")

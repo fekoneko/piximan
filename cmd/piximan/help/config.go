@@ -5,7 +5,10 @@ import "fmt"
 const configHelp = //
 `Run without arguments to enter interactive mode.
 
-> piximan config [--session-id ...] [--password ...]
+> piximan config | --session-id | --rules    | --max-pending       | --reset-session |
+>                | --password   | --language | --delay             | --reset-rules   |
+>                |              |            | --pximg-max-pending | --reset-limits  |
+>                |              |            | --pximg-delay       | --reset         |
 
                             Authorization options
                             ---------------------
@@ -26,6 +29,9 @@ const configHelp = //
                               ----------------
 --rules      Path to YAML file with download rules that will be applied to every download.
  -r          May be provided multiple times. Run 'piximan help rules' for more info.
+
+--language   Language that will be used to translate work titles and descriptions
+ -L          by default. See 'piximan help download' for more info.
 
                           Request delays and limits
                           --------------------------
