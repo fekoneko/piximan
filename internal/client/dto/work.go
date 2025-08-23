@@ -43,6 +43,10 @@ type Work struct {
 }
 
 func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
+	withTranslation := dto.TitleCaptionTranslation.WorkTitle != nil ||
+		dto.TitleCaptionTranslation.WorkCaption != nil
+	language := utils.If(withTranslation, work.LanguageEnglish, work.LanguageJapanese)
+
 	var title *string
 	if dto.TitleCaptionTranslation.WorkTitle != nil {
 		title = dto.TitleCaptionTranslation.WorkTitle
@@ -86,6 +90,7 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 	}
 
 	return &work.Work{
+		Language:     &language,
 		Id:           utils.ParseUint64Ptr(dto.Id),
 		Title:        title,
 		Kind:         kind,

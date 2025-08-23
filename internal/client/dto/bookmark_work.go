@@ -28,6 +28,10 @@ type BookmarkWork struct {
 func (dto *BookmarkWork) FromDto(
 	kind *work.Kind, downloadTime time.Time,
 ) (w *work.Work, unlisted bool) {
+	withTranslation := dto.TitleCaptionTranslation.WorkTitle != nil ||
+		dto.TitleCaptionTranslation.WorkCaption != nil
+	language := utils.If(withTranslation, work.LanguageEnglish, work.LanguageJapanese)
+
 	var title *string
 	if dto.TitleCaptionTranslation.WorkTitle != nil {
 		title = dto.TitleCaptionTranslation.WorkTitle
@@ -63,6 +67,7 @@ func (dto *BookmarkWork) FromDto(
 	}
 
 	work := &work.Work{
+		Language:     &language,
 		Id:           id,
 		Title:        title,
 		Kind:         kind,
