@@ -18,7 +18,7 @@ func (c *Client) NovelBookmarksAuthorized(
 	escapedTag := utils.FromPtrTransform(tag, url.QueryEscape, "")
 	visivility := utils.If(private, "hide", "show")
 	url := fmt.Sprintf(
-		"https://www.pixiv.net/ajax/user/%v/novels/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v?lang=%v",
+		"https://www.pixiv.net/ajax/user/%v/novels/bookmarks?tag=%v&offset=%v&limit=%v&rest=%v&lang=%v",
 		userId, escapedTag, offset, limit, visivility, language,
 	)
 	body, _, err := c.DoAuthorized(url, nil)
