@@ -63,13 +63,14 @@ const downloadHelp = //
              - 0 : thumbnail  - 2 : medium
              - 1 : small      - 3 : original
 
---language   Japanese is the default language for work titles and descriptions on pixiv, but
+--language   Japanese is the default language for artwork titles and descriptions on pixiv, but
  -L          translations may also be provided by authors. Available values are:
              - ja : Japanese (original language)
              - en : English
              The default option is ja, but this can be configured, see 'piximan help config'
              Providing 'en' will require to authorize metadata requests for age restricted works.
              Tags saved in metadata.yaml files will not be translated.
+             This flag can only be used with '--type artwork'.
 
 --only-meta  Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.

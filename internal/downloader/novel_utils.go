@@ -26,7 +26,7 @@ func (d *Downloader) novelMeta(id uint64, size *imageext.Size) (
 	for {
 		w, coverUrl, upladedImages, pixivImages, pages, withPages, err := do(id, size)
 		d.logger.MaybeSuccess(err, "fetched metadata for novel %v", id)
-		if err != nil {
+		if err != nil { // TODO: don't retry on any error, look at the error itself
 			logError("failed to fetch metadata for novel %v: %v", id, err)
 		} else if !withPages {
 			err = fmt.Errorf("pages are missing")
