@@ -3,6 +3,7 @@ package work
 import "time"
 
 type Work struct {
+	Language     *Language
 	Id           *uint64
 	Title        *string
 	Kind         *Kind
