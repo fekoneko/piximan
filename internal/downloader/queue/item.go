@@ -12,7 +12,8 @@ type Item struct {
 	Language work.Language
 	OnlyMeta bool
 	Paths    []string
+
 	Work     *work.Work // Partial work metadata if available, may be used to reduce the number of requests
-	ImageUrl *string    // Thumbnail / cover url if available, may be used to reduce the number of requests
+	ImageUrl *string    // Thumbnail / cover url, nesessary when Work is provided
 	LowMeta  bool       // Whether to download full metadata or store partial metadata available in Work
 }

@@ -208,8 +208,7 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 
 	isArtwork := item.Kind == queue.ItemKindArtwork
 	isNovel := item.Kind == queue.ItemKindNovel
-	withWork := item.Work != nil
-	withImage := item.ImageUrl != nil
+	withKnown := item.Work != nil && item.ImageUrl != nil
 	lowMeta, onlyMeta := item.LowMeta, item.OnlyMeta
 
 	if !isArtwork && !isNovel {
@@ -219,23 +218,27 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 	}
 
 	switch {
-	case isNovel && !onlyMeta && !withImage:
+	case isNovel && !onlyMeta && !withKnown:
 		w, err = d.Novel(item.Id, item.Size, item.Language, item.Paths)
-	case isNovel && !onlyMeta && withImage:
-		w, err = d.NovelWithKnown(item.Id, item.Size, item.Language, *item.ImageUrl, item.Paths)
-	case isNovel && onlyMeta && !(withWork && lowMeta):
+	case isNovel && !onlyMeta && withKnown:
+		w, err = d.NovelWithKnown(item.Id, item.Size, item.Language, item.Work, *item.ImageUrl, item.Paths)
+	case isNovel && onlyMeta && !withKnown:
 		w, err = d.NovelMeta(item.Id, item.Language, item.Paths)
-	case isNovel && onlyMeta && withWork && lowMeta:
+	case isNovel && onlyMeta && withKnown && !lowMeta:
+		w, err = d.NovelMetaWithKnown(item.Id, item.Language, item.Work, item.Paths)
+	case isNovel && onlyMeta && withKnown && lowMeta:
 		w, err = d.LowNovelMetaWithKnown(item.Id, item.Work, item.Paths)
-	case isArtwork && !onlyMeta && !(withWork && withImage):
+	case isArtwork && !onlyMeta && !withKnown:
 		w, err = d.Artwork(item.Id, item.Size, item.Language, item.Paths)
-	case isArtwork && !onlyMeta && withWork && withImage && !lowMeta:
+	case isArtwork && !onlyMeta && withKnown && !lowMeta:
 		w, err = d.ArtworkWithKnown(item.Id, item.Size, item.Language, item.Work, *item.ImageUrl, item.Paths)
-	case isArtwork && !onlyMeta && withWork && withImage && lowMeta:
+	case isArtwork && !onlyMeta && withKnown && lowMeta:
 		w, err = d.LowArtworkWithKnown(item.Id, item.Size, item.Work, *item.ImageUrl, item.Paths)
-	case isArtwork && onlyMeta && (!withWork || !lowMeta):
+	case isArtwork && onlyMeta && !withKnown:
 		w, err = d.ArtworkMeta(item.Id, item.Language, item.Paths)
-	case isArtwork && onlyMeta && withWork && lowMeta:
+	case isArtwork && onlyMeta && withKnown && !lowMeta:
+		w, err = d.ArtworkMetaWithKnown(item.Id, item.Language, item.Work, item.Paths)
+	case isArtwork && onlyMeta && withKnown && lowMeta:
 		w, err = d.LowArtworkMetaWithKnown(item.Id, item.Work, item.Paths)
 	default:
 		err = fmt.Errorf("impossible combination of work type, known metadata, low-meta and only-meta")
