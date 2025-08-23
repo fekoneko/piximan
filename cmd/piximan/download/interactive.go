@@ -16,6 +16,7 @@ func interactive() {
 	withInferIds := inferIds != nil
 	withBookmarks := bookmarks != nil
 	kind := selectKind(withLists)
+	withArtwork := kind == queue.ItemKindArtworkString
 	tags := promptTags(withBookmarks)
 	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withLists)
@@ -24,7 +25,7 @@ func interactive() {
 	withSkips := skips != nil
 	untilSkip := selectUntilSkip(withSkips)
 	size := selectSize(withLists, onlyMeta)
-	language := selectLanguage()
+	language := selectLanguage(withArtwork)
 	paths := promptPaths(withInferIds, withLists)
 	rules := promptRules()
 
@@ -226,7 +227,10 @@ func selectSize(withLists, onlyMeta bool) *uint {
 	}
 }
 
-func selectLanguage() *string {
+func selectLanguage(withArtwork bool) *string {
+	if !withArtwork {
+		return nil
+	}
 	_, language, err := languageSelect(work.LanguageDefault).Run() // TODO: default language from config
 	logger.MaybeFatal(err, "failed to read language choice")
 

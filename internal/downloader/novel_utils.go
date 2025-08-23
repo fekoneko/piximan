@@ -14,28 +14,17 @@ import (
 
 // Fetch novel metadata, cover url and information about embedded illustrations.
 // Retry authorized if something is missing.
-// If provided language is not nil or Japanese, the work will be fetched with authorization.
-// Provide nil if you don't care about description and title fields translations.
-func (d *Downloader) novelMeta(
-	id uint64, size *imageext.Size, language *work.Language,
-) (
+func (d *Downloader) novelMeta(id uint64, size *imageext.Size) (
 	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
 	pixivImages dto.NovelPixivImages, pages dto.NovelPages, err error,
 ) {
-	doLanguage := utils.FromPtr(language, work.LanguageJapanese)
 	authorized := d.client.Authorized()
 	do := d.client.NovelMeta
 	logError := utils.If(authorized, d.logger.Warning, d.logger.Error)
 	doAuthorized := false
 
-	if doLanguage != work.LanguageJapanese && authorized {
-		do = d.client.NovelMetaAuthorized
-		logError = d.logger.Error
-		doAuthorized = true
-	}
-
 	for {
-		w, coverUrl, upladedImages, pixivImages, pages, withPages, err := do(id, size, doLanguage)
+		w, coverUrl, upladedImages, pixivImages, pages, withPages, err := do(id, size)
 		d.logger.MaybeSuccess(err, "fetched metadata for novel %v", id)
 		if err != nil {
 			logError("failed to fetch metadata for novel %v: %v", id, err)
@@ -48,9 +37,6 @@ func (d *Downloader) novelMeta(
 		} else {
 			if !w.Full() {
 				d.logger.Warning("metadata for novel %v is incomplete", id)
-			}
-			if !authorized && w.Language != nil && language != nil && *w.Language != *language {
-				d.logger.Error("could not get translation for novel %v: authorization is required", id)
 			}
 			return w, coverUrl, upladedImages, pixivImages, pages, nil
 		}
@@ -66,25 +52,12 @@ func (d *Downloader) novelMeta(
 }
 
 // Fetch novel metadata and ignore if anything else is missing.
-// If provided language is not nil or Japanese, the work will be fetched with authorization.
-// Provide nil if you don't care about description and title fields translations.
-func (d *Downloader) novelOnlyMeta(id uint64, language *work.Language) (*work.Work, error) {
-	doLanguage := utils.FromPtr(language, work.LanguageJapanese)
-	authorized := d.client.Authorized()
-	do := utils.If(
-		doLanguage != work.LanguageJapanese && authorized,
-		d.client.NovelMetaAuthorized,
-		d.client.NovelMeta,
-	)
-
-	w, _, _, _, _, _, err := do(id, nil, doLanguage)
+func (d *Downloader) novelOnlyMeta(id uint64) (*work.Work, error) {
+	w, _, _, _, _, _, err := d.client.NovelMeta(id, nil)
 	d.logger.MaybeSuccess(err, "fetched metadata for novel %v", id)
 	d.logger.MaybeError(err, "failed to fetch metadata for novel %v", id)
 	if !w.Full() {
 		d.logger.Warning("metadata for novel %v is incomplete", id)
-	}
-	if !authorized && w.Language != nil && language != nil && *w.Language != *language {
-		d.logger.Error("could not get translation for novel %v: authorization is required", id)
 	}
 	return w, err
 }
@@ -173,13 +146,11 @@ func (d *Downloader) novelImageAssetsChannel(
 }
 
 // novelMeta() + novelImageAssets() but returs results through channels.
-// If provided language is not nil or Japanese, the work will be fetched with authorization.
-// Provide nil if you don't care about description and title fields translations.
 func (d *Downloader) novelMetaImageAssetsChannel(
-	id uint64, size imageext.Size, language *work.Language, workChannel chan *work.Work,
+	id uint64, size imageext.Size, workChannel chan *work.Work,
 	pagesChannel chan dto.NovelPages, imagesChannel chan map[int]fsext.Asset, errorChannel chan error,
 ) {
-	if w, _, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size, language); err != nil {
+	if w, _, uploadedImages, pixivImages, pages, err := d.novelMeta(id, &size); err != nil {
 		errorChannel <- err
 	} else if assets, err := d.novelImageAssets(id, size, uploadedImages, pixivImages); err != nil {
 		errorChannel <- err

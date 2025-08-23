@@ -40,6 +40,10 @@ func nonInteractive() {
 		fmt.Println("invalid argument for flag `-s, --size'")
 		os.Exit(2)
 	}
+	if options.Language != nil && options.Kind != nil && *options.Kind != queue.ItemKindArtworkString {
+		fmt.Println("`-L, --language' flag can only be used with `-t, --type' artwork")
+		os.Exit(2)
+	}
 	if options.Language != nil && !work.ValidLanguageString(*options.Language) {
 		fmt.Println("invalid argument for flag `-L, --language'")
 		os.Exit(2)

@@ -159,7 +159,7 @@ func (d *Downloader) fetchBookmarksPageAndSchedule(
 		)
 	} else {
 		results, total, err = d.client.NovelBookmarksAuthorized(
-			userId, tag, offset, limit, private, language,
+			userId, tag, offset, limit, private,
 		)
 	}
 	if signal != nil && signal.Cancelled() {

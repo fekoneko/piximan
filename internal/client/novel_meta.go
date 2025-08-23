@@ -12,35 +12,35 @@ import (
 
 // Provided size is only used to determine embedded image urls.
 // If you don't need novel content and images, pass nil instead.
-func (c *Client) NovelMeta(id uint64, size *imageext.Size, language work.Language) (
+func (c *Client) NovelMeta(id uint64, size *imageext.Size) (
 	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
 	pixivImages dto.NovelPixivImages, pages dto.NovelPages, withPages bool, err error,
 ) {
 	return novelMetaWith(func(url string) ([]byte, error) {
 		body, _, err := c.Do(url, nil)
 		return body, err
-	}, id, size, language)
+	}, id, size)
 }
 
 // Provided size is only used to determine embedded image urls.
 // If you don't need novel content and images, pass nil instead.
-func (c *Client) NovelMetaAuthorized(id uint64, size *imageext.Size, language work.Language) (
+func (c *Client) NovelMetaAuthorized(id uint64, size *imageext.Size) (
 	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
 	pixivImages dto.NovelPixivImages, pages dto.NovelPages, withPages bool, err error,
 ) {
 	return novelMetaWith(func(url string) ([]byte, error) {
 		body, _, err := c.DoAuthorized(url, nil)
 		return body, err
-	}, id, size, language)
+	}, id, size)
 }
 
 func novelMetaWith(
-	do func(url string) ([]byte, error), id uint64, size *imageext.Size, language work.Language,
+	do func(url string) ([]byte, error), id uint64, size *imageext.Size,
 ) (
 	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
 	pixivImages dto.NovelPixivImages, pages dto.NovelPages, withPages bool, err error,
 ) {
-	url := fmt.Sprintf("https://www.pixiv.net/ajax/novel/%v?lang=%v", id, language)
+	url := fmt.Sprintf("https://www.pixiv.net/ajax/novel/%v", id)
 	body, err := do(url)
 	if err != nil {
 		return nil, nil, nil, nil, nil, false, err
