@@ -10,21 +10,33 @@ import (
 )
 
 type BookmarkWork struct {
-	Id          any       `json:"id"`
-	Title       *string   `json:"title"`       // TODO: translation
-	Description *string   `json:"description"` // TODO: translation
-	UserId      any       `json:"userId"`
-	UserName    *string   `json:"userName"`
-	XRestrict   *uint8    `json:"xRestrict"`
-	AiType      *uint8    `json:"aiType"`
-	PageCount   *uint64   `json:"pageCount"`
-	CreateDate  *string   `json:"createDate"`
-	Tags        *[]string `json:"tags"` // TODO: translation
+	Id                      any       `json:"id"`
+	Title                   *string   `json:"title"`
+	UserId                  any       `json:"userId"`
+	UserName                *string   `json:"userName"`
+	XRestrict               *uint8    `json:"xRestrict"`
+	AiType                  *uint8    `json:"aiType"`
+	PageCount               *uint64   `json:"pageCount"`
+	CreateDate              *string   `json:"createDate"`
+	Tags                    *[]string `json:"tags"`
+	TitleCaptionTranslation struct {
+		WorkTitle   *string `json:"workTitle"`
+		WorkCaption *string `json:"workCaption"`
+	} `json:"titleCaptionTranslation"`
 }
 
 func (dto *BookmarkWork) FromDto(
 	kind *work.Kind, downloadTime time.Time,
 ) (w *work.Work, unlisted bool) {
+	var title *string
+	if dto.TitleCaptionTranslation.WorkTitle != nil {
+		title = dto.TitleCaptionTranslation.WorkTitle
+	} else if dto.Title != nil {
+		title = dto.Title
+	}
+
+	description := dto.TitleCaptionTranslation.WorkCaption
+
 	var id *uint64
 	idType := reflect.TypeOf(dto.Id)
 	if idType != nil {
@@ -52,9 +64,9 @@ func (dto *BookmarkWork) FromDto(
 
 	work := &work.Work{
 		Id:           id,
-		Title:        dto.Title,
+		Title:        title,
 		Kind:         kind,
-		Description:  parseDescription(dto.Description),
+		Description:  parseDescription(description),
 		UserId:       userId,
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),

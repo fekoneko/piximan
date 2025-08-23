@@ -13,8 +13,8 @@ import (
 
 type Work struct {
 	Id            *string `json:"id"`
-	Title         *string `json:"title"`       // TODO: translation
-	Description   *string `json:"description"` // TODO: translation
+	Title         *string `json:"title"`
+	Description   *string `json:"description"`
 	UserId        *string `json:"userId"`
 	UserName      *string `json:"userName"`
 	XRestrict     *uint8  `json:"xRestrict"`
@@ -33,21 +33,46 @@ type Work struct {
 	} `json:"seriesNavData"`
 	Tags struct {
 		Tags *[](struct {
-			Tag *string `json:"tag"` // TODO: translation
+			Tag         *string `json:"tag"`
+			Translation struct {
+				// Yes, it's 'en' regardless of the language.
+				En *string `json:"en"`
+			} `json:"translation"`
 		}) `json:"tags"`
 	} `json:"tags"`
+	TitleCaptionTranslation struct {
+		WorkTitle   *string `json:"workTitle"`
+		WorkCaption *string `json:"workCaption"`
+	} `json:"titleCaptionTranslation"`
 }
 
 func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
+	var title *string
+	if dto.TitleCaptionTranslation.WorkTitle != nil {
+		title = dto.TitleCaptionTranslation.WorkTitle
+	} else if dto.Title != nil {
+		title = dto.Title
+	}
+
+	var description *string
+	if dto.TitleCaptionTranslation.WorkCaption != nil {
+		description = dto.TitleCaptionTranslation.WorkCaption
+	} else if dto.Description != nil {
+		description = dto.Description
+	}
+
 	var tags *[]string
 	if dto.Tags.Tags != nil {
 		tags = utils.ToPtr(make([]string, len(*dto.Tags.Tags)))
 		for i, tag := range *dto.Tags.Tags {
-			if tag.Tag == nil {
+			if tag.Translation.En != nil {
+				(*tags)[i] = *tag.Translation.En
+			} else if tag.Tag != nil {
+				(*tags)[i] = *tag.Tag
+			} else {
 				tags = nil
 				break
 			}
-			(*tags)[i] = *tag.Tag
 		}
 	}
 
@@ -68,9 +93,9 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 
 	return &work.Work{
 		Id:           utils.ParseUint64Ptr(dto.Id),
-		Title:        dto.Title,
+		Title:        title,
 		Kind:         kind,
-		Description:  parseDescription(dto.Description),
+		Description:  parseDescription(description),
 		UserId:       utils.ParseUint64Ptr(dto.UserId),
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),

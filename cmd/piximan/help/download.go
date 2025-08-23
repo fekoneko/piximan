@@ -100,9 +100,11 @@ const downloadHelp = //
 
 --low-meta   Specify to skip fetching the full metadata for each work. This will
  -M          significantly reduce the number of pixiv.net API calls.
-             These options will be missing in the metadata.yaml files:
-             - original, views , bookmarks, likes, comments, uploaded,
+             These fields will be missing in the metadata.yaml files:
+             - original, views, bookmarks, likes, comments, uploaded
              - series_id, series_title, series_order
+             - description (will only be present with '--language en' and when work has translation)
+             Tags will not be translated when --language is provided.
              When downloading novels without --low-meta flag, the full metadata will be
              downloaded without any request overhead, so --low-meta should be omitted.
 
