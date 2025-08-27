@@ -4,9 +4,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	appconfig "github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader/rules"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
@@ -37,6 +39,28 @@ func config(options *options) {
 			utils.If(options.Password != nil, " and encrypted with password", ""),
 		)
 		logger.MaybeFatal(err, "failed to set session id")
+	}
+
+	if options.ResetDefaults != nil && *options.ResetDefaults {
+		err := c.ResetDefaults()
+		logger.MaybeSuccess(err, "downloader defaults were reset")
+		logger.MaybeFatal(err, "failed to reset downloader defaults")
+
+	} else if options.Size != nil || options.Language != nil {
+		d, warning, err := c.Defaults()
+		logger.MaybeWarning(warning, "while reading downloader defaults")
+		logger.MaybeFatal(err, "failed to read downloader defaults")
+
+		if options.Size != nil {
+			d.Size = imageext.SizeFromUint(*options.Size)
+		}
+		if options.Language != nil {
+			d.Language = work.LanguageFromString(*options.Language)
+		}
+
+		err = c.SetDefaults(d)
+		logger.MaybeSuccess(err, "downloader defaults were configured")
+		logger.MaybeFatal(err, "failed to configure downloader defaults")
 	}
 
 	if options.ResetRules != nil && *options.ResetRules {

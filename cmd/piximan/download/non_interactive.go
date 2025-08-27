@@ -27,7 +27,7 @@ func nonInteractive() {
 		fmt.Println("provide exactly one download source: `-i, --id', `-b, --bookmarks' `-I, --infer-id' or `-l, --list'")
 		os.Exit(2)
 	}
-	withBookmarksUserId := utils.ParseUint64Ptr(options.Bookmarks) == nil
+	withBookmarksUserId := utils.ParseUintPtr(options.Bookmarks) == nil
 	if options.Bookmarks != nil && *options.Bookmarks != "my" && withBookmarksUserId {
 		fmt.Println("invalid argument for flag `-b, --bookmarks'")
 		os.Exit(2)

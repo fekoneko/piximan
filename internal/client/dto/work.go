@@ -91,11 +91,11 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 
 	return &work.Work{
 		Language:     &language,
-		Id:           utils.ParseUint64Ptr(dto.Id),
+		Id:           utils.ParseUintPtr(dto.Id),
 		Title:        title,
 		Kind:         kind,
 		Description:  parseDescription(description),
-		UserId:       utils.ParseUint64Ptr(dto.UserId),
+		UserId:       utils.ParseUintPtr(dto.UserId),
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
 		Ai:           work.AiFromUint(utils.FromPtr(dto.AiType, work.AiDefaultUint)),

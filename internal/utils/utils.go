@@ -52,7 +52,7 @@ func FormatUint64(value uint64) string {
 	return strconv.FormatUint(value, 10)
 }
 
-func ParseUint64Ptr(s *string) *uint64 {
+func ParseUintPtr(s *string) *uint64 {
 	if s == nil {
 		return nil
 	}

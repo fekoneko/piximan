@@ -64,6 +64,9 @@ func (c *Config) Reset() error {
 	if err := c.ResetSessionId(); err != nil {
 		return err
 	}
+	if err := c.ResetDefaults(); err != nil {
+		return err
+	}
 	if err := c.ResetRules(); err != nil {
 		return err
 	}

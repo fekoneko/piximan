@@ -54,6 +54,8 @@ const configHelp = //
                              -------------------
 --reset-session     Remove configured session ID.
 
+--reset-defaults    Remove configured downloader defaults (--size and --language).
+
 --reset-rules       Remove all configured download rules.
 
 --reset-limits      Reset request delays and limits to default values.
