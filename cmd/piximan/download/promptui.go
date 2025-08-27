@@ -191,8 +191,13 @@ var passwordPrompt = promptui.Prompt{
 var YesOption = "Yes"
 var NoOption = "No"
 
-var ignoreAuthorizationPrompt = promptui.Select{
+var ignoreSessionIdPrompt = promptui.Select{
 	Label: "Use only anonymous requests?",
+	Items: []string{YesOption, NoOption},
+}
+
+var ignoreDefaultsPrompt = promptui.Select{
+	Label: "Use default downloader arguments?",
 	Items: []string{YesOption, NoOption},
 }
 
