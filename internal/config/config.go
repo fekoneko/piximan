@@ -6,29 +6,30 @@ import (
 	"crypto/pbkdf2"
 	"crypto/sha256"
 	"os"
-	"path/filepath"
 	"sync"
 
 	"github.com/fekoneko/piximan/internal/client/limits"
+	"github.com/fekoneko/piximan/internal/config/defaults"
 	"github.com/fekoneko/piximan/internal/downloader/rules"
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
 var homePath, _ = os.UserHomeDir()
-var sessionIdPath = filepath.Join(homePath, ".piximan", "session-id")
-var rulesPath = filepath.Join(homePath, ".piximan", "rules")
-var limitsPath = filepath.Join(homePath, ".piximan", "limits.yaml")
 
 // Stores and reads configuration. Thread-safe.
 type Config struct {
+	cipher cipher.Block
+	gcm    cipher.AEAD
+
 	sessionIdMutex *sync.Mutex
+	defaultsMutex  *sync.Mutex
 	rulesMutex     *sync.Mutex
 	limitsMutex    *sync.Mutex
-	cipher         cipher.Block
-	gcm            cipher.AEAD
-	sessionId      **string       // Initially nil. After SessionId(): ptr -> nil | string.
-	rules          *[]rules.Rules // Initially nil. After Rules():     ptr -> []rules.Rules.
-	limits         *limits.Limits // Initially nil. After Limits():    ptr -> limits.Limits.
+
+	sessionId **string           // Initially nil. After SessionId(): ptr -> nil | string.
+	defaults  *defaults.Defaults // Initially nil. After Defaults():  ptr -> defaults.Defaults.
+	rules     *[]rules.Rules     // Initially nil. After Rules():     ptr -> []rules.Rules.
+	limits    *limits.Limits     // Initially nil. After Limits():    ptr -> limits.Limits.
 }
 
 func New(password *string) (*Config, error) {

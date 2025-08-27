@@ -4,11 +4,15 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"path/filepath"
 
 	"github.com/fekoneko/piximan/internal/client/limits"
 	"github.com/fekoneko/piximan/internal/fsext"
 )
 
+var limitsPath = filepath.Join(homePath, ".piximan", "limits.yaml")
+
+// Get configured request delays and limits.
 func (c *Config) Limits() (_ limits.Limits, warning error, err error) {
 	c.limitsMutex.Lock()
 	defer c.limitsMutex.Unlock()

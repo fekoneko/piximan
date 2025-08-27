@@ -200,7 +200,7 @@ func selectUntilSkip(withSkip bool) *bool {
 	}
 }
 
-func selectSize(withLists, onlyMeta bool) *uint {
+func selectSize(withLists, onlyMeta bool) *uint64 {
 	if onlyMeta {
 		return nil
 	}
@@ -210,16 +210,16 @@ func selectSize(withLists, onlyMeta bool) *uint {
 
 	switch size {
 	case thumbnailSizeOption:
-		result := uint(imageext.SizeThumbnail)
+		result := imageext.SizeThumbnail.ToUint()
 		return &result
 	case smallSizeOption:
-		result := uint(imageext.SizeSmall)
+		result := imageext.SizeSmall.ToUint()
 		return &result
 	case mediumSizeOption:
-		result := uint(imageext.SizeMedium)
+		result := imageext.SizeMedium.ToUint()
 		return &result
 	case originalSizeOption:
-		result := uint(imageext.SizeOriginal)
+		result := imageext.SizeOriginal.ToUint()
 		return &result
 	default:
 		logger.Fatal("incorrect size: %v", size)

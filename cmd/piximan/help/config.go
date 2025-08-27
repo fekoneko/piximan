@@ -27,11 +27,14 @@ const configHelp = //
 
                               Download options
                               ----------------
---rules      Path to YAML file with download rules that will be applied to every download.
- -r          May be provided multiple times. Run 'piximan help rules' for more info.
+--size       Size (resolution) of downloaded images that will be used by default.
+ -s          See 'piximan help download' for more info.
 
 --language   Language that will be used to translate work titles and descriptions
  -L          by default. See 'piximan help download' for more info.
+
+--rules      Path to YAML file with download rules that will be applied to every download.
+ -r          May be provided multiple times. Run 'piximan help rules' for more info.
 
                           Request delays and limits
                           --------------------------
