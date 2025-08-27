@@ -31,7 +31,7 @@ func nonInteractive() {
 		fmt.Println("invalid argument for flag `-s, --size'")
 		os.Exit(2)
 	}
-	if options.Language != nil && !work.ValidLanguageString(*options.Language) {
+	if options.Language != nil && !work.ValidArtworkLanguageString(*options.Language) {
 		fmt.Println("invalid argument for flag `-L, --language'")
 		os.Exit(2)
 	}

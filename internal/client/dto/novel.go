@@ -16,6 +16,7 @@ type Novel struct {
 	Work
 	Content            *string `json:"content"`
 	CoverUrl           *string `json:"coverUrl"`
+	Language           *string `json:"language"`
 	TextEmbeddedImages map[string]struct {
 		Urls struct {
 			Thumb    *string `json:"128x128"`
@@ -35,6 +36,7 @@ func (dto *Novel) FromDto(downloadTime time.Time, size *imageext.Size) (
 	pixivImages NovelPixivImages, pages NovelPages, withPages bool,
 ) {
 	w = dto.Work.FromDto(utils.ToPtr(work.KindNovel), downloadTime)
+	w.Language = utils.MapPtr(dto.Language, work.LanguageFromString)
 	coverUrl = dto.CoverUrl
 
 	if size == nil || dto.Content == nil {

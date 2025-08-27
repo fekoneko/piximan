@@ -44,7 +44,7 @@ func nonInteractive() {
 		fmt.Println("`-L, --language' flag can only be used with `-t, --type' artwork")
 		os.Exit(2)
 	}
-	if options.Language != nil && !work.ValidLanguageString(*options.Language) {
+	if options.Language != nil && !work.ValidArtworkLanguageString(*options.Language) {
 		fmt.Println("invalid argument for flag `-L, --language'")
 		os.Exit(2)
 	}
