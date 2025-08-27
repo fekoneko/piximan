@@ -10,6 +10,8 @@ import (
 	"github.com/fekoneko/piximan/internal/imageext"
 )
 
+// Provided size is only used to determine embedded image urls.
+// If you don't need novel content and images, pass nil instead.
 func (c *Client) NovelMeta(id uint64, size *imageext.Size) (
 	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
 	pixivImages dto.NovelPixivImages, pages dto.NovelPages, withPages bool, err error,
@@ -20,6 +22,8 @@ func (c *Client) NovelMeta(id uint64, size *imageext.Size) (
 	}, id, size)
 }
 
+// Provided size is only used to determine embedded image urls.
+// If you don't need novel content and images, pass nil instead.
 func (c *Client) NovelMetaAuthorized(id uint64, size *imageext.Size) (
 	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
 	pixivImages dto.NovelPixivImages, pages dto.NovelPages, withPages bool, err error,
@@ -30,9 +34,9 @@ func (c *Client) NovelMetaAuthorized(id uint64, size *imageext.Size) (
 	}, id, size)
 }
 
-// Provided size is only used to determine embedded image urls.
-// If you don't need novel content and images, pass nil instead.
-func novelMetaWith(do func(url string) ([]byte, error), id uint64, size *imageext.Size) (
+func novelMetaWith(
+	do func(url string) ([]byte, error), id uint64, size *imageext.Size,
+) (
 	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
 	pixivImages dto.NovelPixivImages, pages dto.NovelPages, withPages bool, err error,
 ) {

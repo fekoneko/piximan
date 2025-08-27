@@ -63,7 +63,7 @@ func (c *Client) doWithRequest(
 	retryDelay := time.Duration(0)
 	for {
 		removeBar, updateBar := log(request.URL.String())
-		body, headers, err := c.tryRequest(request, func(current int, total int) {
+		body, headers, err := c.tryRequest(request, func(current, total int) {
 			updateBar(current, total)
 			if onProgress != nil {
 				onProgress(current, total)

@@ -39,7 +39,7 @@ func ToPtr[T any](value T) *T {
 	return &value
 }
 
-func ValidateNumber(message string) func(string) error {
+func ValidateUint(message string) func(string) error {
 	return func(s string) error {
 		if _, err := strconv.ParseUint(s, 10, 64); err != nil {
 			return errors.New(message)
@@ -48,11 +48,11 @@ func ValidateNumber(message string) func(string) error {
 	}
 }
 
-func FormatUint64(value uint64) string {
+func FormatUint(value uint64) string {
 	return strconv.FormatUint(value, 10)
 }
 
-func ParseUint64Ptr(s *string) *uint64 {
+func ParseUintPtr(s *string) *uint64 {
 	if s == nil {
 		return nil
 	}
@@ -113,7 +113,7 @@ func SomeDefined(values ...any) bool {
 	return false
 }
 
-func MapFindValue[K comparable, V comparable](m map[K]V, value V) (key K, ok bool) {
+func MapFindValue[K, V comparable](m map[K]V, value V) (key K, ok bool) {
 	for k, v := range m {
 		if v == value {
 			return k, true
@@ -132,7 +132,7 @@ func Copy[T any](ptr *T) *T {
 }
 
 // Returns singular if n is 1. Use to pluralize words.
-func IfPlural(n int, singular string, plural string) string {
+func IfPlural(n int, singular, plural string) string {
 	if n == 1 {
 		return singular
 	}

@@ -42,7 +42,9 @@ func (d *Downloader) LowNovelMetaWithKnown(id uint64, w *work.Work, paths []stri
 // Download novel with all assets and metadata and store it in paths. Blocks until done.
 // Skips downloading if the work doesn't match download rules.
 // For downloading multiple works consider using Schedule().
-func (d *Downloader) Novel(id uint64, size imageext.Size, paths []string) (*work.Work, error) {
+func (d *Downloader) Novel(
+	id uint64, size imageext.Size, paths []string,
+) (*work.Work, error) {
 	if d.skipped(id, queue.ItemKindNovel, false) || !d.matchNovelId(id) {
 		return nil, ErrSkipped
 	}

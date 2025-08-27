@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fekoneko/piximan/internal/client"
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/syncext"
@@ -17,7 +18,7 @@ import (
 // a fully skipped one. Use this to conserve requests when synching only new bookmarks.
 func (d *Downloader) ScheduleMyBookmarks(
 	kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
+	size imageext.Size, language work.Language, onlyMeta, lowMeta, untilSkipped bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -30,7 +31,10 @@ func (d *Downloader) ScheduleMyBookmarks(
 			return err
 		}
 
-		d.ScheduleBookmarks(userId, kind, tags, from, to, private, size, onlyMeta, lowMeta, untilSkipped, paths)
+		d.ScheduleBookmarks(
+			userId, kind, tags, from, to, private,
+			size, language, onlyMeta, lowMeta, untilSkipped, paths,
+		)
 		return nil
 	})
 	d.logger.Info("created crawl task to fetch authorizeed user id")
@@ -42,12 +46,12 @@ func (d *Downloader) ScheduleMyBookmarks(
 // a fully skipped one. Use this to conserve requests when synching only new bookmarks.
 func (d *Downloader) ScheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tags *[]string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
+	size imageext.Size, language work.Language, onlyMeta, lowMeta, untilSkipped bool, paths []string,
 ) {
 	if tags == nil {
 		d.scheduleBookmarks(
 			userId, kind, nil, from, to, private,
-			size, onlyMeta, lowMeta, untilSkipped, paths,
+			size, language, onlyMeta, lowMeta, untilSkipped, paths,
 		)
 	} else {
 		seen := make(map[string]bool)
@@ -57,7 +61,7 @@ func (d *Downloader) ScheduleBookmarks(
 			}
 			d.scheduleBookmarks(
 				userId, kind, &tag, from, to, private,
-				size, onlyMeta, lowMeta, untilSkipped, paths,
+				size, language, onlyMeta, lowMeta, untilSkipped, paths,
 			)
 			seen[tag] = true
 		}
@@ -68,7 +72,7 @@ func (d *Downloader) ScheduleBookmarks(
 // for the rest of the pages.
 func (d *Downloader) scheduleBookmarks(
 	userId uint64, kind queue.ItemKind, tag *string, from *uint64, to *uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, untilSkipped bool, paths []string,
+	size imageext.Size, language work.Language, onlyMeta, lowMeta, untilSkipped bool, paths []string,
 ) {
 	d.crawlQueueMutex.Lock()
 	defer d.crawlQueueMutex.Unlock()
@@ -78,7 +82,8 @@ func (d *Downloader) scheduleBookmarks(
 	d.crawlQueue = append(d.crawlQueue, func() error {
 		limit := min(100, utils.FromPtr(to, math.MaxUint64)-fromOffset)
 		total, allIngored, err := d.fetchBookmarksPageAndSchedule(
-			userId, kind, tag, fromOffset, limit, private, size, onlyMeta, lowMeta, paths, nil,
+			userId, kind, tag, fromOffset, limit, private,
+			size, language, onlyMeta, lowMeta, paths, nil,
 		)
 		if err != nil {
 			return err
@@ -100,7 +105,8 @@ func (d *Downloader) scheduleBookmarks(
 			currentOffset := offset
 			d.crawlQueue = append(d.crawlQueue, func() error {
 				_, allIngored, err := d.fetchBookmarksPageAndSchedule(
-					userId, kind, tag, currentOffset, limit, private, size, onlyMeta, lowMeta, paths, &signal,
+					userId, kind, tag, currentOffset, limit, private,
+					size, language, onlyMeta, lowMeta, paths, &signal,
 				)
 				if untilSkipped && allIngored {
 					d.logger.Info(fullySkippedMessage)
@@ -130,7 +136,7 @@ func (d *Downloader) scheduleBookmarks(
 // Can be cancelled with provided signal until work download tasks were scheduled.
 func (d *Downloader) fetchBookmarksPageAndSchedule(
 	userId uint64, kind queue.ItemKind, tag *string, offset uint64, limit uint64, private bool,
-	size imageext.Size, onlyMeta bool, lowMeta bool, paths []string, signal *syncext.Signal,
+	size imageext.Size, language work.Language, onlyMeta, lowMeta bool, paths []string, signal *syncext.Signal,
 ) (total uint64, allIngored bool, err error) {
 	if signal != nil && signal.Cancelled() {
 		return 0, false, ErrSkipped
@@ -149,7 +155,7 @@ func (d *Downloader) fetchBookmarksPageAndSchedule(
 	var results []client.BookmarkResult
 	if kind == queue.ItemKindArtwork {
 		results, total, err = d.client.ArtworkBookmarksAuthorized(
-			userId, tag, offset, limit, private,
+			userId, tag, offset, limit, private, language,
 		)
 	} else {
 		results, total, err = d.client.NovelBookmarksAuthorized(
@@ -179,8 +185,8 @@ func (d *Downloader) fetchBookmarksPageAndSchedule(
 			)
 		} else if !d.skipped(*result.Work.Id, kind, true) {
 			d.ScheduleWithKnown(
-				[]uint64{*result.Work.Id}, kind, size, onlyMeta, paths,
-				result.Work, result.ImageUrl, lowMeta,
+				[]uint64{*result.Work.Id}, kind, size, language,
+				onlyMeta, paths, result.Work, result.ImageUrl, lowMeta,
 			)
 		} else {
 			numSkipped++

@@ -11,7 +11,7 @@ import (
 type List []struct {
 	Id       *uint64   `yaml:"id,omitempty"`
 	Kind     *string   `yaml:"type,omitempty"`
-	Size     *uint     `yaml:"size,omitempty"`
+	Size     *uint64   `yaml:"size,omitempty"`
 	OnlyMeta *bool     `yaml:"only-meta,omitempty"`
 	Paths    *[]string `yaml:"paths,omitempty"`
 }

@@ -10,6 +10,9 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
+var sessionIdPath = filepath.Join(homePath, ".piximan", "session-id")
+
+// Get configured session ID used to authorize requests.
 func (c *Config) SessionId() (*string, error) {
 	c.sessionIdMutex.Lock()
 	defer c.sessionIdMutex.Unlock()

@@ -3,6 +3,8 @@ package download
 import (
 	"fmt"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
@@ -10,12 +12,15 @@ import (
 )
 
 func interactive() {
+	c, err := config.New(nil)
+	logger.MaybeFatal(err, "failed to open config storage")
+
 	ids, bookmarks, private, inferIds, lists := selectSource()
 	withLists := lists != nil
 	withInferIds := inferIds != nil
 	withBookmarks := bookmarks != nil
-
 	kind := selectKind(withLists)
+	withArtwork := kind == queue.ItemKindArtworkString
 	tags := promptTags(withBookmarks)
 	fromOffset, toOffset := promptRange(withBookmarks)
 	onlyMeta := selectOnlyMeta(withLists)
@@ -23,7 +28,8 @@ func interactive() {
 	skips := promptSkips(withBookmarks)
 	withSkips := skips != nil
 	untilSkip := selectUntilSkip(withSkips)
-	size := selectSize(withLists, onlyMeta)
+	size := selectSize(withLists, onlyMeta, c)
+	language := selectLanguage(withArtwork, c)
 	paths := promptPaths(withInferIds, withLists)
 	rules := promptRules()
 
@@ -35,6 +41,7 @@ func interactive() {
 		InferIds:   inferIds,
 		Kind:       &kind,
 		Size:       size,
+		Language:   language,
 		OnlyMeta:   &onlyMeta,
 		Rules:      rules,
 		Skips:      skips,
@@ -48,7 +55,7 @@ func interactive() {
 	})
 }
 
-func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIds *[]string, lists *[]string) {
+func selectSource() (ids *[]uint64, bookmarks *string, private *bool, inferIds, lists *[]string) {
 	_, mode, err := sourceSelect.Run()
 	logger.MaybeFatal(err, "failed to read mode")
 
@@ -156,10 +163,10 @@ func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
 	logger.MaybeFatal(err, "failed to read low metadata choice")
 
 	switch option {
-	case lowMetaOption:
-		return utils.ToPtr(true)
 	case fullMetaOption:
 		return utils.ToPtr(false)
+	case lowMetaOption:
+		return utils.ToPtr(true)
 	default:
 		logger.Fatal("incorrect low metadata choice: %v", option)
 		panic("unreachable")
@@ -197,26 +204,30 @@ func selectUntilSkip(withSkip bool) *bool {
 	}
 }
 
-func selectSize(withLists bool, onlyMeta bool) *uint {
+func selectSize(withLists, onlyMeta bool, c *config.Config) *uint64 {
 	if onlyMeta {
 		return nil
 	}
 
-	_, size, err := sizeSelect(withLists).Run()
+	d, warning, err := c.Defaults()
+	logger.MaybeWarning(warning, "while reading downloader defaults")
+	logger.MaybeFatal(err, "failed to read downloader defaults")
+
+	_, size, err := sizeSelect(withLists, d.Size).Run()
 	logger.MaybeFatal(err, "failed to read size")
 
 	switch size {
 	case thumbnailSizeOption:
-		result := uint(imageext.SizeThumbnail)
+		result := imageext.SizeThumbnail.ToUint()
 		return &result
 	case smallSizeOption:
-		result := uint(imageext.SizeSmall)
+		result := imageext.SizeSmall.ToUint()
 		return &result
 	case mediumSizeOption:
-		result := uint(imageext.SizeMedium)
+		result := imageext.SizeMedium.ToUint()
 		return &result
 	case originalSizeOption:
-		result := uint(imageext.SizeOriginal)
+		result := imageext.SizeOriginal.ToUint()
 		return &result
 	default:
 		logger.Fatal("incorrect size: %v", size)
@@ -224,7 +235,30 @@ func selectSize(withLists bool, onlyMeta bool) *uint {
 	}
 }
 
-func promptPaths(withInferIds bool, withLists bool) *[]string {
+func selectLanguage(withArtwork bool, c *config.Config) *string {
+	if !withArtwork {
+		return nil
+	}
+
+	d, warning, err := c.Defaults()
+	logger.MaybeWarning(warning, "while reading downloader defaults")
+	logger.MaybeFatal(err, "failed to read downloader defaults")
+
+	_, language, err := languageSelect(d.Language).Run()
+	logger.MaybeFatal(err, "failed to read language choice")
+
+	switch language {
+	case japaneseOption:
+		return utils.ToPtr(work.LanguageJapaneseString)
+	case englishOption:
+		return utils.ToPtr(work.LanguageEnglishString)
+	default:
+		logger.Fatal("incorrect language: %v", language)
+		panic("unreachable")
+	}
+}
+
+func promptPaths(withInferIds, withLists bool) *[]string {
 	if withInferIds {
 		_, pathChoice, err := pathSelect.Run()
 		logger.MaybeFatal(err, "failed to read path choice")

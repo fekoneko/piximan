@@ -11,10 +11,12 @@ type Limits struct {
 	PximgDelay      time.Duration
 }
 
-const DefaultMaxPending = 1
-const DefaultDelay = time.Second * 2
-const DefaultPximgMaxPending = 5
-const DefaultPximgDelay = time.Second * 1
+const (
+	DefaultMaxPending      = 1
+	DefaultDelay           = time.Second * 2
+	DefaultPximgMaxPending = 5
+	DefaultPximgDelay      = time.Second * 1
+)
 
 func Default() *Limits {
 	return &Limits{

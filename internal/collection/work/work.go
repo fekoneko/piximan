@@ -3,6 +3,7 @@ package work
 import "time"
 
 type Work struct {
+	Language     *Language
 	Id           *uint64
 	Title        *string
 	Kind         *Kind
@@ -27,7 +28,8 @@ type Work struct {
 
 // Check if all fields are filled. The function doesn't report missing ai kind or series data.
 func (w *Work) Full() bool {
-	return w.Id != nil &&
+	return w.Language != nil &&
+		w.Id != nil &&
 		w.Title != nil &&
 		w.Kind != nil &&
 		w.Description != nil &&

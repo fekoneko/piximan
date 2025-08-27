@@ -5,7 +5,10 @@ import "fmt"
 const configHelp = //
 `Run without arguments to enter interactive mode.
 
-> piximan config [--session-id ...] [--password ...]
+> piximan config | --session-id | --rules    | --max-pending       | --reset-session |
+>                | --password   | --language | --delay             | --reset-rules   |
+>                |              |            | --pximg-max-pending | --reset-limits  |
+>                |              |            | --pximg-delay       | --reset         |
 
                             Authorization options
                             ---------------------
@@ -24,6 +27,12 @@ const configHelp = //
 
                               Download options
                               ----------------
+--size       Size (resolution) of downloaded images that will be used by default.
+ -s          See 'piximan help download' for more info.
+
+--language   Language that will be used to translate work titles and descriptions
+ -L          by default. See 'piximan help download' for more info.
+
 --rules      Path to YAML file with download rules that will be applied to every download.
  -r          May be provided multiple times. Run 'piximan help rules' for more info.
 
@@ -45,6 +54,8 @@ const configHelp = //
                              -------------------
 --reset-session     Remove configured session ID.
 
+--reset-defaults    Remove configured downloader defaults (--size and --language).
+
 --reset-rules       Remove all configured download rules.
 
 --reset-limits      Reset request delays and limits to default values.
@@ -62,8 +73,14 @@ const configHelp = //
 # Adjust request delays and limits to be more restrictive
 > piximan config --max-pending 1 --delay 5 --pximg-max-pending 1 --pximg-delay 2
 
-# Reset all configuration and remove session ID
-> piximan config --no-session --default
+# Configure global download rules from a file
+> piximan config --rules './rules.yaml'
+
+# Configure default image size and language for downloaded works
+> piximan config --size 2 --language en
+
+# Reset all configuration
+> piximan config --reset
 `
 
 func RunConfig() {
