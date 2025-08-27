@@ -19,7 +19,7 @@ var resetOption = "Reset all configuration"
 var modeSelect = promptui.Select{
 	Label: modeSelectLabel,
 	Items: []string{
-		sessionIdOption, rulesOption, limitsOption,
+		sessionIdOption, defaultsOption, rulesOption, limitsOption,
 		resetSessionOption, resetRulesOption, resetLimitsOption, resetOption,
 	},
 }

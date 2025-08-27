@@ -73,8 +73,14 @@ const configHelp = //
 # Adjust request delays and limits to be more restrictive
 > piximan config --max-pending 1 --delay 5 --pximg-max-pending 1 --pximg-delay 2
 
-# Reset all configuration and remove session ID
-> piximan config --no-session --default
+# Configure global download rules from a file
+> piximan config --rules './rules.yaml'
+
+# Configure default image size and language for downloaded works
+> piximan config --size 2 --language en
+
+# Reset all configuration
+> piximan config --reset
 `
 
 func RunConfig() {

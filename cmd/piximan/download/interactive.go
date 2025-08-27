@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fekoneko/piximan/internal/collection/work"
+	"github.com/fekoneko/piximan/internal/config"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
@@ -11,6 +12,9 @@ import (
 )
 
 func interactive() {
+	c, err := config.New(nil)
+	logger.MaybeFatal(err, "failed to open config storage")
+
 	ids, bookmarks, private, inferIds, lists := selectSource()
 	withLists := lists != nil
 	withInferIds := inferIds != nil
@@ -24,8 +28,8 @@ func interactive() {
 	skips := promptSkips(withBookmarks)
 	withSkips := skips != nil
 	untilSkip := selectUntilSkip(withSkips)
-	size := selectSize(withLists, onlyMeta)
-	language := selectLanguage(withArtwork)
+	size := selectSize(withLists, onlyMeta, c)
+	language := selectLanguage(withArtwork, c)
 	paths := promptPaths(withInferIds, withLists)
 	rules := promptRules()
 
@@ -159,10 +163,10 @@ func selectLowMeta(withBookmarks bool, kind string, onlyMeta bool) *bool {
 	logger.MaybeFatal(err, "failed to read low metadata choice")
 
 	switch option {
-	case lowMetaOption:
-		return utils.ToPtr(true)
 	case fullMetaOption:
 		return utils.ToPtr(false)
+	case lowMetaOption:
+		return utils.ToPtr(true)
 	default:
 		logger.Fatal("incorrect low metadata choice: %v", option)
 		panic("unreachable")
@@ -200,12 +204,16 @@ func selectUntilSkip(withSkip bool) *bool {
 	}
 }
 
-func selectSize(withLists, onlyMeta bool) *uint64 {
+func selectSize(withLists, onlyMeta bool, c *config.Config) *uint64 {
 	if onlyMeta {
 		return nil
 	}
 
-	_, size, err := sizeSelect(withLists).Run()
+	d, warning, err := c.Defaults()
+	logger.MaybeWarning(warning, "while reading downloader defaults")
+	logger.MaybeFatal(err, "failed to read downloader defaults")
+
+	_, size, err := sizeSelect(withLists, d.Size).Run()
 	logger.MaybeFatal(err, "failed to read size")
 
 	switch size {
@@ -227,11 +235,16 @@ func selectSize(withLists, onlyMeta bool) *uint64 {
 	}
 }
 
-func selectLanguage(withArtwork bool) *string {
+func selectLanguage(withArtwork bool, c *config.Config) *string {
 	if !withArtwork {
 		return nil
 	}
-	_, language, err := languageSelect(work.LanguageDefault).Run() // TODO: default language from config
+
+	d, warning, err := c.Defaults()
+	logger.MaybeWarning(warning, "while reading downloader defaults")
+	logger.MaybeFatal(err, "failed to read downloader defaults")
+
+	_, language, err := languageSelect(d.Language).Run()
 	logger.MaybeFatal(err, "failed to read language choice")
 
 	switch language {

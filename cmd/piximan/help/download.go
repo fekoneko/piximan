@@ -175,9 +175,6 @@ func RunDownload() {
 	fmt.Print(downloadHelp)
 }
 
-// FIXME: - [ ] make globally configured language default option in interactive mode
-// FIXME: - [ ] update guide in readme
-
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list
 // TODO: --log, -o option to log the output to a file (-L should be reserved for language actually)

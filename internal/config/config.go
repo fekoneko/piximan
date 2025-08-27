@@ -50,11 +50,12 @@ func New(password *string) (*Config, error) {
 	}
 
 	c := &Config{
-		sessionIdMutex: &sync.Mutex{},
-		rulesMutex:     &sync.Mutex{},
-		limitsMutex:    &sync.Mutex{},
 		cipher:         aesCipher,
 		gcm:            gcm,
+		sessionIdMutex: &sync.Mutex{},
+		defaultsMutex:  &sync.Mutex{},
+		rulesMutex:     &sync.Mutex{},
+		limitsMutex:    &sync.Mutex{},
 	}
 
 	return c, nil

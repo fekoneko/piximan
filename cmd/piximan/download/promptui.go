@@ -3,6 +3,7 @@ package download
 import (
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/fsext"
+	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/utils"
 	"github.com/manifoldco/promptui"
 )
@@ -94,12 +95,12 @@ func onlyMetaSelect(withLists bool) *promptui.Select {
 	}
 }
 
-var lowMetaOption = "Save partial metadata"
 var fullMetaOption = "Get full metadata"
+var lowMetaOption = "Save partial metadata"
 
 var lowMetaSelect = promptui.Select{
 	Label: "Don't get full metadata (less requests)",
-	Items: []string{lowMetaOption, fullMetaOption},
+	Items: []string{fullMetaOption, lowMetaOption},
 }
 
 var skipsPrompt = promptui.Prompt{
@@ -130,14 +131,26 @@ var smallSizeOption = "Small"
 var mediumSizeOption = "Medium"
 var originalSizeOption = "Original"
 
-func sizeSelect(withLists bool) *promptui.Select {
+func sizeSelect(withLists bool, defaultSize imageext.Size) *promptui.Select {
 	const label = "Size of downloaded images"
 	const withListsLabel = "Default size of downloaded images"
+
+	cursorPos := 0
+	switch defaultSize {
+	case imageext.SizeThumbnail:
+		cursorPos = 0
+	case imageext.SizeSmall:
+		cursorPos = 1
+	case imageext.SizeMedium:
+		cursorPos = 2
+	case imageext.SizeOriginal:
+		cursorPos = 3
+	}
 
 	return &promptui.Select{
 		Label:     utils.If(withLists, withListsLabel, label),
 		Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
-		CursorPos: 3,
+		CursorPos: cursorPos,
 	}
 }
 
