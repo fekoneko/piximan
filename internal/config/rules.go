@@ -11,6 +11,9 @@ import (
 	"github.com/fekoneko/piximan/internal/fsext"
 )
 
+var rulesPath = filepath.Join(homePath, ".piximan", "rules")
+
+// Get configured download rules.
 func (c *Config) Rules() (r []rules.Rules, warnings []error, err error) {
 	c.rulesMutex.Lock()
 	defer c.rulesMutex.Unlock()

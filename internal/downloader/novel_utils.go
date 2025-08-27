@@ -12,25 +12,21 @@ import (
 	"github.com/fekoneko/piximan/internal/utils"
 )
 
-// TODO: don't forget to change the docs
-
 // Fetch novel metadata, cover url and information about embedded illustrations.
 // Retry authorized if something is missing.
-func (d *Downloader) novelMeta(
-	id uint64, size *imageext.Size,
-) (
+func (d *Downloader) novelMeta(id uint64, size *imageext.Size) (
 	w *work.Work, coverUrl *string, upladedImages dto.NovelUpladedImages,
 	pixivImages dto.NovelPixivImages, pages dto.NovelPages, err error,
 ) {
 	authorized := d.client.Authorized()
 	do := d.client.NovelMeta
 	logError := utils.If(authorized, d.logger.Warning, d.logger.Error)
-	triedAuthorized := false
+	doAuthorized := false
 
 	for {
 		w, coverUrl, upladedImages, pixivImages, pages, withPages, err := do(id, size)
 		d.logger.MaybeSuccess(err, "fetched metadata for novel %v", id)
-		if err != nil {
+		if err != nil { // TODO: don't retry on any error, look at the error itself
 			logError("failed to fetch metadata for novel %v: %v", id, err)
 		} else if !withPages {
 			err = fmt.Errorf("pages are missing")
@@ -45,13 +41,13 @@ func (d *Downloader) novelMeta(
 			return w, coverUrl, upladedImages, pixivImages, pages, nil
 		}
 
-		if triedAuthorized || !authorized {
+		if doAuthorized || !authorized {
 			return nil, nil, nil, nil, nil, err
 		}
 		d.logger.Info("retrying fetching metadata with authorization for novel %v", id)
 		do = d.client.NovelMetaAuthorized
 		logError = d.logger.Error
-		triedAuthorized = true
+		doAuthorized = true
 	}
 }
 
@@ -197,7 +193,7 @@ func (d *Downloader) novelPixivImage(
 ) (*fsext.Asset, error) {
 	d.logger.Info("getting artwork %v for illustration %v in novel %v", artworkId, imageIndex, novelId)
 
-	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(artworkId, &size)
+	w, firstPageUrl, thumbnailUrl, err := d.artworkMeta(artworkId, &size, nil)
 	if err != nil {
 		return nil, err
 	}

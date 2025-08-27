@@ -11,6 +11,7 @@ import (
 	"github.com/fekoneko/piximan/internal/collection"
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
+	"github.com/fekoneko/piximan/internal/config/defaults"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/downloader/rules"
@@ -24,31 +25,33 @@ import (
 )
 
 func download(options *options) {
-	size := utils.FromPtrTransform(options.Size, imageext.SizeFromUint, imageext.SizeDefault)
+	config, sessionId := configSessionId(options.Password)
+	defaults := configDefaults(config)
+	rules := configRules(config)
+	limits := configLimits(config)
+	c := client.New(sessionId, limits, logger.DefaultLogger)
+	d := downloader.New(c, logger.DefaultLogger)
+	d.AddRules(rules...)
+
 	kind := utils.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
+	size := utils.FromPtrTransform(options.Size, imageext.SizeFromUint, defaults.Size)
+	language := utils.FromPtrTransform(options.Language, work.LanguageFromString, defaults.Language)
 	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	untilSkip := utils.FromPtr(options.UntilSkip, false)
 	paths := utils.FromPtr(options.Paths, []string{""})
 
-	conf, sessionId := configSessionId(options.Password)
-	r := configRules(conf)
-	l := configLimits(conf)
-	c := client.New(sessionId, l, logger.DefaultLogger)
-	d := downloader.New(c, logger.DefaultLogger)
-	d.AddRules(r...)
-
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
 
 	if options.Ids != nil {
-		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
+		d.Schedule(*options.Ids, kind, size, language, onlyMeta, paths)
 
 	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
 		d.ScheduleMyBookmarks(
 			kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, untilSkip, paths,
+			size, language, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.Bookmarks != nil {
@@ -57,7 +60,7 @@ func download(options *options) {
 
 		d.ScheduleBookmarks(
 			userId, kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, untilSkip, paths,
+			size, language, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.InferIds != nil {
@@ -267,13 +270,13 @@ func configSessionId(password *string) (c *config.Config, sessionId *string) {
 		c, err = config.New(password)
 		if err != nil {
 			logger.Error("cannot open configuration storage: %v", err)
-			promptOrExit(ignoreAuthorizationPrompt)
+			promptOrExit(ignoreSessionIdPrompt)
 			return nil, nil
 		}
 
 		if sessionId, err = c.SessionId(); err != nil && (withPassword || try >= 3) {
 			logger.Error("cannot read session id: %v", err)
-			promptOrExit(ignoreAuthorizationPrompt)
+			promptOrExit(ignoreSessionIdPrompt)
 			return c, nil
 
 		} else if err != nil {
@@ -281,7 +284,7 @@ func configSessionId(password *string) (c *config.Config, sessionId *string) {
 			password = &p
 			if err != nil {
 				logger.Error("failed to read password: %v", err)
-				promptOrExit(ignoreAuthorizationPrompt)
+				promptOrExit(ignoreSessionIdPrompt)
 				return c, nil
 			}
 			continue
@@ -290,6 +293,25 @@ func configSessionId(password *string) (c *config.Config, sessionId *string) {
 	}
 
 	return c, sessionId
+}
+
+func configDefaults(c *config.Config) defaults.Defaults {
+	if c == nil {
+		logger.Error("cannot read downloader defaults configuration: " +
+			"configuration storage is unavailable")
+		promptOrExit(ignoreDefaultsPrompt)
+		return *defaults.Default()
+	}
+
+	d, warning, err := c.Defaults()
+	logger.MaybeWarning(warning, "while reading downloader defaults configuration")
+	if err != nil {
+		logger.Error("cannot read downloader defaults configuration: %v", err)
+		promptOrExit(ignoreDefaultsPrompt)
+		return *defaults.Default()
+	}
+
+	return d
 }
 
 func configRules(c *config.Config) []rules.Rules {
@@ -307,7 +329,7 @@ func configRules(c *config.Config) []rules.Rules {
 		promptOrExit(ignoreRulesPrompt)
 		return []rules.Rules{}
 	} else if len(rs) > 0 {
-		logger.Info("%v global download ruleset%v applied", len(rs), utils.Plural(len(rs)))
+		logger.Info("%v global download ruleset%v are applied", len(rs), utils.Plural(len(rs)))
 	}
 
 	return rs
@@ -328,7 +350,7 @@ func configLimits(c *config.Config) limits.Limits {
 		promptOrExit(ignoreLimitsPrompt)
 		return *limits.Default()
 	} else if !l.IsDefault() {
-		logger.Info("custom request delays and limits applied")
+		logger.Info("custom request delays and limits are applied")
 	}
 
 	return l

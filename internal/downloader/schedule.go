@@ -12,7 +12,8 @@ import (
 
 // Schedule download. Run() to start downloading.
 func (d *Downloader) Schedule(
-	ids []uint64, kind queue.ItemKind, size imageext.Size, onlyMeta bool, paths []string,
+	ids []uint64, kind queue.ItemKind, size imageext.Size, language work.Language,
+	onlyMeta bool, paths []string,
 ) {
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
@@ -22,6 +23,7 @@ func (d *Downloader) Schedule(
 			Id:       id,
 			Kind:     kind,
 			Size:     size,
+			Language: language,
 			OnlyMeta: onlyMeta,
 			Paths:    paths,
 		})
@@ -31,8 +33,8 @@ func (d *Downloader) Schedule(
 
 // Schedule download with additional work metadata if available. Run() to start downloading.
 func (d *Downloader) ScheduleWithKnown(
-	ids []uint64, kind queue.ItemKind, size imageext.Size, onlyMeta bool, paths []string,
-	work *work.Work, imageUrl *string, lowMeta bool,
+	ids []uint64, kind queue.ItemKind, size imageext.Size, language work.Language,
+	onlyMeta bool, paths []string, work *work.Work, imageUrl *string, lowMeta bool,
 ) {
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
@@ -42,6 +44,7 @@ func (d *Downloader) ScheduleWithKnown(
 			Id:       id,
 			Kind:     kind,
 			Size:     size,
+			Language: language,
 			OnlyMeta: onlyMeta,
 			Paths:    paths,
 			Work:     work,
@@ -220,19 +223,21 @@ func (d *Downloader) downloadItem(item *queue.Item) {
 		w, err = d.Novel(item.Id, item.Size, item.Paths)
 	case isNovel && !onlyMeta && withImage:
 		w, err = d.NovelWithKnown(item.Id, item.Size, *item.ImageUrl, item.Paths)
-	case isNovel && onlyMeta && !(withWork && lowMeta):
+	case isNovel && onlyMeta && !lowMeta:
 		w, err = d.NovelMeta(item.Id, item.Paths)
-	case isNovel && onlyMeta && withWork && lowMeta:
+	case isNovel && onlyMeta && lowMeta:
 		w, err = d.LowNovelMetaWithKnown(item.Id, item.Work, item.Paths)
 	case isArtwork && !onlyMeta && !(withWork && withImage):
-		w, err = d.Artwork(item.Id, item.Size, item.Paths)
+		w, err = d.Artwork(item.Id, item.Size, item.Language, item.Paths)
 	case isArtwork && !onlyMeta && withWork && withImage && !lowMeta:
-		w, err = d.ArtworkWithKnown(item.Id, item.Size, item.Work, *item.ImageUrl, item.Paths)
+		w, err = d.ArtworkWithKnown(item.Id, item.Size, item.Language, item.Work, *item.ImageUrl, item.Paths)
 	case isArtwork && !onlyMeta && withWork && withImage && lowMeta:
 		w, err = d.LowArtworkWithKnown(item.Id, item.Size, item.Work, *item.ImageUrl, item.Paths)
-	case isArtwork && onlyMeta && (!withWork || !lowMeta):
-		w, err = d.ArtworkMeta(item.Id, item.Paths)
-	case isArtwork && onlyMeta && withWork && lowMeta:
+	case isArtwork && onlyMeta && !(withWork && withImage):
+		w, err = d.ArtworkMeta(item.Id, item.Language, item.Paths)
+	case isArtwork && onlyMeta && withWork && withImage && !lowMeta:
+		w, err = d.ArtworkMetaWithKnown(item.Id, item.Language, item.Work, item.Paths)
+	case isArtwork && onlyMeta && withWork && withImage && lowMeta:
 		w, err = d.LowArtworkMetaWithKnown(item.Id, item.Work, item.Paths)
 	default:
 		err = fmt.Errorf("impossible combination of work type, known metadata, low-meta and only-meta")

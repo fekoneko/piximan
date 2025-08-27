@@ -11,6 +11,7 @@ const WorkVersion = uint64(1)
 
 type Work struct {
 	Version     *uint64   `yaml:"_version,omitempty"`
+	Language    *string   `yaml:"language,omitempty"`
 	Id          *uint64   `yaml:"id,omitempty"`
 	Title       *string   `yaml:"title,omitempty"`
 	Kind        *string   `yaml:"kind,omitempty"`
@@ -36,6 +37,7 @@ type Work struct {
 func WorkToDto(w *work.Work) *Work {
 	return &Work{
 		Version:     utils.ToPtr(WorkVersion),
+		Language:    utils.MapPtr(w.Language, work.Language.String),
 		Id:          w.Id,
 		Title:       w.Title,
 		Kind:        utils.MapPtr(w.Kind, work.Kind.String),
@@ -67,6 +69,7 @@ func (dto *Work) FromDto() (w *work.Work, warning error) {
 	}
 
 	w = &work.Work{
+		Language:     utils.MapPtr(dto.Language, work.LanguageFromString),
 		Id:           dto.Id,
 		Title:        dto.Title,
 		Kind:         utils.MapPtr(dto.Kind, work.KindFromString),

@@ -10,9 +10,17 @@ const (
 	SizeDefault        = SizeOriginal
 )
 
-func SizeFromUint(size uint) Size {
-	if size <= 3 {
+func ValidSizeUint(size uint64) bool {
+	return size <= 3
+}
+
+func SizeFromUint(size uint64) Size {
+	if ValidSizeUint(size) {
 		return Size(size)
 	}
 	return SizeDefault
+}
+
+func (s Size) ToUint() uint64 {
+	return uint64(s)
 }
