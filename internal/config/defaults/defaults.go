@@ -13,7 +13,7 @@ type Defaults struct {
 
 const (
 	DefaultSize     = imageext.SizeDefault
-	DefaultLanguage = work.LanguageDefault
+	DefaultLanguage = work.LanguageJapanese
 )
 
 func Default() *Defaults {
