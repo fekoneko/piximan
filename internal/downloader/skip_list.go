@@ -5,18 +5,11 @@ import (
 	"github.com/fekoneko/piximan/internal/downloader/skiplist"
 )
 
-// Get skip list that is used to skip previously downloaded works. Thread-safe, may be nil.
-func (d *Downloader) SkipList() *skiplist.SkipList {
-	d.skipListMutex.Lock()
-	defer d.skipListMutex.Unlock()
-	return d.skipList
-}
-
 // Set skip list that is used to skip previously downloaded works. Thread-safe.
 func (d *Downloader) SetSkipList(list *skiplist.SkipList) {
 	d.skipListMutex.Lock()
-	defer d.skipListMutex.Unlock()
 	d.skipList = list
+	d.skipListMutex.Unlock()
 }
 
 func (d *Downloader) skipped(id uint64, kind queue.ItemKind, silent bool) bool {

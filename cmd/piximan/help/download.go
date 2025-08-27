@@ -2,7 +2,6 @@ package help
 
 import (
 	"fmt"
-	"os"
 )
 
 // TODO: split download help into multiple categories same as `piximan download rules`
@@ -11,11 +10,12 @@ import (
 const downloadHelp = //
 `Run without arguments to enter interactive mode.
 
-> piximan download [--id        ...] [--type  ...] [--tag    ...] [--path     ...]
-                   [--bookmarks ...] [--size  ...] [--from   ...] [--password ...]
-                   [--list      ...] [--only-meta] [--to     ...]
-                   [--infer-id  ...] [--rules ...] [--low-meta  ]
-                                     [--skip  ...] [--until-skip]
+> piximan download | --id        | --type      | --tag        | --path     |
+>                  | --bookmarks | --size      | --from       | --password |
+>                  | --list      | --language  | --to         |            |
+>                  | --infer-id  | --only-meta | --low-meta   |            |
+>                  |             | --rules     | --until-skip |            |
+>                  |             | --skip      |              |            |
 
                               Download sources
                               ----------------
@@ -26,8 +26,8 @@ const downloadHelp = //
 --bookmarks  Download your bookmarks or the bookmarks of the given user.
  -b          Authorization is required for this source. See 'piximan help config'
              Available options are:
-             - my         - download bookmarks of the authorized user
-             - <user ID>  - numeric ID of the user to download bookmarks from
+             - my           : download bookmarks of the authorized user
+             - <user ID>    : numeric ID of the user to download bookmarks from
 
 --list       Path to a file with information about which works to download.
  -l          The file must contain a list in YAML format, for example:
@@ -44,9 +44,9 @@ const downloadHelp = //
  -I          the metadata in existing collection when coupled with -only-meta flag.
              If this flag is provided, --path can be omitted and downloaded works will replace
              ones in the original location. The path may contain the following patterns:
-             - {id}         : the ID of the work
-             - *            : matches any sequence of non-separator characters
-             - {<anything>} : will be treated as *
+             - {id}           : the ID of the work
+             - *              : matches any sequence of non-separator characters
+             - {<anything>}   : will be treated as *
              If the provided argument doesn't contain any patterns, piximan will recursively
              look for metadata.yaml files in the provided directory and infer IDs and work types
              from there. May be provided multiple times.
@@ -55,19 +55,30 @@ const downloadHelp = //
                               ----------------
 --type       The type of work to download. Defaults to artwork.
  -t          Available options are:
-             - artwork      - novel
+             - artwork        - novel
 
 --size       Size (resolution) of downloaded images. This Option doesn't apply to ugoira.
- -s          Defaults to original size.
-             Available options are:
-             - 0 thumbnail  - 2 medium
-             - 1 small      - 3 original
+ -s          Available options are:
+             - 0 : thumbnail  - 2 : medium
+             - 1 : small      - 3 : original
+             The default option is 3, but this can be configured, see 'piximan help config'
+
+--language   Japanese is the default language for artwork titles and descriptions on pixiv, but
+ -L          translations may also be provided by authors. Available values are:
+             - ja : Japanese (original language)
+             - en : English
+             The default option is ja, but this can be configured, see 'piximan help config'
+             Providing 'en' will always require authorized work metadata requests when used with
+             --id, --infer-id or --list source.
+             Tags saved in metadata.yaml files will not be translated.
+             This flag can only be used with '--type artwork'.
 
 --only-meta  Only download the metadata.yaml file for the work. Useful for
  -m          updating the metadata of existing works.
 
 --rules      Path to YAML file with download rules. The download rules are used to
  -r          filter wich works should be downloaded. Run 'piximan help rules' for more info.
+             May be provided multiple times.
 
 --skip       All works already present in the provided directory will be skipped when downloading.
  -S          The search is recursive. If you don't use metadata.yaml files in your collection,
@@ -92,9 +103,10 @@ const downloadHelp = //
 
 --low-meta   Specify to skip fetching the full metadata for each work. This will
  -M          significantly reduce the number of pixiv.net API calls.
-             These options will be missing in the metadata.yaml files:
-             - original, views , bookmarks, likes, comments, uploaded,
+             These fields will be missing in the metadata.yaml files:
+             - original, views, bookmarks, likes, comments, uploaded
              - series_id, series_title, series_order
+             - description (will only be present with '--language en' and when work has translation)
              When downloading novels without --low-meta flag, the full metadata will be
              downloaded without any request overhead, so --low-meta should be omitted.
 
@@ -109,16 +121,16 @@ const downloadHelp = //
 --path       Directory to save the files into.
  -p          Defaults to current directory or may be inferred from provided --infer-id.
              You can use these substitutions in the pathname:
-             - {title}       : the title of the work
-             - {id}          : the ID of the work
-             - {user}        : the username of the work author
-             - {user-id}     : the ID of the work author
-             - {type}        : the type of the work (Illustrations, Manga, Ugoira, Novels)
-             - {restriction} : age restriction of the work (All Ages, R-18, R-18G)
-             - {ai}          : the humanity is doomed (Human, AI)
-             - {original}    : whether the work is original (Original, Not Original)
-             - {series}      : the title of the series the work belongs to
-             - {series-id}   : the ID of the series the work belongs to
+             - {title}         : the title of the work
+             - {id}            : the ID of the work
+             - {user}          : the username of the work author
+             - {user-id}       : the ID of the work author
+             - {type}          : the type of the work (Illustrations, Manga, Ugoira, Novels)
+             - {restriction}   : age restriction of the work (All Ages, R-18, R-18G)
+             - {ai}            : the humanity is doomed (Human, AI)
+             - {original}      : whether the work is original (Original, Not Original)
+             - {series}        : the title of the series the work belongs to
+             - {series-id}     : the ID of the series the work belongs to
              Be aware that any Windows / NTFS reserved names will be automaticaly
              padded with underscores, reserved characters - replaced and any dots
              or spaces in front or end of the filenames will be trimmed.
@@ -159,60 +171,8 @@ const downloadHelp = //
 > piximan download --bookmarks my --skip '.' --until-skip --path './{user-id}/{id}'
 `
 
-const downloadRulesHelp = //
-`Rules are used to filter wich works should be downloaded and defined in YAML format.
-All rules are optional, and if multiple rules are defined, the work should match all of
-them to be downloaded (AND). Any array matches any of its elements (OR).
-
-If you download bookmarks with --low-meta flag, be aware that rules, related to the
-missing metadata fields will be ignored. You need to download full metadata to match them.
-
-Here's an example of all available rules:
-
-  ids:                       [12345, 23456]
-  not_ids:                   [34567, 45678]
-  title_contains:            ['cute', 'cat']
-  title_not_contains:        ['ugly', 'dog']
-  title_regexp:              '^.*[0-9]+$'
-  kinds:                     ['illust', 'manga', 'ugoira', 'novel']
-  description_contains:      ['hello', 'world']
-  description_not_contains:  ['goodbye', 'universe']
-  description_regexp:        '^.*[0-9]+$'
-  user_ids:                  [12345, 23456]
-  not_user_ids:              [34567, 45678]
-  user_names:                ['fekoneko', 'somecoolartist']
-  not_user_names:            ['notsocoolartist', 'notme']
-  restrictions:              ['none', 'R-18', 'R-18G']
-  ai:                        false
-  original:                  true
-  pages_less_than:           50
-  pages_more_than:           3
-  views_less_than:           10000
-  views_more_than:           1000
-  bookmarks_less_than:       1000
-  bookmarks_more_than:       100
-  likes_less_than:           500
-  likes_more_than:           50
-  comments_less_than:        10
-  comments_more_than:        2
-  uploaded_before:           2022-01-01T00:00:00Z00:00
-  uploaded_after:            2010-01-01T00:00:00Z00:00
-  series:                    true
-  series_ids:                [12345, 23456]
-  not_series_ids:            [34567, 45678]
-  series_title_contains:     ['cute', 'cat']
-  series_title_not_contains: ['ugly', 'dog']
-  series_title_regexp:       '^.*[0-9]+$'
-  tags:                      ['お気に入り', '東方']
-  not_tags:                  ['おっぱい', 'AI生成']
-`
-
 func RunDownload() {
-	if len(os.Args) > 2 && os.Args[2] == "rules" {
-		fmt.Print(downloadRulesHelp)
-	} else {
-		fmt.Print(downloadHelp)
-	}
+	fmt.Print(downloadHelp)
 }
 
 // TODO: download user's works ('my' or by id)

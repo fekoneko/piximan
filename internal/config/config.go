@@ -1,42 +1,78 @@
 package config
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/pbkdf2"
+	"crypto/sha256"
 	"os"
-	"time"
+	"sync"
 
-	"github.com/fekoneko/piximan/internal/config/dto"
+	"github.com/fekoneko/piximan/internal/client/limits"
+	"github.com/fekoneko/piximan/internal/config/defaults"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
 	"github.com/fekoneko/piximan/internal/utils"
-	"gopkg.in/yaml.v2"
 )
 
-const defaultPximgMaxPending = 5
-const defaultPximgDelay = time.Second * 1
-const defaultMaxPending = 1
-const defaultDelay = time.Second * 2
+var homePath, _ = os.UserHomeDir()
 
-// Saves the current configuration state to the disk
-func (s *Storage) Write() error {
-	d := &dto.Config{
-		Version:           utils.ToPtr(dto.ConfigVersion),
-		PximgMaxPending:   utils.ToPtr(s.PximgMaxPending),
-		PximgDelay:        utils.ToPtr(s.PximgDelay),
-		DefaultMaxPending: utils.ToPtr(s.DefaultMaxPending),
-		DefaultDelay:      utils.ToPtr(s.DefaultDelay),
-	}
+// Stores and reads configuration. Thread-safe.
+type Config struct {
+	cipher cipher.Block
+	gcm    cipher.AEAD
 
-	bytes, err := yaml.Marshal(d)
-	if err != nil {
-		return err
-	}
+	sessionIdMutex *sync.Mutex
+	defaultsMutex  *sync.Mutex
+	rulesMutex     *sync.Mutex
+	limitsMutex    *sync.Mutex
 
-	return os.WriteFile(configPath, bytes, 0664)
+	sessionId **string           // Initially nil. After SessionId(): ptr -> nil | string.
+	defaults  *defaults.Defaults // Initially nil. After Defaults():  ptr -> defaults.Defaults.
+	rules     *[]rules.Rules     // Initially nil. After Rules():     ptr -> []rules.Rules.
+	limits    *limits.Limits     // Initially nil. After Limits():    ptr -> limits.Limits.
 }
 
-// Resets the configuration to default values. Does not remove the session ID.
-func (s *Storage) Reset() error {
-	s.PximgMaxPending = defaultPximgMaxPending
-	s.PximgDelay = defaultPximgDelay
-	s.DefaultMaxPending = defaultMaxPending
-	s.DefaultDelay = defaultDelay
-	return os.Remove(configPath)
+func New(password *string) (*Config, error) {
+	// TODO: maybe make the salt not empty and store it as well
+	key, err := pbkdf2.Key(sha256.New, utils.FromPtr(password, ""), []byte{}, 4096, 32)
+	if err != nil {
+		return nil, err
+	}
+
+	aesCipher, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(aesCipher)
+	if err != nil {
+		return nil, err
+	}
+
+	c := &Config{
+		cipher:         aesCipher,
+		gcm:            gcm,
+		sessionIdMutex: &sync.Mutex{},
+		defaultsMutex:  &sync.Mutex{},
+		rulesMutex:     &sync.Mutex{},
+		limitsMutex:    &sync.Mutex{},
+	}
+
+	return c, nil
+}
+
+func (c *Config) Reset() error {
+	if err := c.ResetSessionId(); err != nil {
+		return err
+	}
+	if err := c.ResetDefaults(); err != nil {
+		return err
+	}
+	if err := c.ResetRules(); err != nil {
+		return err
+	}
+	if err := c.ResetLimits(); err != nil {
+		return err
+	}
+	return nil
 }

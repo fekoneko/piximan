@@ -13,7 +13,7 @@ import (
 
 // Fetch all image assets for illust or manga artwork
 func (d *Downloader) illustMangaAssets(
-	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string,
+	id uint64, w *work.Work, firstPageUrl, thumbnailUrl *string,
 	size imageext.Size, onlyFirstPage bool,
 ) ([]fsext.Asset, error) {
 	numPages := utils.If(onlyFirstPage, utils.ToPtr(uint64(1)), w.NumPages)
@@ -50,7 +50,7 @@ func (d *Downloader) illustMangaAssets(
 // The extension for restricted images in original size cannot be derived, thus we'll have to
 // try each one later.
 func inferPages(
-	id uint64, firstPageUrl *string, thumbnailUrl *string, size imageext.Size, numPages *uint64,
+	id uint64, firstPageUrl, thumbnailUrl *string, size imageext.Size, numPages *uint64,
 ) (pageUrls []string, withExtensions bool, err error) {
 	if numPages == nil {
 		err := fmt.Errorf("page count is missing")
@@ -181,7 +181,7 @@ var extensions = []string{".jpg", ".png", ".gif"}
 // is small and contains only the extensions that Pixiv accepts to be uploaded.
 // Work cannot have different extensions for different pages as Pixiv does not allow it.
 func (d *Downloader) fetchAssets(
-	id uint64, pageUrls []string, withExtensions bool, noLogErrors bool,
+	id uint64, pageUrls []string, withExtensions, noLogErrors bool,
 ) ([]fsext.Asset, error) {
 	logErrorOrWarning := d.logger.Error
 	if noLogErrors {
@@ -255,7 +255,7 @@ func (d *Downloader) fetchAssets(
 }
 
 func (d *Downloader) illustMangaAssetsChannel(
-	id uint64, w *work.Work, firstPageUrl *string, thumbnailUrl *string, size imageext.Size,
+	id uint64, w *work.Work, firstPageUrl, thumbnailUrl *string, size imageext.Size,
 	assetsChannel chan []fsext.Asset, errorChannel chan error,
 ) {
 	if assets, err := d.illustMangaAssets(id, w, firstPageUrl, thumbnailUrl, size, false); err == nil {

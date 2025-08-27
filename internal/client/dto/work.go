@@ -36,18 +36,41 @@ type Work struct {
 			Tag *string `json:"tag"`
 		}) `json:"tags"`
 	} `json:"tags"`
+	TitleCaptionTranslation struct {
+		WorkTitle   *string `json:"workTitle"`
+		WorkCaption *string `json:"workCaption"`
+	} `json:"titleCaptionTranslation"`
 }
 
 func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
+	withTranslation := dto.TitleCaptionTranslation.WorkTitle != nil ||
+		dto.TitleCaptionTranslation.WorkCaption != nil
+	language := utils.If(withTranslation, work.LanguageEnglish, work.LanguageJapanese)
+
+	var title *string
+	if dto.TitleCaptionTranslation.WorkTitle != nil {
+		title = dto.TitleCaptionTranslation.WorkTitle
+	} else if dto.Title != nil {
+		title = dto.Title
+	}
+
+	var description *string
+	if dto.TitleCaptionTranslation.WorkCaption != nil {
+		description = dto.TitleCaptionTranslation.WorkCaption
+	} else if dto.Description != nil {
+		description = dto.Description
+	}
+
 	var tags *[]string
 	if dto.Tags.Tags != nil {
 		tags = utils.ToPtr(make([]string, len(*dto.Tags.Tags)))
 		for i, tag := range *dto.Tags.Tags {
-			if tag.Tag == nil {
+			if tag.Tag != nil {
+				(*tags)[i] = *tag.Tag
+			} else {
 				tags = nil
 				break
 			}
-			(*tags)[i] = *tag.Tag
 		}
 	}
 
@@ -67,11 +90,12 @@ func (dto *Work) FromDto(kind *work.Kind, downloadTime time.Time) *work.Work {
 	}
 
 	return &work.Work{
-		Id:           utils.ParseUint64Ptr(dto.Id),
-		Title:        dto.Title,
+		Language:     &language,
+		Id:           utils.ParseUintPtr(dto.Id),
+		Title:        title,
 		Kind:         kind,
-		Description:  parseDescription(dto.Description),
-		UserId:       utils.ParseUint64Ptr(dto.UserId),
+		Description:  parseDescription(description),
+		UserId:       utils.ParseUintPtr(dto.UserId),
 		UserName:     dto.UserName,
 		Restriction:  utils.MapPtr(dto.XRestrict, work.RestrictionFromUint),
 		Ai:           work.AiFromUint(utils.FromPtr(dto.AiType, work.AiDefaultUint)),

@@ -7,46 +7,51 @@ import (
 	"sync"
 
 	"github.com/fekoneko/piximan/internal/client"
+	"github.com/fekoneko/piximan/internal/client/limits"
 	"github.com/fekoneko/piximan/internal/collection"
 	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/config"
+	"github.com/fekoneko/piximan/internal/config/defaults"
 	"github.com/fekoneko/piximan/internal/downloader"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
+	"github.com/fekoneko/piximan/internal/downloader/rules"
 	"github.com/fekoneko/piximan/internal/downloader/skiplist"
 	"github.com/fekoneko/piximan/internal/fsext"
 	"github.com/fekoneko/piximan/internal/imageext"
 	"github.com/fekoneko/piximan/internal/logger"
 	"github.com/fekoneko/piximan/internal/termext"
 	"github.com/fekoneko/piximan/internal/utils"
+	"github.com/manifoldco/promptui"
 )
 
 func download(options *options) {
-	size := utils.FromPtrTransform(options.Size, imageext.SizeFromUint, imageext.SizeDefault)
+	config, sessionId := configSessionId(options.Password)
+	defaults := configDefaults(config)
+	rules := configRules(config)
+	limits := configLimits(config)
+	c := client.New(sessionId, limits, logger.DefaultLogger)
+	d := downloader.New(c, logger.DefaultLogger)
+	d.AddRules(rules...)
+
 	kind := utils.FromPtrTransform(options.Kind, queue.ItemKindFromString, queue.ItemKindDefault)
+	size := utils.FromPtrTransform(options.Size, imageext.SizeFromUint, defaults.Size)
+	language := utils.FromPtrTransform(options.Language, work.LanguageFromString, defaults.Language)
 	private := utils.FromPtr(options.Private, false)
 	onlyMeta := utils.FromPtr(options.OnlyMeta, false)
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	untilSkip := utils.FromPtr(options.UntilSkip, false)
 	paths := utils.FromPtr(options.Paths, []string{""})
 
-	storage, sessionId := configAndSession(options.Password)
-	c := client.New(
-		sessionId, logger.DefaultLogger,
-		storage.PximgMaxPending, storage.PximgDelay,
-		storage.DefaultMaxPending, storage.DefaultDelay,
-	)
-	d := downloader.New(c, logger.DefaultLogger)
-
 	termext.DisableInputEcho()
 	defer termext.RestoreInputEcho()
 
 	if options.Ids != nil {
-		d.Schedule(*options.Ids, kind, size, onlyMeta, paths)
+		d.Schedule(*options.Ids, kind, size, language, onlyMeta, paths)
 
 	} else if options.Bookmarks != nil && *options.Bookmarks == "my" {
 		d.ScheduleMyBookmarks(
 			kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, untilSkip, paths,
+			size, language, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.Bookmarks != nil {
@@ -55,7 +60,7 @@ func download(options *options) {
 
 		d.ScheduleBookmarks(
 			userId, kind, options.Tags, options.FromOffset, options.ToOffset, private,
-			size, onlyMeta, lowMeta, untilSkip, paths,
+			size, language, onlyMeta, lowMeta, untilSkip, paths,
 		)
 
 	} else if options.InferIds != nil {
@@ -178,9 +183,12 @@ func download(options *options) {
 	}
 
 	if options.Rules != nil {
-		rules, err := fsext.ReadRules(*options.Rules)
-		logger.MaybeFatal(err, "cannot read download rules from %v", *options.Rules)
-		d.SetRules(rules)
+		for _, rulesPath := range *options.Rules {
+			rules, warning, err := fsext.ReadRules(rulesPath)
+			logger.MaybeWarning(warning, "while reading download rules from %v", rulesPath)
+			logger.MaybeFatal(err, "cannot read download rules from %v", rulesPath)
+			d.AddRules(*rules)
+		}
 	}
 
 	if options.Skips != nil && len(*options.Skips) != 0 {
@@ -254,76 +262,102 @@ func download(options *options) {
 	logger.Stats()
 }
 
-func configAndSession(password *string) (storage *config.Storage, sessionId *string) {
-	storage, err := config.New(password)
-	if err != nil && password != nil {
-		logger.Fatal("cannot open config storage: %v", err)
-		panic("unreachable")
-	} else if err != nil {
-		logger.Warning("cannot open config storage: %v", err)
-		promptDefaultConfig()
-		return storage, nil
-	}
+func configSessionId(password *string) (c *config.Config, sessionId *string) {
+	withPassword := password != nil
+	var err error
 
-	if sessionId, err := storage.SessionId(); err != nil && password != nil {
-		logger.Fatal("cannot read session id: %v", err)
-		panic("unreachable")
-	} else if err != nil {
-		if newStorage, sessionId := promptPassword(); newStorage != nil {
-			return newStorage, sessionId
-		} else {
-			return storage, sessionId
-		}
-	} else if sessionId == nil && password != nil {
-		logger.Fatal("no session id were configured, but password was provided")
-		panic("unreachable")
-	} else if sessionId == nil {
-		logger.Info("no session id were configured, using only anonymous requests")
-		return storage, nil
-	} else {
-		return storage, sessionId
-	}
-}
-
-func promptPassword() (storage *config.Storage, sessionId *string) {
-	for tries := 0; ; tries++ {
-		password, err := passwordPrompt.Run()
+	for try := range 4 {
+		c, err = config.New(password)
 		if err != nil {
-			logger.Warning("failed to read password: %v", err)
-			promptNoAuthorization()
+			logger.Error("cannot open configuration storage: %v", err)
+			promptOrExit(ignoreSessionIdPrompt)
 			return nil, nil
 		}
 
-		storage, err := config.New(&password)
-		if err != nil {
-			logger.Warning("cannot open config storage: %v", err)
-			promptNoAuthorization()
-			return nil, nil
-		}
+		if sessionId, err = c.SessionId(); err != nil && (withPassword || try >= 3) {
+			logger.Error("cannot read session id: %v", err)
+			promptOrExit(ignoreSessionIdPrompt)
+			return c, nil
 
-		if sessionId, err := storage.SessionId(); err == nil && sessionId != nil {
-			return storage, sessionId
-		} else if err == nil {
-			logger.Info("no session id were configured, using only anonymous requests")
-			return storage, nil
-		} else if tries == 2 {
-			logger.Warning("cannot read session id: %v", err)
-			promptNoAuthorization()
-			return storage, nil
+		} else if err != nil {
+			p, err := passwordPrompt.Run()
+			password = &p
+			if err != nil {
+				logger.Error("failed to read password: %v", err)
+				promptOrExit(ignoreSessionIdPrompt)
+				return c, nil
+			}
+			continue
 		}
+		break
 	}
+
+	return c, sessionId
 }
 
-func promptDefaultConfig() {
-	_, option, err := deafultConfigPrompt.Run()
-	logger.MaybeFatal(err, "failed to read the choice")
-	if err != nil || option != YesOption {
-		os.Exit(1)
+func configDefaults(c *config.Config) defaults.Defaults {
+	if c == nil {
+		logger.Error("cannot read downloader defaults configuration: " +
+			"configuration storage is unavailable")
+		promptOrExit(ignoreDefaultsPrompt)
+		return *defaults.Default()
 	}
+
+	d, warning, err := c.Defaults()
+	logger.MaybeWarning(warning, "while reading downloader defaults configuration")
+	if err != nil {
+		logger.Error("cannot read downloader defaults configuration: %v", err)
+		promptOrExit(ignoreDefaultsPrompt)
+		return *defaults.Default()
+	}
+
+	return d
 }
 
-func promptNoAuthorization() {
-	_, option, err := noAuthorizationPrompt.Run()
+func configRules(c *config.Config) []rules.Rules {
+	if c == nil {
+		logger.Error("cannot read global download rules configuration: " +
+			"configuration storage is unavailable")
+		promptOrExit(ignoreRulesPrompt)
+		return []rules.Rules{}
+	}
+
+	rs, warnings, err := c.Rules()
+	logger.MaybeWarnings(warnings, "while reading global download rules configuration")
+	if err != nil {
+		logger.Error("cannot read global download rules configuration: %v", err)
+		promptOrExit(ignoreRulesPrompt)
+		return []rules.Rules{}
+	} else if len(rs) > 0 {
+		logger.Info("%v global download ruleset%v are applied", len(rs), utils.Plural(len(rs)))
+	}
+
+	return rs
+}
+
+func configLimits(c *config.Config) limits.Limits {
+	if c == nil {
+		logger.Error("cannot read request delays and limits configuration: " +
+			"configuration storage is unavailable")
+		promptOrExit(ignoreLimitsPrompt)
+		return *limits.Default()
+	}
+
+	l, warning, err := c.Limits()
+	logger.MaybeWarning(warning, "while reading request delays and limits configuration")
+	if err != nil {
+		logger.Error("cannot read request delays and limits configuration: %v", err)
+		promptOrExit(ignoreLimitsPrompt)
+		return *limits.Default()
+	} else if !l.IsDefault() {
+		logger.Info("custom request delays and limits are applied")
+	}
+
+	return l
+}
+
+func promptOrExit(prompt promptui.Select) {
+	_, option, err := prompt.Run()
 	logger.MaybeFatal(err, "failed to read the choice")
 	if err != nil || option != YesOption {
 		os.Exit(1)

@@ -38,7 +38,7 @@ func (l *Logger) registerRequest(url string, authorized bool) (RemoveBarFunc, Up
 		l.refreshProgress()
 	}
 
-	updateBar := func(current int, total int) {
+	updateBar := func(current, total int) {
 		l.mutex.Lock()
 		l.progressMap[mapIndex].current = current
 		l.progressMap[mapIndex].total = total
@@ -149,7 +149,7 @@ func (l *Logger) addStats(builder *strings.Builder) {
 	))
 }
 
-func barString(current int, total int, length int) string {
+func barString(current, total, length int) string {
 	fraction := float64(0)
 	if total > 0 {
 		fraction = float64(current) / float64(total)

@@ -43,7 +43,7 @@ type Downloader struct {
 	crawling        bool
 	crawlingCond    *sync.Cond
 
-	rules      *rules.Rules
+	rules      []rules.Rules
 	rulesMutex *sync.Mutex
 
 	skipList      *skiplist.SkipList
@@ -62,6 +62,7 @@ func New(client *client.Client, logger *logger.Logger) *Downloader {
 		crawlQueue:         make([]CrawlFunc, 0),
 		crawlQueueMutex:    &sync.Mutex{},
 		crawlingCond:       sync.NewCond(&sync.Mutex{}),
+		rules:              make([]rules.Rules, 0),
 		rulesMutex:         &sync.Mutex{},
 		skipListMutex:      &sync.Mutex{},
 	}
@@ -107,14 +108,16 @@ func (d *Downloader) String() string {
 	d.rulesMutex.Lock()
 	builder.WriteString("- download rules: ")
 	numRules := 0
-	if d.rules != nil {
-		numRules = d.rules.Count()
+	for _, r := range d.rules {
+		numRules += r.Count()
 	}
 	if numRules <= 0 {
 		builder.WriteString("none\n")
 	} else {
 		builder.WriteString(strconv.FormatInt(int64(numRules), 10))
-		builder.WriteString(utils.IfPlural(numRules, " rule\n", " rules\n"))
+		builder.WriteString(utils.IfPlural(numRules, " rule (", " rules ("))
+		builder.WriteString(strconv.FormatInt(int64(len(d.rules)), 10))
+		builder.WriteString(utils.IfPlural(len(d.rules), " ruleset)\n", " rulesets)\n"))
 	}
 	d.rulesMutex.Unlock()
 

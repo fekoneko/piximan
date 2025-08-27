@@ -17,6 +17,8 @@ func Run() {
 		RunConfig()
 	case "download":
 		RunDownload()
+	case "rules":
+		RunRules()
 	default:
 		RunGeneral()
 	}

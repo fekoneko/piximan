@@ -5,18 +5,11 @@ import (
 	"github.com/fekoneko/piximan/internal/downloader/rules"
 )
 
-// Get rules that are used to filter downloaded works. Thread-safe, may be nil.
-func (d *Downloader) Rules() *rules.Rules {
-	d.rulesMutex.Lock()
-	defer d.rulesMutex.Unlock()
-	return d.rules
-}
-
 // Set rules that will be used to filter downloaded works. Thread-safe.
-func (d *Downloader) SetRules(rules *rules.Rules) {
+func (d *Downloader) AddRules(rules ...rules.Rules) {
 	d.rulesMutex.Lock()
-	defer d.rulesMutex.Unlock()
-	d.rules = rules
+	d.rules = append(d.rules, rules...)
+	d.rulesMutex.Unlock()
 }
 
 // Checks weather the artwork is worth getting metadata for a full MatchWork() call.
@@ -25,14 +18,13 @@ func (d *Downloader) matchArtworkId(id uint64) bool {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	if d.rules == nil {
-		return true
+	for _, rules := range d.rules {
+		if !rules.MatchArtworkId(id) {
+			d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
+			return false
+		}
 	}
-	matches := d.rules.MatchArtworkId(id)
-	if !matches {
-		d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
-	}
-	return matches
+	return true
 }
 
 // Checks weather the novel is worth getting metadata for a full MatchWork() call.
@@ -41,14 +33,13 @@ func (d *Downloader) matchNovelId(id uint64) bool {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	if d.rules == nil {
-		return true
+	for _, rules := range d.rules {
+		if !rules.MatchNovelId(id) {
+			d.logger.Info("skipping novel %v as it doesn't match download rules", id)
+			return false
+		}
 	}
-	matches := d.rules.MatchNovelId(id)
-	if !matches {
-		d.logger.Info("skipping novel %v as it doesn't match download rules", id)
-	}
-	return matches
+	return true
 }
 
 // Checkes weather the work matches the rules and can be downloaded.
@@ -59,33 +50,33 @@ func (d *Downloader) matchArtwork(id uint64, w *work.Work, partial bool) bool {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	if d.rules == nil {
-		return true
+	for _, rules := range d.rules {
+		matches, warnings := rules.MatchWork(w, partial)
+		d.logger.MaybeWarnings(warnings, "while matching metadata for artwork %v", id)
+		if !matches {
+			d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
+			return false
+		}
 	}
-	matches, warnings := d.rules.MatchWork(w, partial)
-	d.logger.MaybeWarnings(warnings, "while matching metadata for artwork %v", id)
-	if !matches {
-		d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
-	}
-	return matches
+	return true
 }
 
 // The same as partial matchArtwork(), but doesn't log warnings and instead returns weather the full
 // metadata is needed to make the final decision. Used to check early if the work is worth downloading
 // and decide weather to wait for full metadata before starting downloading assets.
-func (d *Downloader) matchArtworkNeedFull(id uint64, w *work.Work) (matches bool, needFull bool) {
+func (d *Downloader) matchArtworkNeedFull(id uint64, w *work.Work) (matches, needFull bool) {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	if d.rules == nil {
-		return true, false
+	for _, rules := range d.rules {
+		if matches, warnings := rules.MatchWork(w, true); !matches {
+			d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
+			return false, false
+		} else if len(warnings) > 0 {
+			needFull = true
+		}
 	}
-	if matches, warnings := d.rules.MatchWork(w, true); !matches {
-		d.logger.Info("skipping artwork %v as it doesn't match download rules", id)
-		return false, false
-	} else {
-		return true, len(warnings) > 0
-	}
+	return true, needFull
 }
 
 // Checkes weather the work matches the rules and can be downloaded.
@@ -96,31 +87,31 @@ func (d *Downloader) matchNovel(id uint64, w *work.Work, partial bool) bool {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	if d.rules == nil {
-		return true
+	for _, rules := range d.rules {
+		matches, warnings := rules.MatchWork(w, partial)
+		d.logger.MaybeWarnings(warnings, "while matching metadata for novel %v", id)
+		if !matches {
+			d.logger.Info("skipping novel %v as it doesn't match download rules", id)
+			return false
+		}
 	}
-	matches, warnings := d.rules.MatchWork(w, partial)
-	d.logger.MaybeWarnings(warnings, "while matching metadata for novel %v", id)
-	if !matches {
-		d.logger.Info("skipping novel %v as it doesn't match download rules", id)
-	}
-	return matches
+	return true
 }
 
 // The same as partial matchNovel(), but doesn't log warnings and instead returns weather the full
 // metadata is needed to make the final decision. Used to check early if the work is worth downloading
 // and decide weather to wait for full metadata before starting downloading assets.
-func (d *Downloader) matchNovelNeedFull(id uint64, w *work.Work) (matches bool, needFull bool) {
+func (d *Downloader) matchNovelNeedFull(id uint64, w *work.Work) (matches, needFull bool) {
 	d.rulesMutex.Lock()
 	defer d.rulesMutex.Unlock()
 
-	if d.rules == nil {
-		return true, false
+	for _, rules := range d.rules {
+		if matches, warnings := rules.MatchWork(w, true); !matches {
+			d.logger.Info("skipping novel %v as it doesn't match download rules", id)
+			return false, false
+		} else if len(warnings) > 0 {
+			needFull = true
+		}
 	}
-	if matches, warnings := d.rules.MatchWork(w, true); !matches {
-		d.logger.Info("skipping novel %v as it doesn't match download rules", id)
-		return false, false
-	} else {
-		return true, len(warnings) > 0
-	}
+	return true, needFull
 }

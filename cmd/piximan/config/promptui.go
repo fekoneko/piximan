@@ -7,13 +7,21 @@ import (
 
 var modeSelectLabel = "What to configure?"
 var sessionIdOption = "Authorization (session ID)"
-var requestParamsOption = "Request delays and limits"
-var resetSessionOption = "Remove configured session ID"
-var resetConfigOption = "Reset configuration"
+var defaultsOption = "Downloader defaults (image size, language)"
+var rulesOption = "Global download rules"
+var limitsOption = "Request delays and limits"
+var resetSessionOption = "Reset configured session ID"
+var resetDefaultsOption = "Reset downloader defaults (image size, language)"
+var resetRulesOption = "Reset global download rules"
+var resetLimitsOption = "Reset request delays and limits"
+var resetOption = "Reset all configuration"
 
 var modeSelect = promptui.Select{
 	Label: modeSelectLabel,
-	Items: []string{sessionIdOption, requestParamsOption, resetSessionOption, resetConfigOption},
+	Items: []string{
+		sessionIdOption, defaultsOption, rulesOption, limitsOption,
+		resetSessionOption, resetRulesOption, resetLimitsOption, resetOption,
+	},
 }
 
 var sessionIdPrompt = promptui.Prompt{
@@ -26,22 +34,45 @@ var passwordPrompt = promptui.Prompt{
 	Mask:  '*',
 }
 
-var defaultMaxPendingPrompt = promptui.Prompt{
-	Label:    "Maximum number of concurrent requests to pixiv.net",
-	Validate: utils.ValidateNumber("value must be a number"),
+var thumbnailSizeOption = "Thumbnail"
+var smallSizeOption = "Small"
+var mediumSizeOption = "Medium"
+var originalSizeOption = "Original"
+
+var sizeSelect = promptui.Select{
+	Label:     "Default size of downloaded images",
+	Items:     []string{thumbnailSizeOption, smallSizeOption, mediumSizeOption, originalSizeOption},
+	CursorPos: 3,
 }
 
-var defaultDelayPrompt = promptui.Prompt{
+var japaneseOption = "Japanese (or other original language)"
+var englishOption = "English"
+
+var languageSelect = promptui.Select{
+	Label: "Default language of work titles and descriptions",
+	Items: []string{japaneseOption, englishOption},
+}
+
+var rulesPrompt = promptui.Prompt{
+	Label: "Paths to download rules files (comma-separated)",
+}
+
+var maxPendingPrompt = promptui.Prompt{
+	Label:    "Maximum number of concurrent requests to pixiv.net",
+	Validate: utils.ValidateUint("value must be a number"),
+}
+
+var delayPrompt = promptui.Prompt{
 	Label:    "Delay between requests to pixiv.net",
-	Validate: utils.ValidateNumber("value must be a number"),
+	Validate: utils.ValidateUint("value must be a number"),
 }
 
 var pximgMaxPendingPrompt = promptui.Prompt{
 	Label:    "Maximum number of concurrent requests to i.pximg.net",
-	Validate: utils.ValidateNumber("value must be a number"),
+	Validate: utils.ValidateUint("value must be a number"),
 }
 
 var pximgDelayPrompt = promptui.Prompt{
 	Label:    "Delay between requests to i.pximg.net",
-	Validate: utils.ValidateNumber("value must be a number"),
+	Validate: utils.ValidateUint("value must be a number"),
 }
