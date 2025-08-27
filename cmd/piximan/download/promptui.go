@@ -34,7 +34,7 @@ var idsPrompt = promptui.Prompt{
 
 var userIdPrompt = promptui.Prompt{
 	Label:    "User ID",
-	Validate: utils.ValidateNumber("user ID must be a number"),
+	Validate: utils.ValidateUint("user ID must be a number"),
 }
 
 var inferIdsPrompt = promptui.Prompt{

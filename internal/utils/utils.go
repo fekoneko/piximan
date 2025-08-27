@@ -39,7 +39,7 @@ func ToPtr[T any](value T) *T {
 	return &value
 }
 
-func ValidateNumber(message string) func(string) error {
+func ValidateUint(message string) func(string) error {
 	return func(s string) error {
 		if _, err := strconv.ParseUint(s, 10, 64); err != nil {
 			return errors.New(message)
@@ -48,7 +48,7 @@ func ValidateNumber(message string) func(string) error {
 	}
 }
 
-func FormatUint64(value uint64) string {
+func FormatUint(value uint64) string {
 	return strconv.FormatUint(value, 10)
 }
 
