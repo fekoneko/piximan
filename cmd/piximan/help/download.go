@@ -175,6 +175,8 @@ func RunDownload() {
 	fmt.Print(downloadHelp)
 }
 
+// TODO: make proper man pages (in `/usr/share/man`) alongside `piximan help`
+
 // TODO: download user's works ('my' or by id)
 // TODO: --save-list option to only save crawl results as a yaml list
 // TODO: --log, -o option to log the output to a file (-L should be reserved for language actually)

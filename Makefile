@@ -1,20 +1,36 @@
-VERSION := $(shell git describe --always --tags --dirty)
-VERSION_ARGS := -ldflags="-X main.version=${VERSION}"
+VERSION := $(shell if [ -n "$$PIXIMAN_VERSION" ]; then \
+	echo "$$PIXIMAN_VERSION"; \
+	else git describe --always --tags --dirty; \
+fi)
+GOFLAGS := -buildmode=pie -trimpath -mod=readonly -modcacherw -ldflags="-X main.version=${VERSION}"
 MAKEFLAGS += --no-print-directory
+
+define RUN_CMD
+	CGO_CPPFLAGS="$$CGO_CPPFLAGS $$CPPFLAGS" \
+		CGO_CFLAGS="$$CGO_CFLAGS $$CFLAGS" \
+		CGO_CXXFLAGS="$$CGO_CXXFLAGS $$CXXFLAGS" \
+		CGO_LDFLAGS="$$CGO_LDFLAGS $$LDFLAGS" \
+		go run ${GOFLAGS} -v -ldflags "$$LDFLAGS" "$@"
+endef
 
 define BUILD_CMD
 	if [ -z "$${GOOS}" ]; then GOOS="$$(go env GOOS)"; fi; \
-  if [ -z "$${GOARCH}" ]; then GOARCH="$$(go env GOARCH)"; fi; \
-  BIN_DIR="bin/$${GOOS}_$${GOARCH}"; \
+	if [ -z "$${GOARCH}" ]; then GOARCH="$$(go env GOARCH)"; fi; \
+	BIN_DIR="bin/$${GOOS}_$${GOARCH}"; \
 	mkdir -p "$${BIN_DIR}"; \
 	BIN_NAME='piximan'; \
 	if [ "$${GOOS}" = 'windows' ]; then BIN_NAME="$${BIN_NAME}.exe"; fi; \
-	env GOOS="$${GOOS}" GOARCH="$${GOARCH}" \
-		go build ${VERSION_ARGS} -v -o "$${BIN_DIR}/$${BIN_NAME}" "cmd/piximan/main.go" ${ARGS}
+	GOOS="$${GOOS}" \
+		GOARCH="$${GOARCH}" \
+		CGO_CPPFLAGS="$$CGO_CPPFLAGS $$CPPFLAGS" \
+		CGO_CFLAGS="$$CGO_CFLAGS $$CFLAGS" \
+		CGO_CXXFLAGS="$$CGO_CXXFLAGS $$CXXFLAGS" \
+		CGO_LDFLAGS="$$CGO_LDFLAGS $$LDFLAGS" \
+		go build ${GOFLAGS} -v -o "$${BIN_DIR}/$${BIN_NAME}" "cmd/piximan/main.go" ${ARGS}
 endef
 
 run:
-	@go run ${VERSION_ARGS} 'cmd/piximan/main.go' ${ARGS}
+	@go run ${GOFLAGS} 'cmd/piximan/main.go' ${ARGS}
 
 build\:current:
 	@echo "Building for current platform"
