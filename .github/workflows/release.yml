@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: ['main']
+    branches: [main]
 
 jobs:
   release:
@@ -30,11 +30,14 @@ jobs:
 
       - name: Create Tag
         id: create-tag
+        env:
+          pr_title: ${{ steps.merged-pr-info.outputs.title }}
+          previous_tag: ${{ steps.previous-tag.outputs.tag }}
         run: |
-          bump="$(printf '%s' "${{ steps.merged-pr-info.outputs.title }}" | cut -d " " -f 1)"
-          major="$(printf '%s' "${{ steps.previous-tag.outputs.tag }}" | cut -d "." -f 1 | cut -c2-)"
-          minor="$(printf '%s' "${{ steps.previous-tag.outputs.tag }}" | cut -d "." -f 2)"
-          patch="$(printf '%s' "${{ steps.previous-tag.outputs.tag }}" | cut -d "." -f 3)"
+          bump="$(printf '%s' "$pr_title" | cut -d " " -f 1)"
+          major="$(printf '%s' "$previous_tag" | cut -d "." -f 1 | cut -c2-)"
+          minor="$(printf '%s' "$previous_tag" | cut -d "." -f 2)"
+          patch="$(printf '%s' "$previous_tag" | cut -d "." -f 3)"
           if [ "$bump" = "[major]" ]; then
             major=$((major + 1))
             minor=0
@@ -56,18 +59,24 @@ jobs:
         uses: actions/setup-go@v4
 
       - name: Build
-        run: make build PIXIMAN_VERSION='${{ steps.create-tag.outputs.version }}'
+        env:
+          version: ${{ steps.create-tag.outputs.version }}
+        run: make build PIXIMAN_VERSION="$version"
 
       - name: Package
+        env:
+          version: ${{ steps.create-tag.outputs.version }}
         run: |
           for f in ./bin/*; do \
-            zip -rj "./bin/piximan_${{ steps.create-tag.outputs.version }}_$(basename $f).zip" "$f"; \
+            zip -rj "./bin/piximan_$version_$(basename $f).zip" "$f"; \
           done
 
       - name: Generate Changelog
         id: generate-changelog
+        env:
+          previous_tag: ${{ steps.previous-tag.outputs.tag }}
         run: |
-          log="$(git log "${{ steps.previous-tag.outputs.tag }}..HEAD" --oneline --no-merges | \
+          log="$(git log "$previous_tag..HEAD" --oneline --no-merges | \
             sed 's/#EOF#/EOF/' | tac)"
           feats="$(printf '%s' "$log" | sed -ne 's/.* feat://p')"
           fixes="$(printf '%s' "$log" | sed -ne 's/.* fix://p')"
@@ -95,7 +104,9 @@ jobs:
           printf '%s' $'changelog<<#EOF#\n'"$changelog"$'\n#EOF#' >> "$GITHUB_OUTPUT"
 
       - name: Push Tag
-        run: git push origin "${{ steps.create-tag.outputs.version }}"
+        env:
+          version: ${{ steps.create-tag.outputs.version }}
+        run: git push origin "$version"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
