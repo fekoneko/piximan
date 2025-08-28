@@ -8,7 +8,13 @@ main_path="$dirname/cmd/piximan/main.go"
 # Compile the resources
 "$dirname/compile-resources.sh" || exit 1
 
+export CGO_ENABLED=1
+export CGO_CPPFLAGS="$$CGO_CPPFLAGS $$CPPFLAGS"
+export CGO_CFLAGS="$$CGO_CFLAGS $$CFLAGS"
+export CGO_CXXFLAGS="$$CGO_CXXFLAGS $$CXXFLAGS"
+export CGO_LDFLAGS="$$CGO_LDFLAGS $$LDFLAGS"
+export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw -ldflags='-X main.version=$version' $GOFLAGS"
+
 # Run the program with Go using provided arguments
 echo "Running piximan $version"
-# shellcheck disable=SC2068
-go run -ldflags="-X main.version=$version" "$main_path" $@
+go run "$main_path" "$@"

@@ -277,10 +277,10 @@ piximan help config
 Use these Bash scripts to run and build the project:
 
 ```shell
-./run.sh                    # Run piximan
-./run.sh download -i 10000  # Run piximan with the args
-./build.sh                  # Build for the current platform
-./build.sh $os $arch        # Build for specified OS and architecture
+./run.sh                      # Run piximan
+./run.sh download -i 10000    # Run piximan with the args
+./build.sh                    # Build for the current platform
+./build.sh $version $os $arch # Build for specified OS and architecture
 ```
 
 ## Related projects
