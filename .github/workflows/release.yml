@@ -56,12 +56,12 @@ jobs:
         uses: actions/setup-go@v4
 
       - name: Build
-        run: make build
+        run: make build PIXIMAN_VERSION='${{ steps.create-tag.outputs.version }}'
 
       - name: Package
         run: |
           for f in ./bin/*; do \
-            zip -rj "./bin/piximan_${{ steps.create-tag.outputs.version  }}_$(basename $f).zip" "$f"; \
+            zip -rj "./bin/piximan_${{ steps.create-tag.outputs.version }}_$(basename $f).zip" "$f"; \
           done
 
       - name: Generate Changelog
