@@ -16,19 +16,19 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Get Merged Pull Request Info
+      - name: Get merged PR info
         uses: actions-ecosystem/action-get-merged-pull-request@v1.0.1
         id: merged-pr-info
         with:
           github_token: ${{ github.token }}
 
-      - name: Get Previous Tag
+      - name: Get previous tag
         id: previous-tag
         run: |
           tag="$(git describe --tags --abbrev=0)"
           printf '%s' "tag=$tag" >> "$GITHUB_OUTPUT"
 
-      - name: Create Tag
+      - name: Create tag
         id: create-tag
         env:
           pr_title: ${{ steps.merged-pr-info.outputs.title }}
@@ -55,7 +55,7 @@ jobs:
           git config --local user.email "action@github.com"
           git tag -a "$version" -m "Release $version"
 
-      - name: Set Up Go
+      - name: Set up Go
         uses: actions/setup-go@v4
 
       - name: Build
@@ -68,18 +68,18 @@ jobs:
           version: ${{ steps.create-tag.outputs.version }}
         run: |
           for f in ./bin/*; do \
-            zip -rj "./bin/piximan_$version_$(basename $f).zip" "$f"; \
+            zip -rj "./bin/piximan_${version}_$(basename $f).zip" "$f"; \
           done
 
-      - name: Generate Changelog
+      - name: Generate changelog
         id: generate-changelog
         env:
           previous_tag: ${{ steps.previous-tag.outputs.tag }}
         run: |
           log="$(git log "$previous_tag..HEAD" --oneline --no-merges | \
             sed 's/#EOF#/EOF/' | tac)"
-          feats="$(printf '%s' "$log" | sed -ne 's/.* feat://p')"
-          fixes="$(printf '%s' "$log" | sed -ne 's/.* fix://p')"
+          feats="$(printf '%s' "$log" | sed -ne 's/.* feat: *//p')"
+          fixes="$(printf '%s' "$log" | sed -ne 's/.* fix: *//p')"
           changelog=''
 
           prev_ifs=$IFS
@@ -103,12 +103,12 @@ jobs:
 
           printf '%s' $'changelog<<#EOF#\n'"$changelog"$'\n#EOF#' >> "$GITHUB_OUTPUT"
 
-      - name: Push Tag
+      - name: Push tag
         env:
           version: ${{ steps.create-tag.outputs.version }}
         run: git push origin "$version"
 
-      - name: Create Release
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           name: '${{ steps.create-tag.outputs.version  }}'
