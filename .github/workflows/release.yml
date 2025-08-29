@@ -70,8 +70,8 @@ jobs:
           for f in ./bin/*; do
             archive_name="./bin/piximan_${version}_$(basename "$f")"
             if [[ $f == ./bin/linux* ]]
-              then tar -czvf "$archive_name.tar.gz" -C "$f" $(ls "$f")
-              else zip -rj "$archive_name.zip" "$f"
+              then tar -czvf "$archive_name.tar.gz" COPYING -C "$f" $(ls "$f")
+              else zip -rj "$archive_name.zip" "$f" COPYING
             fi
           done
 
