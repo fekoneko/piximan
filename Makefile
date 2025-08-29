@@ -2,7 +2,7 @@ VERSION := $(shell if [ -n "$$PIXIMAN_VERSION" ]; then \
 	echo "$$PIXIMAN_VERSION"; \
 	else git describe --always --tags --dirty; \
 fi)
-GOFLAGS := -trimpath -mod=readonly -modcacherw -ldflags="-X main.version=${VERSION}"
+GOFLAGS := -trimpath -mod=readonly -ldflags="-X main.version=${VERSION}"
 MAKEFLAGS += --no-print-directory
 
 define BUILD_CMD

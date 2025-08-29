@@ -38,14 +38,14 @@ jobs:
           major="$(printf '%s' "$previous_tag" | cut -d "." -f 1 | cut -c2-)"
           minor="$(printf '%s' "$previous_tag" | cut -d "." -f 2)"
           patch="$(printf '%s' "$previous_tag" | cut -d "." -f 3)"
-          if [ "$bump" = "[major]" ]; then
+          if [ "$bump" = '[major]' ]; then
             major=$((major + 1))
             minor=0
             patch=0
-          elif [ "$bump" = "[minor]" ]; then
+          elif [ "$bump" = '[minor]' ]; then
             minor=$((minor + 1))
             patch=0
-          elif [ "$bump" = "[patch]" ]; then
+          elif [ "$bump" = '[patch]' ]; then
             patch=$((patch + 1))
           fi
           version="v$major.$minor.$patch"
@@ -67,8 +67,12 @@ jobs:
         env:
           version: ${{ steps.create-tag.outputs.version }}
         run: |
-          for f in ./bin/*; do \
-            zip -rj "./bin/piximan_${version}_$(basename $f).zip" "$f"; \
+          for f in ./bin/*; do
+            archive_name="./bin/piximan_${version}_$(basename "$f")"
+            if [[ $f == ./bin/linux* ]]
+              then tar -czvf "$archive_name.tar.gz" -C "$f" $(ls "$f")
+              else zip -rj "$archive_name.zip" "$f"
+            fi
           done
 
       - name: Generate changelog
@@ -76,13 +80,13 @@ jobs:
         env:
           previous_tag: ${{ steps.previous-tag.outputs.tag }}
         run: |
-          log="$(git log "$previous_tag..HEAD" --oneline --no-merges | \
-            sed 's/#EOF#/EOF/' | tac)"
+          log="$(git log "$previous_tag..HEAD" --oneline --no-merges \
+            | sed 's/#EOF#/EOF/' | tac)"
           feats="$(printf '%s' "$log" | sed -ne 's/.* feat: *//p')"
           fixes="$(printf '%s' "$log" | sed -ne 's/.* fix: *//p')"
           changelog=''
 
-          prev_ifs=$IFS
+          prev_ifs="$IFS"
           IFS=$'\n'
 
           if [ -n "$feats" ]; then
