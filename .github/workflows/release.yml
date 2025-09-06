@@ -119,4 +119,4 @@ jobs:
           body: '${{ steps.generate-changelog.outputs.changelog }}'
           tag_name: '${{ steps.create-tag.outputs.version  }}'
           make_latest: true
-          files: './bin/*.zip'
+          files: './bin/*.{tar.gz,zip}'
