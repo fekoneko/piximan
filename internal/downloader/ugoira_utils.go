@@ -9,6 +9,7 @@ import (
 )
 
 // Fetch and encode gif asset for ugoira
+// May block the thread for a little while decoding the asset.
 func (d *Downloader) ugoiraAsset(id uint64, w *work.Work) (*fsext.Asset, error) {
 	url, frames, err := d.fetchFrames(w, id)
 	if err != nil {

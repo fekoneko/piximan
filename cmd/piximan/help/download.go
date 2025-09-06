@@ -194,3 +194,6 @@ func RunDownload() {
 //                        --bookmarks my --path "./{id}"
 
 // TODO: configure substitution words
+
+// TODO: prioritize crawl tasks over download tasks
+// FIXME: decoding of gifs halts the entire download process

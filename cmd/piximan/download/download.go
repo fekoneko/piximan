@@ -25,6 +25,9 @@ import (
 )
 
 func download(options *options) {
+	termext.DisableInputEcho()
+	defer termext.RestoreInputEcho()
+
 	config, sessionId := configSessionId(options.Password)
 	defaults := configDefaults(config)
 	rules := configRules(config)
@@ -41,9 +44,6 @@ func download(options *options) {
 	lowMeta := utils.FromPtr(options.LowMeta, false)
 	untilSkip := utils.FromPtr(options.UntilSkip, false)
 	paths := utils.FromPtr(options.Paths, []string{""})
-
-	termext.DisableInputEcho()
-	defer termext.RestoreInputEcho()
 
 	if options.Ids != nil {
 		d.Schedule(*options.Ids, kind, size, language, onlyMeta, paths)
@@ -95,6 +95,7 @@ func download(options *options) {
 							Id:       id,
 							Kind:     kind,
 							Size:     size,
+							Language: language,
 							OnlyMeta: onlyMeta,
 							Paths:    utils.If(options.Paths != nil, paths, paths),
 						})
@@ -131,6 +132,7 @@ func download(options *options) {
 							items = append(items, queue.Item{
 								Id:       id,
 								Kind:     queue.ItemKindArtwork,
+								Language: language,
 								Size:     size,
 								OnlyMeta: onlyMeta,
 								Paths:    utils.If(options.Paths != nil, paths, inferredPaths),
@@ -142,6 +144,7 @@ func download(options *options) {
 							items = append(items, queue.Item{
 								Id:       id,
 								Kind:     queue.ItemKindNovel,
+								Language: language,
 								Size:     size,
 								OnlyMeta: onlyMeta,
 								Paths:    utils.If(options.Paths != nil, paths, inferredPaths),
@@ -173,7 +176,7 @@ func download(options *options) {
 			}
 			seen[listPath] = true
 
-			q, err := fsext.ReadList(listPath, kind, size, onlyMeta, paths)
+			q, err := fsext.ReadList(listPath, kind, size, language, onlyMeta, paths)
 			logger.MaybeFatal(err, "cannot read download list from %v", listPath)
 			if len(*q) == 0 {
 				logger.Fatal("no works found in list %v", listPath)

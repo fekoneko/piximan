@@ -3,6 +3,7 @@ package fsext
 import (
 	"os"
 
+	"github.com/fekoneko/piximan/internal/collection/work"
 	"github.com/fekoneko/piximan/internal/downloader/queue"
 	"github.com/fekoneko/piximan/internal/fsext/dto"
 	"github.com/fekoneko/piximan/internal/imageext"
@@ -13,6 +14,7 @@ func ReadList(
 	path string,
 	defaultKind queue.ItemKind,
 	defaultSize imageext.Size,
+	defaultLanguage work.Language,
 	defaultOnlyMeta bool,
 	defaultPaths []string,
 ) (*queue.Queue, error) {
@@ -26,5 +28,5 @@ func ReadList(
 		return nil, err
 	}
 
-	return unmarshalled.FromDto(defaultKind, defaultSize, defaultOnlyMeta, defaultPaths)
+	return unmarshalled.FromDto(defaultKind, defaultSize, defaultLanguage, defaultOnlyMeta, defaultPaths)
 }

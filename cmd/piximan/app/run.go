@@ -6,10 +6,11 @@ import (
 
 const message = //
 `GUI for this application is not yet implemented.
-- To use the available downloader CLI, run 'piximan download'
-- Run 'piximan help downloader' or 'piximan help config' to see usage
-- Follow the project on https://github.com/fekoneko/piximan to see the updates`
+- To use available downloader CLI, run 'piximan download'
+- Run 'piximan help download' or 'piximan help config' to see usage
+- Follow the project on https://github.com/fekoneko/piximan to see updates
+`
 
 func Run() {
-	fmt.Println(message)
+	fmt.Print(message)
 }
