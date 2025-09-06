@@ -10,7 +10,15 @@ Pixiv batch **downloader** and local collection **viewer**. Preserve your favori
 
 ## Installation
 
-Go to [Releases](https://github.com/fekoneko/piximan/releases) page
+### Arch Linux
+
+[`piximan`](https://aur.archlinux.org/packages/piximan) and [`piximan-bin`](https://aur.archlinux.org/packages/piximan-bin) packages are available in the AUR.
+
+### Linux / Windows / MacOS
+
+Download a binary from the [latest release page](https://github.com/fekoneko/piximan/releases/latest)
+
+## Getting started with `piximan` CLI
 
 ## Downloader Features
 
@@ -29,8 +37,6 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 - Authorize requests with your session ID, `piximan` will try to use it as few as possible
 - Encrypt your session ID with a master password
 - Adjust request delays and concurrency limits
-
-## Getting started with `piximan` CLI
 
 ### Authorization
 
