@@ -8,7 +8,7 @@ import (
 
 type Queue []Item
 
-func (q *Queue) Push(items ...Item) {
+func (q *Queue) Push(items ...Item) (numNewWorks int) {
 	for _, item := range items {
 		if len(item.Paths) == 0 {
 			continue
@@ -22,6 +22,7 @@ func (q *Queue) Push(items ...Item) {
 		})
 
 		if existing == -1 {
+			numNewWorks++
 			*q = append(*q, item)
 			continue
 		}
@@ -32,6 +33,8 @@ func (q *Queue) Push(items ...Item) {
 			}
 		}
 	}
+
+	return numNewWorks
 }
 
 func (q *Queue) Pop() *Item {

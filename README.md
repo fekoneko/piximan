@@ -10,12 +10,21 @@ Pixiv batch **downloader** and local collection **viewer**. Preserve your favori
 
 ## Installation
 
-Go to [Releases](https://github.com/fekoneko/piximan/releases) page
+### Arch Linux
+
+[`piximan`](https://aur.archlinux.org/packages/piximan) and [`piximan-bin`](https://aur.archlinux.org/packages/piximan-bin) packages are available in the AUR.
+
+### Linux / Windows / MacOS
+
+Download a binary from the [latest release page](https://github.com/fekoneko/piximan/releases/latest)
+
+## Getting started with `piximan` CLI
 
 ## Downloader Features
 
 - Download illustrations / manga / ugoira / novels
 - Download different sizes (resolutions) of the illustrations / manga
+- Download orginal or English-translated work metadata if available
 - Download your bookmarks or bookmarks of another user
 - Download by work ID
 - Download from list
@@ -28,8 +37,6 @@ Go to [Releases](https://github.com/fekoneko/piximan/releases) page
 - Authorize requests with your session ID, `piximan` will try to use it as few as possible
 - Encrypt your session ID with a master password
 - Adjust request delays and concurrency limits
-
-## Getting started with `piximan` CLI
 
 ### Authorization
 
@@ -174,7 +181,7 @@ piximan download --infer-id './artworks/*/* ({id})' --only-meta
 
 ### Downloading rules
 
-Rules are used to filter wich works should be downloaded and defined in YAML format.
+Rules are used to filter which works should be downloaded and defined in YAML format.
 All rules are optional, and if multiple rules are defined, the work should match all of
 them to be downloaded (AND). Any array matches any of its elements (OR).
 
@@ -269,7 +276,6 @@ Use `make` to run and build the project:
 ```shell
 make run                 # Run piximan GUI
 make run ARGS='download' # Run piximan CLI tool with the arguments
-make build               # Build both for all platforms
 make build               # Build for all platforms
 make build:current       # Build for current platform
 make build:$PLATFORM     # Build for $PLATFORM

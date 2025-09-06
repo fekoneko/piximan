@@ -18,8 +18,9 @@ func (d *Downloader) Schedule(
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
 
+	numNewWorks := 0
 	for _, id := range ids {
-		d.downloadQueue.Push(queue.Item{
+		numNewWorks += d.downloadQueue.Push(queue.Item{
 			Id:       id,
 			Kind:     kind,
 			Size:     size,
@@ -28,7 +29,7 @@ func (d *Downloader) Schedule(
 			Paths:    paths,
 		})
 	}
-	d.logger.ExpectWorks(len(ids))
+	d.logger.ExpectWorks(numNewWorks)
 }
 
 // Schedule download with additional work metadata if available. Run() to start downloading.
@@ -39,8 +40,9 @@ func (d *Downloader) ScheduleWithKnown(
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
 
+	numNewWorks := 0
 	for _, id := range ids {
-		d.downloadQueue.Push(queue.Item{
+		numNewWorks += d.downloadQueue.Push(queue.Item{
 			Id:       id,
 			Kind:     kind,
 			Size:     size,
@@ -52,7 +54,7 @@ func (d *Downloader) ScheduleWithKnown(
 			LowMeta:  lowMeta,
 		})
 	}
-	d.logger.ExpectWorks(len(ids))
+	d.logger.ExpectWorks(numNewWorks)
 }
 
 // Append specified queue to the downloader queue. Run() to start downloading.
@@ -60,8 +62,8 @@ func (d *Downloader) ScheduleQueue(q *queue.Queue) {
 	d.downloadQueueMutex.Lock()
 	defer d.downloadQueueMutex.Unlock()
 
-	d.downloadQueue.Push(*q...)
-	d.logger.ExpectWorks(len(*q))
+	numNewWorks := d.downloadQueue.Push(*q...)
+	d.logger.ExpectWorks(numNewWorks)
 }
 
 // Run the downloader.
