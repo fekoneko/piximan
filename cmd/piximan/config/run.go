@@ -3,7 +3,7 @@ package config
 import "os"
 
 type options struct {
-	SessionId       *string   `short:"s" long:"session-id"`
+	SessionId       *string   `short:"S" long:"session-id"`
 	Password        *string   `short:"P" long:"password"`
 	Size            *uint64   `short:"s" long:"size"`
 	Language        *string   `short:"L" long:"language"`

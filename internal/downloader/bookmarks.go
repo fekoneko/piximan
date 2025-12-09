@@ -215,4 +215,4 @@ func bookmarksLogMessage(prefix string, userId uint64, tag *string, offset *uint
 	return builder.String()
 }
 
-var fullySkippedMessage = "found fully skipped bookmarks page, stopped crawling new pages to conserve requests"
+const fullySkippedMessage = "found fully skipped bookmarks page, stopped crawling new pages to conserve requests"
