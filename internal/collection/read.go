@@ -41,7 +41,7 @@ func (c *Collection) Read() {
 		})
 
 		if !cancelled {
-			c.logger.Info("parsed collection at %v in %v", collectionPath, time.Since(startTime))
+			c.logger.Success("parsed collection at %v in %v", collectionPath, time.Since(startTime))
 			c.channel <- nil
 		}
 		c.removeSignal(signal)
